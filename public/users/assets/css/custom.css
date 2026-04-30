@@ -1,0 +1,211 @@
+/* Form Validation */
+.error {
+   color: red !important;
+}
+.error_msg {
+   float: left;
+   padding-left: 16px !important;
+   padding-top: 5px !important;
+   padding-bottom: 15px !important;
+}
+/* jQuery Datepicker UI */
+.ui-datepicker { 
+   width: 20.5em; 
+   padding: .3em .3em 0;
+   margin-left: 13px; 
+}
+.ui-datepicker-header {
+   background: #4BD16F;
+   border: #4BD16F;
+   font-size: 18px;
+   padding-top: 5px !important;
+   padding-bottom: 5px !important;
+}
+.ui-datepicker .ui-state-default {
+   color: #969D9F;
+   font-size: 12px;
+   text-align: center;
+   margin: auto;
+   padding-top: 6px;
+   padding-bottom: 6px;
+}
+.ui-datepicker .ui-state-hover {
+   background: #4BD16F;  
+   border: #4BD16F;
+   color: #fff;
+}
+.ui-datepicker table {
+   width: 100%; 
+   font-size: 1em;  
+}
+/* Signup Profile Preview */
+#upload_profile {
+  width: 200px;
+}
+/* Signup Profile Error */
+#upload_profile .controls {
+  margin-left: -10px !important;
+}
+/* Verification Code */
+/*.input-otp {
+  row-gap: 5px !important; 
+}*/
+.input_otp .form-control {
+  padding: 0 !important;
+  max-width: 65px;
+  text-align: center;
+  margin: auto;
+}
+
+/* Signup Verified */
+.profile #verified_user {
+   width: 200px;
+   height: 200px;
+   border-radius: 100%;
+}
+
+/* Header */
+.nav-link .rounded-circle {
+  width: 20px !important;
+  height: 20px !important;
+}
+
+#user_profile .img-fluid {
+    width: 55px;
+    height: 55px;
+    border-radius: 100%;
+}
+#profile .img-fluid {
+    width: 55px;
+    height: 55px;
+    border-radius: 100%;
+}
+.edit-image-box .img-fluid {
+    width: 200px;
+    height: 200px;
+    border-radius: 100%;
+}
+#notification {
+    width: 370px; 
+}
+#notifications .img-fluid {
+    width: 40px;
+    height: 40px;
+    margin-right: 10px;
+}
+#notifications .media-body {
+    width: 230px;
+}
+#notifications .media-body small {
+    width: 230px;
+}
+#suggested_users {
+    display: none;
+    background: #fff;
+    border: 1px solid gray;
+    -webkit-box-shadow: 0 0 15px #D0D0D0;
+    box-shadow: 0 0 15px #D0D0D0;
+}
+#suggested_users ul {
+    list-style: none;
+    margin-left: -10px;
+    font-size: 12pt;
+}
+#suggested_users ul li {
+   height: 10px;
+}
+#offer_requests #user_image {
+    width: 55px;
+    height: 50px;
+    border-radius: 100%;
+}
+#offer_requests button {
+    width: 66px;
+    height: 23px;
+    border-radius: 15px;
+    font-size: 10px;
+    line-height: 7px;
+    margin-top: 5px;
+}
+#offer_requests #btn_remove {
+    background: red;
+    border: none;
+    color: #fff;
+    margin-bottom: 5px;
+}
+#select_tag select {
+    font-size: 20px;
+}
+#select_tag input {
+    border: none;
+    outline: none;
+    background: transparent;
+}
+#select_tag input:focus {
+    outline: none !important;
+}
+#connect_categories .img-fluid {
+    width: 40px;
+    height: 40px;
+    border-radius: 100%;
+}
+#popular_articles li {
+    margin-right: 20px;
+}
+#popular_articles .card-body {
+    width: 210px;
+}
+#popular_articles .img-fluid {
+    width: 200px;
+    height: 160px;
+    border-radius: 10px;
+}
+#other_articles li {
+    margin-right: 20px;
+}
+#other_articles .card-body {
+    width: 300px;
+}
+#other_articles .img-fluid {
+    width: 300px;
+    height: 155px;
+    border-radius: 10px;
+}
+#connect_article_blog .card {
+    border-radius: 10px;
+    -webkit-box-shadow: 0 0 7px 7px #E9F5EC;
+    -moz-box-shadow: 0 0 7px 7px #E9F5EC;
+    box-shadow: 0 0 7px 7px #E9F5EC;
+}
+#connect_article_blog .img-fluid {
+    width: 520px;
+    height: 300px;
+    border-radius: 10px;
+}
+#connect_article_blog p {
+    font-size: 13pt;
+ }
+#messages .img-fluid {
+    width: 40px;
+    height: 40px;
+    border-radius: 100%;
+}
+#your_account .img-fluid {
+    width: 50px;
+    height: 50px;
+    border-radius: 100%;
+}
+.loader {
+    display: none;
+    width: 100%;
+    height: 100%;
+    z-index: 30001;
+    opacity: 0.8;
+}
+.loader img {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
