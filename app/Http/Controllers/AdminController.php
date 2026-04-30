@@ -1015,7 +1015,7 @@ class AdminController extends Controller
     {
         if (session()->has('admin_id')) {
             try {
-                app(\App\Services\InsuretechSyncService::class)->pullProductsFromAdmin();
+                app(\App\services\InsuretechSyncService::class)->pullProductsFromAdmin();
             } catch (\Throwable $exception) {
                 \Log::warning('Unable to pull admin products in manage_products.', [
                     'error' => $exception->getMessage(),

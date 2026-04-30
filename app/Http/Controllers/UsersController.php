@@ -192,7 +192,7 @@ class UsersController extends Controller{
         }
 
         try {
-            app(\App\Services\InsuretechSyncService::class)->pullProductsFromAdmin();
+            app(\App\services\InsuretechSyncService::class)->pullProductsFromAdmin();
         } catch (\Throwable $exception) {
             \Log::warning('Unable to pull admin products in users_customers_dashboard.', [
                 'error' => $exception->getMessage(),
@@ -297,7 +297,7 @@ class UsersController extends Controller{
             return redirect('/');
         } else{
             try {
-                app(\App\Services\InsuretechSyncService::class)->pullProductsFromAdmin();
+                app(\App\services\InsuretechSyncService::class)->pullProductsFromAdmin();
             } catch (\Throwable $exception) {
                 \Log::warning('Unable to pull admin products in users_customers_products.', [
                     'error' => $exception->getMessage(),
@@ -315,7 +315,7 @@ class UsersController extends Controller{
             return redirect('/');
         } else{
             try {
-                app(\App\Services\InsuretechSyncService::class)->pullProductsFromAdmin();
+                app(\App\services\InsuretechSyncService::class)->pullProductsFromAdmin();
             } catch (\Throwable $exception) {
                 \Log::warning('Unable to pull admin products in products_buy.', [
                     'error' => $exception->getMessage(),
@@ -489,7 +489,7 @@ class UsersController extends Controller{
             return redirect('/');
         } else{
             try {
-                app(\App\Services\InsuretechSyncService::class)->pullProductsFromAdmin();
+                app(\App\services\InsuretechSyncService::class)->pullProductsFromAdmin();
             } catch (\Throwable $exception) {
                 \Log::warning('Unable to pull admin products in product_view.', [
                     'error' => $exception->getMessage(),

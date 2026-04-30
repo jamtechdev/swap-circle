@@ -13,7 +13,7 @@ use App\Models\{UsersCustomersWallet,SystemCurrency,SystemCountry,UsersCustomers
 use Illuminate\Support\Facades\Session;
 use Carbon\Carbon;
 use App\Helpers\Helper;
-use App\Services\InsuretechSyncService;
+use App\services\InsuretechSyncService;
 use App\Http\Controllers\PushNotificationController;
 use Barryvdh\DomPDF\Facade\Pdf;
 
@@ -4722,7 +4722,7 @@ public function handleStripeSuccess(Request $req)
             }
 
             try {
-                app(\App\Services\InsuretechSyncService::class)->pushPurchaseToAdmin((int) $purchase->products_purchases_id);
+                app(\App\services\InsuretechSyncService::class)->pushPurchaseToAdmin((int) $purchase->products_purchases_id);
             } catch (\Throwable $syncException) {
                 \Log::error('Insuretech realtime sync failed after Stripe success.', [
                     'purchase_id' => $purchase->products_purchases_id,

@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\InsuretechSyncService;
+use App\services\InsuretechSyncService;
 use Illuminate\Http\Request;
 
 class InsuretechSyncController extends Controller
