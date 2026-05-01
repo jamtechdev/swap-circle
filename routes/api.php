@@ -174,9 +174,6 @@ Route::get('/download-invoice/{purchase_id}', [UsersController::class, 'download
 // PRODUCTS
 
 // INSURETECH SYNC BRIDGE
-Route::post('/insuretech/pull-products', [InsuretechSyncController::class, 'pullProducts']);
-Route::post('/insuretech/push-purchase', [InsuretechSyncController::class, 'pushPurchase']);
 Route::post('/insuretech/sync-all', [InsuretechSyncController::class, 'syncAll']);
-Route::get('/insuretech/synced-products', [InsuretechSyncController::class, 'syncedProducts']);
-Route::get('/insuretech/test-connection', [InsuretechSyncController::class, 'testConnection']);
+Route::post('/insuretech/one-click-sale', [InsuretechSyncController::class, 'oneClickSale']);
 /* ----------------------------------- WEB API PANEL --------------------------------------------- */

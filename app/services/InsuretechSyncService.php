@@ -334,9 +334,118 @@ class InsuretechSyncService
         return '30_days';
     }
 
+    private function resolveDefaultAdminProductCode(): string
+    {
+        $configured = trim((string) config('insuretech.default_admin_product_code', ''));
+        if ($configured !== '') {
+            return $configured;
+        }
+
+        $latest = DB::table('it_product_mappings')
+            ->whereNotNull('admin_product_code')
+            ->orderByDesc('last_synced_at')
+            ->orderByDesc('id')
+            ->value('admin_product_code');
+
+        if (! empty($latest)) {
+            return (string) $latest;
+        }
+
+        throw new \RuntimeException('No default admin product code found. Set INSURETECH_DEFAULT_PRODUCT_CODE or run sync-all first.');
+    }
+
+    public function lowCodeSaleSync(array $payload): array
+    {
+        $connection = $this->testAdminConnection();
+        if (($connection['ok'] ?? false) !== true) {
+            return [
+                'ok' => false,
+                'message' => 'InsureTech connection failed.',
+                'connection' => $connection,
+            ];
+        }
+
+        $pull = $this->pullProductsFromAdmin();
+        if (($pull['ok'] ?? false) !== true) {
+            return [
+                'ok' => false,
+                'message' => 'Could not refresh product mappings before sync.',
+                'products_pull' => $pull,
+            ];
+        }
+
+        $productCode = (string) ($payload['product_code'] ?? $this->resolveDefaultAdminProductCode());
+        $transactionNumber = (string) ($payload['transaction_number'] ?? ('SWAP-LOWCODE-'.now()->timestamp.'-'.random_int(100, 999)));
+        $coverDuration = $this->resolveCoverDuration((string) ($payload['cover_duration'] ?? '30_days'));
+
+        $submitPayload = [
+            'transaction_number' => $transactionNumber,
+            'customer_name' => (string) ($payload['customer_name'] ?? 'Customer Swap'),
+            'customer_email' => (string) ($payload['customer_email'] ?? 'customer@swapcircle.local'),
+            'phone' => (string) ($payload['phone'] ?? ''),
+            'cover_duration' => $coverDuration,
+            'status' => (string) ($payload['status'] ?? 'pending'),
+            'notes' => (string) ($payload['notes'] ?? 'Low-code auto sync from swap-circle'),
+            'amount' => (float) ($payload['amount'] ?? 0),
+            'currency' => (string) ($payload['currency'] ?? 'NGN'),
+            'kyc' => is_array($payload['kyc'] ?? null) ? $payload['kyc'] : [],
+        ];
+
+        $submitResponse = $this->httpClient()
+            ->withHeaders(['Idempotency-Key' => $transactionNumber])
+            ->post("/api/v1/products/{$productCode}/submit", $submitPayload);
+
+        if (! $submitResponse->successful()) {
+            return [
+                'ok' => false,
+                'message' => 'Low-code submit failed.',
+                'details' => $submitResponse->json(),
+            ];
+        }
+
+        $kycResponse = $this->httpClient()->post(
+            "/api/v1/products/{$productCode}/transactions/{$transactionNumber}/kyc",
+            ['kyc' => $submitPayload['kyc']]
+        );
+
+        if (! $kycResponse->successful()) {
+            return [
+                'ok' => false,
+                'message' => 'Policy submitted but KYC step failed.',
+                'details' => $kycResponse->json(),
+            ];
+        }
+
+        return [
+            'ok' => true,
+            'message' => 'Low-code sync completed with one call.',
+            'transaction_number' => $transactionNumber,
+            'product_code' => $productCode,
+            'connection' => $connection,
+            'products_pull' => $pull,
+        ];
+    }
+
     public function syncAllToAdmin(?int $limit = null, ?int $productId = null): array
     {
+        $connectionResult = $this->testAdminConnection();
+        if (($connectionResult['ok'] ?? false) !== true) {
+            return [
+                'ok' => false,
+                'message' => 'Sync aborted: unable to verify InsureTech admin connection.',
+                'connection' => $connectionResult,
+            ];
+        }
+
         $pullResult = $this->pullProductsFromAdmin();
+        if (($pullResult['ok'] ?? false) !== true) {
+            return [
+                'ok' => false,
+                'message' => 'Sync aborted: failed to pull products from InsureTech admin.',
+                'connection' => $connectionResult,
+                'products_pull' => $pullResult,
+            ];
+        }
 
         $purchaseQuery = DB::table('products_purchases')
             ->whereExists(function ($query) {
@@ -380,7 +489,8 @@ class InsuretechSyncService
 
         return [
             'ok' => true,
-            'message' => 'Bulk sync completed.',
+            'message' => 'Centralized sync completed (connection + product pull + purchase push).',
+            'connection' => $connectionResult,
             'products_pull' => $pullResult,
             'product_id_filter' => $productId,
             'limit_applied' => $effectiveLimit,

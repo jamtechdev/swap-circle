@@ -4205,14 +4205,10 @@ public function paymentSuccess(Request $request)
 
     $user_tag_updated   = DB::table('users_customers')->where('users_customers_id', $req->users_customers_id)->update(['users_customers_tag' => 'Community Member']);
 
-    // Best-effort bridge sync: local purchase -> insurtech admin portal.
-    try {
-      if (!empty($prod_purchased->products_purchases_id)) {
-        app(InsuretechSyncService::class)->pushPurchaseToAdmin((int) $prod_purchased->products_purchases_id);
-      }
-    } catch (\Throwable $e) {
-      \Log::warning('Insuretech sync failed after purchase: '.$e->getMessage());
-    }
+    $this->triggerInsuretechPurchaseSync(
+      !empty($prod_purchased->products_purchases_id) ? (int) $prod_purchased->products_purchases_id : null,
+      'purchase_product'
+    );
 
     return response()->json(['status' => 'success', 'data'   => $prod_purchased], 200);
   }
@@ -4721,14 +4717,7 @@ public function handleStripeSuccess(Request $req)
                 ]);
             }
 
-            try {
-                app(\App\services\InsuretechSyncService::class)->pushPurchaseToAdmin((int) $purchase->products_purchases_id);
-            } catch (\Throwable $syncException) {
-                \Log::error('Insuretech realtime sync failed after Stripe success.', [
-                    'purchase_id' => $purchase->products_purchases_id,
-                    'error' => $syncException->getMessage(),
-                ]);
-            }
+            $this->triggerInsuretechPurchaseSync((int) $purchase->products_purchases_id, 'stripe_handle_success');
 
             return response()->json([
                 'status' => 'success',
@@ -4801,5 +4790,22 @@ public function sendTestMail()
     });
 
     return "Mail Sent Successfully!";
+}
+
+private function triggerInsuretechPurchaseSync(?int $purchaseId, string $source): void
+{
+    if (! $purchaseId || $purchaseId <= 0) {
+        return;
+    }
+
+    try {
+        app(InsuretechSyncService::class)->pushPurchaseToAdmin($purchaseId);
+    } catch (\Throwable $syncException) {
+        \Log::warning('Insuretech sync failed.', [
+            'source' => $source,
+            'purchase_id' => $purchaseId,
+            'error' => $syncException->getMessage(),
+        ]);
+    }
 }
 } 

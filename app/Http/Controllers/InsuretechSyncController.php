@@ -54,6 +54,27 @@ class InsuretechSyncController extends Controller
             $limit > 0 ? $limit : null,
             $productId > 0 ? $productId : null
         );
-        return response()->json($result, 200);
+        return response()->json($result, ($result['ok'] ?? false) ? 200 : 422);
+    }
+
+    public function oneClickSale(Request $request, InsuretechSyncService $syncService)
+    {
+        $request->validate([
+            'customer_name' => 'required|string|max:255',
+            'customer_email' => 'required|email|max:255',
+            'phone' => 'nullable|string|max:30',
+            'cover_duration' => 'nullable|string|max:100',
+            'transaction_number' => 'nullable|string|max:100',
+            'product_code' => 'nullable|string|max:80',
+            'status' => 'nullable|in:active,suspended,pending,cancelled,failed',
+            'notes' => 'nullable|string|max:1000',
+            'amount' => 'nullable|numeric|min:0',
+            'currency' => 'nullable|string|size:3',
+            'kyc' => 'nullable|array',
+        ]);
+
+        $result = $syncService->lowCodeSaleSync($request->all());
+
+        return response()->json($result, ($result['ok'] ?? false) ? 200 : 422);
     }
 }
