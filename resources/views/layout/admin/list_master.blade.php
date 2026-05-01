@@ -16,6 +16,7 @@
 	    <!-- Custom Stylesheet -->
 	    <link href="{{asset('vendor/bootstrap-select/dist/css/bootstrap-select.min.css')}}" rel="stylesheet">
 	    <link href="{{asset('css/style.css')}}" rel="stylesheet">
+		@vite(['resources/sass/app.scss', 'resources/js/app.js'])
 		<link rel="stylesheet" type="text/css" href="{{asset('/icons/flaticon/flaticon.css')}}">
 		<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css">
 		<style>

@@ -12,6 +12,7 @@
         <!-- Favicon icon -->
 		<link rel="icon" type="image" sizes="24x24" href="/public/uploads/system_image/favico.png">
         <link href="{{asset('css/style.css')}}" rel="stylesheet">
+        @vite(['resources/sass/app.scss', 'resources/js/app.js'])
         <style>
             body{
                background-color: #33d17b;

@@ -90,7 +90,7 @@ class InsuretechSyncService
         foreach ($products as $product) {
             $name = (string) ($product['name'] ?? '');
             $code = (string) ($product['product_code'] ?? '');
-            $resolvedPrice = (float) ($product['price'] ?? 0);
+            $adminGuidePrice = (float) ($product['price'] ?? 0);
             $mapped = DB::table('it_product_mappings')
                 ->where('admin_product_code', $code)
                 ->first();
@@ -116,7 +116,8 @@ class InsuretechSyncService
                 $newProductId = DB::table('products')->insertGetId([
                     'name' => $name !== '' ? $name : ('Product '.$code),
                     'description' => (string) ($product['description'] ?? ''),
-                    'price' => $resolvedPrice,
+                    // Pricing is partner-controlled on Swap side, not synced from admin guide price.
+                    'price' => 0,
                     'type' => 'A',
                     'status' => strtolower((string) ($product['status'] ?? 'active')) === 'active' ? 'Active' : 'Inactive',
                     'image' => (string) ($product['image_url'] ?? ''),
@@ -147,7 +148,8 @@ class InsuretechSyncService
                     ->update([
                         'name' => $name !== '' ? $name : (string) ($localProduct->name ?? ''),
                         'description' => (string) ($product['description'] ?? ($localProduct->description ?? '')),
-                        'price' => $resolvedPrice > 0 ? $resolvedPrice : (float) ($localProduct->price ?? 0),
+                        // Keep local partner pricing untouched during product pull.
+                        'price' => (float) ($localProduct->price ?? 0),
                         'status' => strtolower((string) ($product['status'] ?? 'active')) === 'active' ? 'Active' : 'Inactive',
                         'image' => (string) ($product['image_url'] ?? ($localProduct->image ?? '')),
                         'date_modified' => now()->toDateTimeString(),
@@ -161,7 +163,8 @@ class InsuretechSyncService
                     'slug' => Str::slug($name !== '' ? $name : $code),
                     'description' => (string) ($product['description'] ?? ''),
                     'currency' => 'NGN',
-                    'price' => $resolvedPrice,
+                    // Keep admin guide price only as reference in mapping mirror table.
+                    'price' => $adminGuidePrice,
                     'cover_duration_rule' => 'both',
                     'status' => strtolower((string) ($product['status'] ?? 'active')) === 'active' ? 'active' : 'inactive',
                     'updated_at' => now(),
@@ -242,6 +245,7 @@ class InsuretechSyncService
         $customerName = trim((string) (($customer->first_name ?? 'Customer').' '.($customer->last_name ?? 'Swap')));
         $transactionNumber = (string) ($purchase->transaction_number ?: 'SWAP-TXN-'.$purchase->products_purchases_id);
         $coverDuration = $this->resolveCoverDuration((string) ($purchase->cover_duration ?? ''));
+        $partnerPrice = (float) ($product->custom_price ?? $product->price ?? 0);
 
         $submitPayload = [
             'transaction_number' => $transactionNumber,
@@ -251,7 +255,7 @@ class InsuretechSyncService
             'cover_duration' => $coverDuration,
             'status' => $this->normalizePartnerTransactionStatus((string) ($purchase->payment_status ?? 'Pending')),
             'notes' => (string) ($purchase->payment_message ?? 'Synced from swap-circle'),
-            'amount' => (float) ($product->price ?? 0),
+            'amount' => $partnerPrice,
             'currency' => 'NGN',
             'kyc' => [
                 'id_type' => (string) ($customer->id_type ?? ''),
