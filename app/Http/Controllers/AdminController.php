@@ -1040,7 +1040,7 @@ class AdminController extends Controller
     public function manage_products()
     {
         if (session()->has('admin_id')) {
-            $products = DB::table('products')->where('status', '!=', 'Deleted')->orderBy('products_id', 'ASC')->get();
+            $products = DB::table('products')->where('status', '!=', 'Deleted')->where(function($q) { $q->whereNull('insurtech_status')->orWhere('insurtech_status', 'Active'); })->orderBy('products_id', 'ASC')->get();
             return view('admin.products', compact('products'));
         } else {
             return redirect('admin');

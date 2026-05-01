@@ -116,10 +116,10 @@ class InsuretechSyncService
                 $newProductId = DB::table('products')->insertGetId([
                     'name' => $name !== '' ? $name : ('Product '.$code),
                     'description' => (string) ($product['description'] ?? ''),
-                    // Pricing is partner-controlled on Swap side, not synced from admin guide price.
                     'price' => 0,
                     'type' => 'A',
-                    'status' => strtolower((string) ($product['status'] ?? 'active')) === 'active' ? 'Active' : 'Inactive',
+                    'status' => 'Active',
+                    'insurtech_status' => strtolower((string) ($product['status'] ?? 'active')) === 'active' ? 'Active' : 'Inactive',
                     'image' => (string) ($product['image_url'] ?? ''),
                     'date_added' => now()->toDateTimeString(),
                     'date_modified' => now()->toDateTimeString(),
@@ -148,9 +148,8 @@ class InsuretechSyncService
                     ->update([
                         'name' => $name !== '' ? $name : (string) ($localProduct->name ?? ''),
                         'description' => (string) ($product['description'] ?? ($localProduct->description ?? '')),
-                        // Keep local partner pricing untouched during product pull.
                         'price' => (float) ($localProduct->price ?? 0),
-                        'status' => strtolower((string) ($product['status'] ?? 'active')) === 'active' ? 'Active' : 'Inactive',
+                        'insurtech_status' => strtolower((string) ($product['status'] ?? 'active')) === 'active' ? 'Active' : 'Inactive',
                         'image' => (string) ($product['image_url'] ?? ($localProduct->image ?? '')),
                         'date_modified' => now()->toDateTimeString(),
                     ]);
@@ -200,9 +199,8 @@ class InsuretechSyncService
             if (! empty($localIdsToDeactivate)) {
                 $deactivated = DB::table('products')
                     ->whereIn('products_id', $localIdsToDeactivate)
-                    ->where('status', '!=', 'Inactive')
                     ->update([
-                        'status' => 'Inactive',
+                        'insurtech_status' => 'Inactive',
                         'date_modified' => now()->toDateTimeString(),
                     ]);
             }
