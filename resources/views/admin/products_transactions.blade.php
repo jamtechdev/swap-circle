@@ -142,6 +142,11 @@
                                     </thead>
                                     <tbody>
                                         @foreach ($products_purchases as $key => $item)
+                                        @php
+                                            $productType = (string) (optional($item->product)->type ?? '');
+                                            $isBeneficiaryProduct = in_array($productType, ['A', 'B'], true);
+                                            $isTaskProduct = $productType === 'C';
+                                        @endphp
                                         <tr class="odd gradeX">
                                             <td>{{ $key + 1 }}</td>
                                          <!--   <td>{{ $item->initiator->first_name.' '.$item->initiator->last_name }}</td> -->
@@ -151,7 +156,7 @@
                                             </td>
                                             <td>{{ optional($item->product)->name ?? 'N/A' }}</td>
                                     
-                                            <td>₦{{ $item->product->price }}</td>
+                                            <td>₦{{ number_format((float) (optional($item->product)->price ?? 0), 2) }}</td>
                                             <td>{{ $item->payment_status }}</td>
                                             <td>
                                                 <span 
@@ -178,17 +183,19 @@
                                                 <div class="modal-dialog modal-lg modal-dialog-centered">
                                                     <div class="modal-content">
                                                         <div class="modal-header px-3 pt-4">
-                                                           @if ($item->product->type == 'A' || $item->product->type == 'B')
+                                                           @if ($isBeneficiaryProduct)
                                                                 <h4>View Beneficiary's Details</h4>
-                                                            @elseif ($item->product->type == 'C')
+                                                            @elseif ($isTaskProduct)
                                                                 <h4>View Task Details</h4>
+                                                            @else
+                                                                <h4>View Transaction Details</h4>
                                                             @endif
 
                                                            <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
                                                         </div>
                                                         <div class="modal-body px-4 pb-4">
                                                             <div class="row px-3 mt-0">
-                                                                @if($item->product->type == 'A' || $item->product->type == 'B')
+                                                                @if($isBeneficiaryProduct)
                                                                     <div class="col-lg-4 col-md-4 px-1">
                                                                         <div class="form-group mb-4">
                                                                             <label><b>Name</b></label>
@@ -196,7 +203,7 @@
                                                                         </div>
                                                                     </div>
                                                                 @endif
-                                                                @if($item->product->type == 'A' || $item->product->type == 'B')
+                                                                @if($isBeneficiaryProduct)
                                                                     <div class="col-lg-4 col-md-4 px-1">
                                                                         <div class="form-group mb-4">
                                                                             <label><b>Gender</b></label>
@@ -204,7 +211,7 @@
                                                                         </div>
                                                                     </div>
                                                                 @endif
-                                                                @if($item->product->type == 'A' || $item->product->type == 'B')
+                                                                @if($isBeneficiaryProduct)
                                                                     <div class="col-lg-4 col-md-4 px-1">
                                                                         <div class="form-group mb-4">
                                                                             <label><b>Date of Birth</b></label>
@@ -212,7 +219,7 @@
                                                                         </div>
                                                                     </div>
                                                                 @endif
-                                                                @if($item->product->type == 'A' || $item->product->type == 'B')
+                                                                @if($isBeneficiaryProduct)
                                                                     <div class="col-lg-4 col-md-4 px-1">
                                                                         <div class="form-group mb-4">
                                                                             <label><b>Address</b></label>
@@ -220,7 +227,7 @@
                                                                         </div>
                                                                     </div>
                                                                 @endif
-                                                                @if($item->product->type == 'A' || $item->product->type == 'B')
+                                                                @if($isBeneficiaryProduct)
                                                                     <div class="col-lg-4 col-md-4 px-1">
                                                                         <div class="form-group mb-4">
                                                                             <label><b>Occupation</b></label>
@@ -228,7 +235,7 @@
                                                                         </div>
                                                                     </div>
                                                                 @endif
-                                                                @if($item->product->type == 'A' || $item->product->type == 'B')
+                                                                @if($isBeneficiaryProduct)
                                                                     <div class="col-lg-4 col-md-4 px-1">
                                                                         <div class="form-group mb-4">
                                                                             <label><b>Relationship</b></label>
@@ -236,7 +243,7 @@
                                                                         </div>
                                                                     </div>
                                                                 @endif
-                                                                @if($item->product->type == 'A' || $item->product->type == 'B')
+                                                                @if($isBeneficiaryProduct)
                                                                     <div class="col-lg-4 col-md-4 px-1">
                                                                         <div class="form-group mb-4">
                                                                             <label><b>NIN/NIN Document</b></label>
@@ -249,7 +256,7 @@
                                                                         </div>
                                                                     </div>
                                                                 @endif
-                                                                @if($item->product->type == 'C')
+                                                                @if($isTaskProduct)
                                                                     <div class="col-lg-4 col-md-4 px-1">
                                                                         <div class="form-group mb-4">
                                                                             <label><b>Task Type</b></label>
@@ -257,7 +264,7 @@
                                                                         </div>
                                                                     </div>
                                                                 @endif
-                                                                @if($item->product->type == 'C')
+                                                                @if($isTaskProduct)
                                                                     <div class="col-lg-4 col-md-4 px-1">
                                                                         <div class="form-group mb-4">
                                                                             <label><b>Task Name</b></label>
@@ -265,7 +272,7 @@
                                                                         </div>
                                                                     </div>
                                                                 @endif
-                                                                @if($item->product->type == 'C')
+                                                                @if($isTaskProduct)
                                                                     <div class="col-lg-4 col-md-4 px-1">
                                                                         <div class="form-group mb-4">
                                                                             <label><b>Task Date</b></label>
@@ -273,7 +280,7 @@
                                                                         </div>
                                                                     </div>
                                                                 @endif
-                                                                @if($item->product->type == 'C')
+                                                                @if($isTaskProduct)
                                                                     <div class="col-lg-12 col-md-12 px-1">
                                                                         <div class="form-group mb-4">
                                                                             <label><b>Description</b></label>
@@ -281,7 +288,7 @@
                                                                         </div>
                                                                     </div>
                                                                 @endif
-                                                                @if($item->product->type == 'C')
+                                                                @if($isTaskProduct)
                                                                     <div class="col-lg-4 col-md-4 px-1">
                                                                         <div class="form-group mb-4">
                                                                             <label><b>Contact Person Name</b></label>
@@ -289,7 +296,7 @@
                                                                         </div>
                                                                     </div>
                                                                 @endif
-                                                                @if($item->product->type == 'C')
+                                                                @if($isTaskProduct)
                                                                     <div class="col-lg-4 col-md-4 px-1">
                                                                         <div class="form-group mb-4">
                                                                             <label><b>Contact Person Phone No.</b></label>

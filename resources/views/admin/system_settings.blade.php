@@ -62,6 +62,11 @@
                     @include('layout.admin.settings')
                     <div class="card">
                         <div class="card-body">
+                            @php
+                                $insuretechAdminBaseUrl = optional($system_settings->firstWhere('type', 'insuretech_admin_base_url'))->description ?? env('INSURETECH_ADMIN_BASE_URL', '');
+                                $insuretechPartnerToken = optional($system_settings->firstWhere('type', 'insuretech_partner_token'))->description ?? env('INSURETECH_PARTNER_TOKEN', '');
+                                $insuretechRequestTimeout = optional($system_settings->firstWhere('type', 'insuretech_request_timeout'))->description ?? env('INSURETECH_REQUEST_TIMEOUT', 20);
+                            @endphp
                             <div class="basic-form">
                                 <form class="form-horizontal bordered-row" enctype="multipart/form-data" method="post" action="{{url('/admin/system_settings_edit')}}">
                                     @csrf
@@ -77,6 +82,28 @@
                                         <label class="col-sm-12 control-label">Transfer instructions for app</label>
                                         <div class="col-sm-12">
                                             <textarea rows="5" class="input-mask form-control" name="{{ $system_settings[22]->type }}" required>{{ $system_settings[22]->description }}</textarea>
+                                        </div>
+                                    </div>
+
+                                    <legend class="col-xl-12">Insuretech Partner Connection</legend>
+                                    <div class="row">
+                                        <div class="col-xl-4 form-group">
+                                            <label class="col-sm-12 control-label">Admin Base URL</label>
+                                            <div class="col-sm-12">
+                                                <input type="url" class="input-mask form-control" name="insuretech_admin_base_url" value="{{ $insuretechAdminBaseUrl }}" placeholder="https://admin.example.com">
+                                            </div>
+                                        </div>
+                                        <div class="col-xl-4 form-group">
+                                            <label class="col-sm-12 control-label">Partner Token</label>
+                                            <div class="col-sm-12">
+                                                <input type="text" class="input-mask form-control" name="insuretech_partner_token" value="{{ $insuretechPartnerToken }}" placeholder="Paste partner token">
+                                            </div>
+                                        </div>
+                                        <div class="col-xl-4 form-group">
+                                            <label class="col-sm-12 control-label">Request Timeout (seconds)</label>
+                                            <div class="col-sm-12">
+                                                <input type="number" min="1" class="input-mask form-control" name="insuretech_request_timeout" value="{{ $insuretechRequestTimeout }}">
+                                            </div>
                                         </div>
                                     </div>
 

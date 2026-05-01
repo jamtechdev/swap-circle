@@ -425,6 +425,7 @@
                         .then(function (data) {
                             if (data && data.ok) {
                                 alert('Admin products synced to Swap. Total synced: ' + (data.synced_products || 0));
+                                window.location.reload();
                                 return;
                             }
                             alert('Sync failed. Please check configuration.');
@@ -449,6 +450,7 @@
                         .then(function (data) {
                             if (data && data.ok) {
                                 alert('Synced product sales. Success: ' + (data.success_count || 0) + ', Failed: ' + (data.failed_count || 0));
+                                window.location.reload();
                                 return;
                             }
                             alert('Sales sync failed. Please check logs/config.');
@@ -479,6 +481,7 @@
                         .then(function (data) {
                             if (data && data.ok) {
                                 alert('Product sales synced. Success: ' + (data.success_count || 0) + ', Failed: ' + (data.failed_count || 0));
+                                window.location.reload();
                                 return;
                             }
                             alert('Product sales sync failed.');

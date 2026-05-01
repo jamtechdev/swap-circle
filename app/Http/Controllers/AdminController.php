@@ -104,15 +104,20 @@ class AdminController extends Controller
         if (session()->has('admin_id')) {
             $total_users_customers     = number_format(DB::table('users_customers')->count());
             $system_currency    = DB::table('system_settings')->select('description')->where('type', 'system_currency')->first();
-            $token = (string) env('INSURETECH_PARTNER_TOKEN', '');
-            $adminBaseUrl = rtrim((string) env('INSURETECH_ADMIN_BASE_URL', ''), '/');
+            $dbToken = (string) optional(DB::table('system_settings')->where('type', 'insuretech_partner_token')->first())->description;
+            $dbBaseUrl = (string) optional(DB::table('system_settings')->where('type', 'insuretech_admin_base_url')->first())->description;
+            $dbTimeout = (string) optional(DB::table('system_settings')->where('type', 'insuretech_request_timeout')->first())->description;
+
+            $token = trim($dbToken) !== '' ? trim($dbToken) : (string) env('INSURETECH_PARTNER_TOKEN', '');
+            $adminBaseUrl = rtrim(trim($dbBaseUrl) !== '' ? trim($dbBaseUrl) : (string) env('INSURETECH_ADMIN_BASE_URL', ''), '/');
+            $requestTimeout = (int) (trim($dbTimeout) !== '' ? trim($dbTimeout) : env('INSURETECH_REQUEST_TIMEOUT', 20));
             $isTokenConfigured = $token !== '';
             $isApiConnected = false;
             $connectionMessage = 'Token missing in .env';
 
             if ($isTokenConfigured && $adminBaseUrl !== '') {
                 try {
-                    $response = Http::timeout((int) env('INSURETECH_REQUEST_TIMEOUT', 20))
+                    $response = Http::timeout($requestTimeout > 0 ? $requestTimeout : 20)
                         ->acceptJson()
                         ->withToken($token)
                         ->get($adminBaseUrl.'/api/v1/partner/products');
@@ -428,6 +433,27 @@ class AdminController extends Controller
 
             $data['description'] = $image_n;
             DB::table('system_settings')->where('type', 'system_image')->update($data);
+        }
+
+        if (isset($req->insuretech_admin_base_url)) {
+            DB::table('system_settings')->updateOrInsert(
+                ['type' => 'insuretech_admin_base_url'],
+                ['description' => trim((string) $req->insuretech_admin_base_url)]
+            );
+        }
+
+        if (isset($req->insuretech_partner_token)) {
+            DB::table('system_settings')->updateOrInsert(
+                ['type' => 'insuretech_partner_token'],
+                ['description' => trim((string) $req->insuretech_partner_token)]
+            );
+        }
+
+        if (isset($req->insuretech_request_timeout)) {
+            DB::table('system_settings')->updateOrInsert(
+                ['type' => 'insuretech_request_timeout'],
+                ['description' => max(1, (int) $req->insuretech_request_timeout)]
+            );
         }
 
         session()->flash('success', 'System settings updated successfully!');

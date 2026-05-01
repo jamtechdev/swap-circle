@@ -8,14 +8,33 @@ use Illuminate\Support\Str;
 
 class InsuretechSyncService
 {
+    private function getRuntimeSetting(string $type, ?string $envKey = null, string $default = ''): string
+    {
+        try {
+            $row = DB::table('system_settings')->where('type', $type)->first();
+            $value = trim((string) ($row->description ?? ''));
+            if ($value !== '') {
+                return $value;
+            }
+        } catch (\Throwable $exception) {
+            // Fallback to .env/config when system_settings table is unavailable.
+        }
+
+        if ($envKey !== null) {
+            return trim((string) env($envKey, $default));
+        }
+
+        return $default;
+    }
+
     private function httpClient()
     {
-        $baseUrl = rtrim((string) config('insuretech.admin_base_url'), '/');
-        $token = (string) config('insuretech.partner_token');
-        $timeout = (int) config('insuretech.request_timeout_seconds', 20);
+        $baseUrl = rtrim($this->getRuntimeSetting('insuretech_admin_base_url', 'INSURETECH_ADMIN_BASE_URL', (string) config('insuretech.admin_base_url')), '/');
+        $token = $this->getRuntimeSetting('insuretech_partner_token', 'INSURETECH_PARTNER_TOKEN', (string) config('insuretech.partner_token'));
+        $timeout = (int) $this->getRuntimeSetting('insuretech_request_timeout', 'INSURETECH_REQUEST_TIMEOUT', (string) config('insuretech.request_timeout_seconds', 20));
 
         if ($baseUrl === '' || $token === '') {
-            throw new \RuntimeException('INSURETECH_ADMIN_BASE_URL or INSURETECH_PARTNER_TOKEN is missing in swap-circle .env.');
+            throw new \RuntimeException('Insuretech settings missing. Add partner settings in admin panel or .env.');
         }
 
         return Http::baseUrl($baseUrl)
@@ -64,7 +83,9 @@ class InsuretechSyncService
         }
 
         $products = (array) data_get($response->json(), 'data', []);
+        $incomingCodes = [];
         $synced = 0;
+        $deactivated = 0;
 
         foreach ($products as $product) {
             $name = (string) ($product['name'] ?? '');
@@ -84,6 +105,7 @@ class InsuretechSyncService
             if ($code === '') {
                 continue;
             }
+            $incomingCodes[] = $code;
 
             $localProduct = null;
             if ($mapped && ! empty($mapped->local_product_id)) {
@@ -158,10 +180,44 @@ class InsuretechSyncService
             $synced++;
         }
 
+        $incomingCodes = array_values(array_unique($incomingCodes));
+        if (! empty($incomingCodes)) {
+            $activeLocalIds = DB::table('it_product_mappings')
+                ->whereIn('admin_product_code', $incomingCodes)
+                ->whereNotNull('local_product_id')
+                ->pluck('local_product_id')
+                ->map(fn ($id) => (int) $id)
+                ->unique()
+                ->values()
+                ->all();
+
+            $staleLocalIds = DB::table('it_product_mappings')
+                ->whereNotIn('admin_product_code', $incomingCodes)
+                ->whereNotNull('local_product_id')
+                ->pluck('local_product_id')
+                ->map(fn ($id) => (int) $id)
+                ->unique()
+                ->values()
+                ->all();
+
+            $localIdsToDeactivate = array_values(array_diff($staleLocalIds, $activeLocalIds));
+
+            if (! empty($localIdsToDeactivate)) {
+                $deactivated = DB::table('products')
+                    ->whereIn('products_id', $localIdsToDeactivate)
+                    ->where('status', '!=', 'Inactive')
+                    ->update([
+                        'status' => 'Inactive',
+                        'date_modified' => now()->toDateTimeString(),
+                    ]);
+            }
+        }
+
         return [
             'ok' => true,
             'message' => 'Products pulled from admin portal.',
             'synced_products' => $synced,
+            'deactivated_products' => $deactivated,
         ];
     }
 
@@ -247,6 +303,8 @@ class InsuretechSyncService
     {
         $existingMapping = DB::table('it_product_mappings')
             ->where('local_product_id', $localProduct->products_id)
+            ->orderByDesc('last_synced_at')
+            ->orderByDesc('id')
             ->first();
 
         if ($existingMapping && ! empty($existingMapping->admin_product_code)) {
