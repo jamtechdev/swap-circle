@@ -96,7 +96,7 @@ public function paymentSuccess(Request $request)
   
                   $mail->to($to)
                        ->subject($subject)
-                       ->setBody($message, 'text/html');
+                       ->html($message);
   
                   // âœ… Attach files only if provided
                   if (!empty($attachments)) {
@@ -4516,7 +4516,7 @@ public function initiateStripePayment(Request $req)
 
      // Always use GBP
      $currency = 'gbp';
-     $amount = (int) round($product->price * 100);
+     $amount = (int) round(($product->custom_price ?? $product->price) * 100);
      if ($amount < 30) {
          return response()->json(['status' => 'error', 'message' => 'Amount below Stripe minimum'], 400);
      }
