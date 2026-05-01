@@ -12,6 +12,17 @@
                 
                 <ul style="align-items: center;" class="navbar-nav header-right">
 					@yield('filter')
+                    <li class="nav-item mr-2">
+                        <button
+                            id="swap-global-insuretech-sync"
+                            type="button"
+                            class="btn btn-light border"
+                            title="InsureTech sync"
+                            style="width:40px; height:40px; display:inline-flex; align-items:center; justify-content:center;"
+                        >
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </li>
 					<span style="font-weight:bold; margin-left:5px; padding-left:20px; font-size: 20px;" class="name">
 					    <?php
 							$user_data = DB::table('users_system')->select('first_name')->where('users_system_id', session('admin_id'))->get();

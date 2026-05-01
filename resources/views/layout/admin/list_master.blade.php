@@ -149,6 +149,62 @@
 	    <script>
 	        $(document).ready(function () {
 	    		$('#example').DataTable();
+
+                var globalSyncBtn = document.getElementById('swap-global-insuretech-sync');
+                if (globalSyncBtn) {
+                    globalSyncBtn.addEventListener('click', function () {
+                        globalSyncBtn.disabled = true;
+                        var icon = globalSyncBtn.querySelector('i');
+                        if (icon) {
+                            icon.classList.add('fa-spin');
+                        }
+
+                        fetch('/api/insuretech/sync', {
+                            method: 'POST',
+                            headers: {
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ limit: 200 })
+                        })
+                        .then(function (response) { return response.json(); })
+                        .then(function (data) {
+                            if (data && data.ok) {
+                                var total = (data.success_count || 0) + (data.failed_count || 0);
+                                var message = total === 0
+                                    ? 'InsureTech sync completed. No mapped purchases to push.'
+                                    : 'InsureTech sync completed. Success: ' + (data.success_count || 0) + ', Failed: ' + (data.failed_count || 0);
+                                if (typeof toastr !== 'undefined') {
+                                    toastr.success(message);
+                                } else {
+                                    alert(message);
+                                }
+                                return;
+                            }
+
+                            var failMessage = (data && data.message) ? data.message : 'InsureTech sync failed.';
+                            if (typeof toastr !== 'undefined') {
+                                toastr.error(failMessage);
+                            } else {
+                                alert(failMessage);
+                            }
+                        })
+                        .catch(function () {
+                            var networkMessage = 'InsureTech sync failed due to network or server error.';
+                            if (typeof toastr !== 'undefined') {
+                                toastr.error(networkMessage);
+                            } else {
+                                alert(networkMessage);
+                            }
+                        })
+                        .finally(function () {
+                            globalSyncBtn.disabled = false;
+                            if (icon) {
+                                icon.classList.remove('fa-spin');
+                            }
+                        });
+                    });
+                }
 	    	});
 	    </script>  
 
