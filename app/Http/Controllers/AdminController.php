@@ -1084,7 +1084,11 @@ class AdminController extends Controller
     public function products_update($status, $id)
     {
         if (session()->has('admin_id')) {
-            Session::flash('error', 'Product status changes are disabled on Swap. Please manage from Insurtech Admin portal.');
+            DB::table('products')->where('products_id', $id)->update([
+                'status' => $status,
+                'date_modified' => date('Y-m-d H:i:s')
+            ]);
+            Session::flash('success', 'Product status updated successfully.');
             return redirect('admin/manage_products');
         } else {
             return redirect('admin');

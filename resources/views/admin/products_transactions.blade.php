@@ -122,7 +122,7 @@
                         <div class="card-body">
                             <legend style="float: right;">
                                 <button id="swap-sync-btn-transactions-page" type="button" class="btn btn-light border" title="InsureTech sync — push mapped transactions">
-                                    <i class="fas fa-sync-alt"></i>
+                                   Sync <i class="fas fa-sync-alt"></i>
                                 </button>
                             </legend>
                             <div class="table-responsive">
@@ -175,7 +175,7 @@
                                                     data-purchase-id="{{ $item->products_purchases_id }}"
                                                     title="Sync this transaction to admin portal"
                                                 >
-                                                    <i class="fas fa-sync-alt"></i>
+                                                     <i class="fas fa-sync-alt"></i>
                                                 </button>
                                             </td>
                                             <!-- modal view start -->
@@ -215,7 +215,7 @@
                                                                     <div class="col-lg-4 col-md-4 px-1">
                                                                         <div class="form-group mb-4">
                                                                             <label><b>Date of Birth</b></label>
-                                                                            <input type="text" class="form-control" value="{{ optional($item->beneficiary)->date_of_birt? \Carbon\Carbon::parse($item->beneficiary->date_of_birth)->format('d-m-Y') : '' }}" readonly>
+                                                                            <input type="text" class="form-control" value="{{ optional($item->beneficiary)->date_of_birth ? \Carbon\Carbon::parse($item->beneficiary->date_of_birth)->format('d-m-Y') : '' }}" readonly>
                                                                         </div>
                                                                     </div>
                                                                 @endif

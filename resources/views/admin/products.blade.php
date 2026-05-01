@@ -237,7 +237,7 @@
                         <div class="card-body">                                    
                         <legend style="float: right;">
                             <button id="swap-insuretech-sync-btn" type="button" class="btn btn-light border" title="InsureTech sync (verify, pull products, push sales)">
-                                <i class="fas fa-sync-alt"></i>
+                                Sync <i class="fas fa-sync-alt"></i>
                             </button>
                         </legend>
                             <div class="table-responsive">
@@ -247,7 +247,7 @@
                                             <th>#</th>
                                             <th>Name</th>
                                             <th>Type</th>
-                                            <th>Base Price</th>
+                                            <th>Price</th>
                                             <th>Image</th>
                                             <th>Description</th>
                                             <th>Status</th>
@@ -262,7 +262,7 @@
                                             <td>{{ $item->type ?? 'A' }}</td>
                                             <td>{{ number_format((float)($item->custom_price ?? $item->price ?? 0), 2) }}
                                                 @if(isset($item->custom_price) && $item->custom_price !== null && $item->custom_price !== '')
-                                                    <br><small class="text-muted">Base: {{ number_format((float)($item->price ?? 0), 2) }}</small>
+                                                    <br><small class="text-muted">Guide: {{ number_format((float)($item->price ?? 0), 2) }}</small>
                                                 @endif
                                             </td>
                                             <td>
@@ -305,6 +305,21 @@
                                                     title="Edit Product" >
                                                     <i class="fa fa-edit"></i>
                                                 </button>
+                                                @if($item->status == 'Active')
+                                                <a href="{{ url('admin/products_update/Inactive/'.$item->products_id) }}" 
+                                                    class="btn btn-danger ml-1" 
+                                                    title="Deactivate"
+                                                    onclick="return confirm('Deactivate this product?')">
+                                                    <i class="fa fa-ban"></i>
+                                                </a>
+                                                @else
+                                                <a href="{{ url('admin/products_update/Active/'.$item->products_id) }}" 
+                                                    class="btn btn-success ml-1" 
+                                                    title="Activate"
+                                                    onclick="return confirm('Activate this product?')">
+                                                    <i class="fa fa-check"></i>
+                                                </a>
+                                                @endif
                                             <!-- modal start -->
                                             <div class="modal fade" id="modal_edit{{ $item->products_id }}">
                                                 <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
@@ -337,7 +352,7 @@
                                                                         </div>
                                                                         <div class="col-md-6 mb-3">
                                                                             <div class="form-group">
-                                                                                <b>Base Price (from Insurtech)</b>
+                                                                                <b>Guide Price (from Insurtech)</b>
                                                                                 <input type="number" class="form-control mt-1" value="{{ $item->price ?? 0 }}" readonly style="background:#f8f9fa;">
                                                                             </div>
                                                                         </div>
