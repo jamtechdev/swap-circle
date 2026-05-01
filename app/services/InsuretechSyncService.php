@@ -46,7 +46,7 @@ class InsuretechSyncService
     public function testAdminConnection(): array
     {
         try {
-            $response = $this->httpClient()->get('/api/v1/partner/products');
+            $response = $this->httpClient()->get('/api/v1/verify-token');
         } catch (\Throwable $exception) {
             return [
                 'ok' => false,
@@ -90,15 +90,7 @@ class InsuretechSyncService
         foreach ($products as $product) {
             $name = (string) ($product['name'] ?? '');
             $code = (string) ($product['product_code'] ?? '');
-            $uuid = (string) ($product['uuid'] ?? '');
-            $resolvedPrice = (float) (
-                $product['partner_price']
-                ?? $product['effective_price']
-                ?? $product['guide_price']
-                ?? $product['base_price']
-                ?? $product['price']
-                ?? 0
-            );
+            $resolvedPrice = (float) ($product['price'] ?? 0);
             $mapped = DB::table('it_product_mappings')
                 ->where('admin_product_code', $code)
                 ->first();
@@ -141,7 +133,7 @@ class InsuretechSyncService
                 ['admin_product_code' => $code],
                 [
                     'local_product_id' => $localProduct->products_id ?? null,
-                    'admin_product_uuid' => $uuid !== '' ? $uuid : null,
+                    'admin_product_uuid' => null,
                     'admin_product_name' => $name !== '' ? $name : null,
                     'last_synced_at' => now(),
                     'updated_at' => now(),
@@ -168,7 +160,7 @@ class InsuretechSyncService
                     'name' => $name !== '' ? $name : 'Product '.$code,
                     'slug' => Str::slug($name !== '' ? $name : $code),
                     'description' => (string) ($product['description'] ?? ''),
-                    'currency' => (string) ($product['partner_currency'] ?? 'NGN'),
+                    'currency' => 'NGN',
                     'price' => $resolvedPrice,
                     'cover_duration_rule' => 'both',
                     'status' => strtolower((string) ($product['status'] ?? 'active')) === 'active' ? 'active' : 'inactive',
@@ -247,36 +239,48 @@ class InsuretechSyncService
         $adminProductCode = $this->ensureAdminProductForPartner($product);
 
         $customerName = trim((string) (($customer->first_name ?? 'Customer').' '.($customer->last_name ?? 'Swap')));
+        $transactionNumber = (string) ($purchase->transaction_number ?: 'SWAP-TXN-'.$purchase->products_purchases_id);
+        $coverDuration = $this->resolveCoverDuration((string) ($purchase->cover_duration ?? ''));
 
-        $transactionPayload = [
-            'transaction_number' => (string) ($purchase->transaction_number ?: 'SWAP-TXN-'.$purchase->products_purchases_id),
+        $submitPayload = [
+            'transaction_number' => $transactionNumber,
             'customer_name' => $customerName !== '' ? $customerName : 'Customer Swap',
             'customer_email' => $customerEmail,
-            'product_code' => $adminProductCode,
-            'cover_duration' => (string) ($purchase->cover_duration ?? ''),
+            'phone' => (string) ($customer->phone ?? ''),
+            'cover_duration' => $coverDuration,
             'status' => $this->normalizePartnerTransactionStatus((string) ($purchase->payment_status ?? 'Pending')),
             'notes' => (string) ($purchase->payment_message ?? 'Synced from swap-circle'),
             'amount' => (float) ($product->price ?? 0),
             'currency' => 'NGN',
-            'date_added' => $purchase->date_added ?? now()->toDateTimeString(),
+            'kyc' => [
+                'id_type' => (string) ($customer->id_type ?? ''),
+                'id_number' => (string) ($customer->id_number ?? ''),
+            ],
         ];
 
-        $transactionResponse = $this->httpClient()
-            ->withHeaders(['Idempotency-Key' => (string) $transactionPayload['transaction_number']])
-            ->post('/api/v1/transactions', $transactionPayload);
-        if (! $transactionResponse->successful() && str_contains(strtolower((string) data_get($transactionResponse->json(), 'message', '')), 'product not found')) {
-            // Auto-recover: create partner-scoped code and retry once.
-            $adminProductCode = $this->ensureAdminProductForPartner($product, true);
-            $transactionPayload['product_code'] = $adminProductCode;
-            $transactionResponse = $this->httpClient()
-                ->withHeaders(['Idempotency-Key' => (string) $transactionPayload['transaction_number']])
-                ->post('/api/v1/transactions', $transactionPayload);
-        }
-        if (! $transactionResponse->successful()) {
+        $submitResponse = $this->httpClient()
+            ->withHeaders(['Idempotency-Key' => $transactionNumber])
+            ->post("/api/v1/products/{$adminProductCode}/submit", $submitPayload);
+
+        if (! $submitResponse->successful()) {
             return [
                 'ok' => false,
-                'message' => 'Transaction push failed.',
-                'details' => $transactionResponse->json(),
+                'message' => 'Policy submission failed.',
+                'details' => $submitResponse->json(),
+            ];
+        }
+
+        // Push KYC again in dedicated endpoint for consistency.
+        $kycResponse = $this->httpClient()->post(
+            "/api/v1/products/{$adminProductCode}/transactions/{$transactionNumber}/kyc",
+            ['kyc' => $submitPayload['kyc']]
+        );
+
+        if (! $kycResponse->successful()) {
+            return [
+                'ok' => false,
+                'message' => 'Policy submitted but KYC push failed.',
+                'details' => $kycResponse->json(),
             ];
         }
 
@@ -299,7 +303,7 @@ class InsuretechSyncService
         };
     }
 
-    private function ensureAdminProductForPartner(object $localProduct, bool $forceNewCode = false): string
+    private function ensureAdminProductForPartner(object $localProduct): string
     {
         $existingMapping = DB::table('it_product_mappings')
             ->where('local_product_id', $localProduct->products_id)
@@ -314,6 +318,20 @@ class InsuretechSyncService
         throw new \RuntimeException(
             'No mapped admin product found. Ask admin to create/assign product, then run pull-products sync on Swap.'
         );
+    }
+
+    private function resolveCoverDuration(string $rawCoverDuration): string
+    {
+        $value = strtolower(trim($rawCoverDuration));
+
+        if (str_contains($value, '365') || str_contains($value, 'annual') || str_contains($value, 'year')) {
+            return '365_days';
+        }
+        if (str_contains($value, '90')) {
+            return '90_days';
+        }
+
+        return '30_days';
     }
 
     public function syncAllToAdmin(?int $limit = null, ?int $productId = null): array
