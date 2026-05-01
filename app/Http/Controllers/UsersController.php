@@ -191,14 +191,6 @@ class UsersController extends Controller{
             return redirect('/');
         }
 
-        try {
-            app(\App\services\InsuretechSyncService::class)->pullProductsFromAdmin();
-        } catch (\Throwable $exception) {
-            \Log::warning('Unable to pull admin products in users_customers_dashboard.', [
-                'error' => $exception->getMessage(),
-            ]);
-        }
-
         $products = DB::table('products')
             ->where('status', 'Active')
             ->orderBy('products_id', 'ASC')
@@ -296,13 +288,6 @@ class UsersController extends Controller{
     	if (!session()->has('id')) {
             return redirect('/');
         } else{
-            try {
-                app(\App\services\InsuretechSyncService::class)->pullProductsFromAdmin();
-            } catch (\Throwable $exception) {
-                \Log::warning('Unable to pull admin products in users_customers_products.', [
-                    'error' => $exception->getMessage(),
-                ]);
-            }
             $products      = DB::table('products')->where('status', 'Active')->orderBy('products_id', 'ASC')->get();
             return view('users.users_customers_products', compact('products'));
         }
@@ -314,13 +299,6 @@ class UsersController extends Controller{
     	if (!session()->has('id')) {
             return redirect('/');
         } else{
-            try {
-                app(\App\services\InsuretechSyncService::class)->pullProductsFromAdmin();
-            } catch (\Throwable $exception) {
-                \Log::warning('Unable to pull admin products in products_buy.', [
-                    'error' => $exception->getMessage(),
-                ]);
-            }
             $occupations     = DB::table('occupations')->where('status', 'Active')->orderBy('occupations_id', 'ASC')->get();
             $relationships   = DB::table('relationships')->where('status', 'Active')->orderBy('relationships_id', 'ASC')->get();
             $tasks_types     = DB::table('tasks_types')->where('status', 'Active')->orderBy('tasks_types_id', 'ASC')->get();
@@ -488,13 +466,6 @@ class UsersController extends Controller{
         if (!session()->has('id')) {
             return redirect('/');
         } else{
-            try {
-                app(\App\services\InsuretechSyncService::class)->pullProductsFromAdmin();
-            } catch (\Throwable $exception) {
-                \Log::warning('Unable to pull admin products in product_view.', [
-                    'error' => $exception->getMessage(),
-                ]);
-            }
             $product = DB::table('products')->where('products_id', $product_id)->first();
             if (!$product) {
                 return redirect('/users/products')->with('error', 'Product not found.');

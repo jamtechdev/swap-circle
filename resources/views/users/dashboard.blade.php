@@ -43,7 +43,7 @@
                                                                     </a>
                                                                 </td>
                                                                 <td>{{ $item->type ?? 'A' }}</td>
-                                                                <td>₦ {{ number_format((float) ($item->price ?? 0), 2) }}</td>
+                                                                <td>₦ {{ number_format((float) ($item->custom_price ?? $item->price ?? 0), 2) }}</td>
                                                                 <td>{{ $item->status }}</td>
                                                                 <td>{{ \Carbon\Carbon::parse($item->date_added)->format('d-m-Y') }}</td>
                                                                 <td>

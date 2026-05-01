@@ -1040,13 +1040,6 @@ class AdminController extends Controller
     public function manage_products()
     {
         if (session()->has('admin_id')) {
-            try {
-                app(\App\services\InsuretechSyncService::class)->pullProductsFromAdmin();
-            } catch (\Throwable $exception) {
-                \Log::warning('Unable to pull admin products in manage_products.', [
-                    'error' => $exception->getMessage(),
-                ]);
-            }
             $products = DB::table('products')->where('status', '!=', 'Deleted')->orderBy('products_id', 'ASC')->get();
             return view('admin.products', compact('products'));
         } else {
@@ -1058,12 +1051,20 @@ class AdminController extends Controller
     // ------------- PRODUCTS EDIT -------------- //
     public function products_edit(Request $req)
     {
-        if (session()->has('admin_id')) {
-            Session::flash('error', 'Product editing is disabled on Swap. Please update products from Insurtech Admin portal.');
-            return redirect('admin/manage_products');
-        } else {
+        if (!session()->has('admin_id')) {
             return redirect('admin');
         }
+
+        $custom_price = $req->custom_price;
+        // If empty string or not provided, set to null (use base price)
+        $custom_price = ($custom_price !== null && $custom_price !== '') ? (float) $custom_price : null;
+
+        DB::table('products')
+            ->where('products_id', $req->products_id)
+            ->update(['custom_price' => $custom_price]);
+
+        Session::flash('success', 'Product price updated successfully.');
+        return redirect('admin/manage_products');
     }
     // ------------- PRODUCTS EDIT -------------- //
 

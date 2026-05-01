@@ -259,7 +259,11 @@
                                             <td>{{ $key + 1 }}</td>
                                             <td>{{ $item->name }}</td>
                                             <td>{{ $item->type ?? 'A' }}</td>
-                                            <td>{{ number_format((float)($item->price ?? 0), 2) }}</td>
+                                            <td>{{ number_format((float)($item->custom_price ?? $item->price ?? 0), 2) }}
+                                                @if($item->custom_price)
+                                                    <br><small class="text-muted">Base: {{ number_format((float)($item->price ?? 0), 2) }}</small>
+                                                @endif
+                                            </td>
                                             <td>
                                                 @if($item->image)
                                                     <img src="{{ asset($item->image) }}" alt="Image 1" style="width:100px; height: 100px;">
@@ -282,15 +286,23 @@
                                                 @endif
                                             </td>
                                             <td>
-                                                <span class="btn btn-light" style="cursor: default; border: 1px solid #ced4da; color: #6c757d;">
+                                                {{-- <span class="btn btn-light" style="cursor: default; border: 1px solid #ced4da; color: #6c757d;">
                                                     Managed by Admin
-                                                </span>
-                                                <button
+                                                </span> --}}
+                                                {{-- <button
                                                     type="button"
                                                     class="btn btn-outline-primary ml-1 swap-sync-single-product"
                                                     data-product-id="{{ $item->products_id }}"
                                                 >
                                                     Sync Sales
+                                                </button> --}}
+                                                <button 
+                                                    type="button" 
+                                                    class="btn btn-warning ml-1"
+                                                    data-toggle="modal" 
+                                                    data-target="#modal_edit{{ $item->products_id }}"
+                                                    title="Edit Product" >
+                                                    <i class="fa fa-edit"></i>
                                                 </button>
                                             <!-- modal start -->
                                             <div class="modal fade" id="modal_edit{{ $item->products_id }}">
@@ -306,75 +318,44 @@
                                                         </div>
                                                         <div class="modal-body">
                                                             <div class="basic-form">
-                                                                <form method="post" action="{{ url('admin/products_edit') }}" enctype="multipart/form-data">
+                                                                <form method="post" action="{{ url('admin/products_edit') }}">
+                                                                    @csrf
+                                                                    <input type="hidden" name="products_id" value="{{ $item->products_id }}">
                                                                     <div class="row">
-                                                                        <input type="hidden" name="products_id" value="{{ $item->products_id }}" readonly>
-                                                                        <div class="col-md-12 mb-3"> 
+                                                                        <div class="col-md-12 mb-3">
                                                                             <div class="form-group">
                                                                                 <b>Name</b>
-                                                                                <input type="text" name="name" class="form-control mt-1" value="{{ $item->name }}" required>
+                                                                                <input type="text" class="form-control mt-1" value="{{ $item->name }}" readonly style="background:#f8f9fa;">
                                                                             </div>
                                                                         </div>
                                                                         <div class="col-md-6 mb-3">
                                                                             <div class="form-group">
                                                                                 <b>Type</b>
-                                                                                <select name="type" class="form-control mt-1" required>
-                                                                                    <option value="A" {{ ($item->type ?? 'A') == 'A' ? 'selected' : '' }}>A</option>
-                                                                                    <option value="B" {{ ($item->type ?? '') == 'B' ? 'selected' : '' }}>B</option>
-                                                                                    <option value="C" {{ ($item->type ?? '') == 'C' ? 'selected' : '' }}>C</option>
-                                                                                </select>
+                                                                                <input type="text" class="form-control mt-1" value="{{ $item->type ?? 'A' }}" readonly style="background:#f8f9fa;">
                                                                             </div>
                                                                         </div>
                                                                         <div class="col-md-6 mb-3">
                                                                             <div class="form-group">
-                                                                                <b>Base Price (User-side)</b>
-                                                                                <input type="number" step="0.01" min="0" name="price" class="form-control mt-1" value="{{ $item->price ?? 0 }}" required>
+                                                                                <b>Base Price (from Insurtech)</b>
+                                                                                <input type="number" class="form-control mt-1" value="{{ $item->price ?? 0 }}" readonly style="background:#f8f9fa;">
                                                                             </div>
                                                                         </div>
-                                                                        <div class="col-md-12 mb-3"> 
+                                                                        <div class="col-md-12 mb-3">
+                                                                            <div class="form-group">
+                                                                                <b>Custom Price</b> <small class="text-muted">(leave empty to use base price)</small>
+                                                                                <input type="number" step="0.01" min="0" name="custom_price" class="form-control mt-1" value="{{ $item->custom_price ?? '' }}" placeholder="{{ $item->price ?? 0 }}">
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="col-md-12 mb-3">
                                                                             <div class="form-group">
                                                                                 <b>Description</b>
-                                                                                <textarea rows="6" name="description" class="form-control mt-1" required>{{ $item->description }}</textarea>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="col-md-12 mb-3"> 
-                                                                            <div class="form-group">
-                                                                                <b>Image</b> <br>
-
-                                                                                @if($item->image)
-                                                                                    {{-- Show existing image --}}
-                                                                                    <img 
-                                                                                        class="previewImage" 
-                                                                                        src="{{ asset($item->image) }}" 
-                                                                                        alt="Product Image" 
-                                                                                        style="width: 170px; height: 150px; object-fit: cover; cursor: pointer; border-radius: 8px; border: 1px solid #ccc;"
-                                                                                        onclick="this.nextElementSibling.click();"
-                                                                                    >
-                                                                                @else
-                                                                                    {{-- Upload box if no image --}}
-                                                                                    <div 
-                                                                                        class="uploadBox"
-                                                                                        onclick="this.nextElementSibling.click();"
-                                                                                        style="width: 170px; height: 150px; border: 2px dashed #aaa; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #777;"
-                                                                                    >
-                                                                                        <small>Click to Upload Image</small>
-                                                                                    </div>
-                                                                                @endif
-
-                                                                                {{-- Hidden file input --}}
-                                                                                <input 
-                                                                                    type="file" 
-                                                                                    name="image" 
-                                                                                    accept="image/*" 
-                                                                                    style="display: none;" 
-                                                                                    onchange="previewSelectedImage(this)"
-                                                                                >
+                                                                                <textarea rows="4" class="form-control mt-1" readonly style="background:#f8f9fa;">{{ $item->description }}</textarea>
                                                                             </div>
                                                                         </div>
                                                                     </div>
                                                                     <div class="d-flex justify-content-end mt-3">
                                                                         <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
-                                                                        <button type="submit" class="btn btn-primary ml-2">Save</button>
+                                                                        <button type="submit" class="btn btn-primary ml-2">Save Price</button>
                                                                     </div>
                                                                 </form>
                                                             </div>
@@ -423,12 +404,8 @@
 
                     postJson('/api/insuretech/pull-products')
                         .then(function (data) {
-                            if (data && data.ok) {
-                                alert('Admin products synced to Swap. Total synced: ' + (data.synced_products || 0));
-                                window.location.reload();
-                                return;
-                            }
-                            alert('Sync failed. Please check configuration.');
+                            alert('Products synced successfully!');
+                            window.location.reload();
                         })
                         .catch(function () {
                             alert('Sync failed due to network or server error.');
@@ -449,7 +426,12 @@
                     postJson('/api/insuretech/sync-all', { limit: 200 })
                         .then(function (data) {
                             if (data && data.ok) {
-                                alert('Synced product sales. Success: ' + (data.success_count || 0) + ', Failed: ' + (data.failed_count || 0));
+                                var total = (data.success_count || 0) + (data.failed_count || 0);
+                                if (total === 0) {
+                                    alert('No product purchases found to sync. Purchase a product first.');
+                                } else {
+                                    alert('Synced product transactions. Success: ' + (data.success_count || 0) + ', Failed: ' + (data.failed_count || 0));
+                                }
                                 window.location.reload();
                                 return;
                             }
