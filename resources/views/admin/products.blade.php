@@ -261,7 +261,7 @@
                                             <td>{{ $item->name }}</td>
                                             <td>{{ $item->type ?? 'A' }}</td>
                                             <td>{{ number_format((float)($item->custom_price ?? $item->price ?? 0), 2) }}
-                                                @if($item->custom_price)
+                                                @if(isset($item->custom_price) && $item->custom_price !== null && $item->custom_price !== '')
                                                     <br><small class="text-muted">Base: {{ number_format((float)($item->price ?? 0), 2) }}</small>
                                                 @endif
                                             </td>

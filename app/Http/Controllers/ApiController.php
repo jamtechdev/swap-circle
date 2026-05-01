@@ -4516,7 +4516,11 @@ public function initiateStripePayment(Request $req)
 
      // Always use GBP
      $currency = 'gbp';
-     $amount = (int) round(($product->custom_price ?? $product->price) * 100);
+     $price = isset($product->custom_price) ? $product->custom_price : ($product->price ?? null);
+     if (!is_numeric($price)) {
+         return response()->json(['status' => 'error', 'message' => 'Invalid product price'], 400);
+     }
+     $amount = (int) round(((float) $price) * 100);
      if ($amount < 30) {
          return response()->json(['status' => 'error', 'message' => 'Amount below Stripe minimum'], 400);
      }
