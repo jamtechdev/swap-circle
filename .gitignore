@@ -28,6 +28,9 @@
 /public/storage
 /public/hot
 /public/mix-manifest.json
+/public/build
+/.phpunit.result.cache
+/.phpunit.cache
 
 /php_errorlog
 /php.ini
