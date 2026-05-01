@@ -1051,12 +1051,20 @@ class AdminController extends Controller
     // ------------- PRODUCTS EDIT -------------- //
     public function products_edit(Request $req)
     {
-        if (session()->has('admin_id')) {
-            Session::flash('error', 'Product editing is disabled on Swap. Please update products from Insurtech Admin portal.');
-            return redirect('admin/manage_products');
-        } else {
+        if (!session()->has('admin_id')) {
             return redirect('admin');
         }
+
+        $custom_price = $req->custom_price;
+        // If empty string or not provided, set to null (use base price)
+        $custom_price = ($custom_price !== null && $custom_price !== '') ? (float) $custom_price : null;
+
+        DB::table('products')
+            ->where('products_id', $req->products_id)
+            ->update(['custom_price' => $custom_price]);
+
+        Session::flash('success', 'Product price updated successfully.');
+        return redirect('admin/manage_products');
     }
     // ------------- PRODUCTS EDIT -------------- //
 

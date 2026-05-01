@@ -3830,62 +3830,31 @@ function enableBuyNow(btn) {
                 }),
             };
             $.ajax(settings).done(function (response) {
-
               if (response.status === 'success') {
-
-              // STEP 1: Product purchase saved successfully
-            //   toastr.success('Product purchased successfully.');
-
-              // STEP 2: Initiate Stripe payment (NO UI, NO REDIRECT)
-              $.ajax({
-                  url: "{{ rtrim(config('app.api_url'), '/') }}/stripe/initiate-payment",
-                  method: "POST",
-                  timeout: 0,
-                  headers: {
-                      "Content-Type": "application/json"
-                  },
-                  data: JSON.stringify({
-                      products_purchases_id: response.data.products_purchases_id
-                  }),
-                  success: function (stripeRes) {
-
-                      if (stripeRes.status === 'success') {
-
-                          // toastr.success(
-                          //     'Payment initiated successfully. Ref: ' +
-                          //     stripeRes.stripe_payment_intent
-                          // );
-
-                          // Redirect to Stripe Checkout
-                          window.location.href = stripeRes.checkout_url;
-
-                      } else {
-                          toastr.error('Stripe initiation failed: ' + (stripeRes.message || 'Unknown error'));
+                  $.ajax({
+                      url: "{{ rtrim(config('app.api_url'), '/') }}/stripe/initiate-payment",
+                      method: "POST",
+                      timeout: 0,
+                      headers: { "Content-Type": "application/json" },
+                      data: JSON.stringify({ products_purchases_id: response.data.products_purchases_id }),
+                      success: function (stripeRes) {
+                          if (stripeRes.status === 'success' && stripeRes.checkout_url) {
+                              window.location.href = stripeRes.checkout_url;
+                          } else {
+                              toastr.error(stripeRes.message || 'Payment setup failed. Please contact support.');
+                              enableBuyNow($buyBtn);
+                          }
+                      },
+                      error: function () {
+                          toastr.error('Payment service unavailable. Please try again later.');
                           enableBuyNow($buyBtn);
                       }
-                  },
-                  error: function () {
-                      toastr.error('Stripe service unavailable.');
-                      enableBuyNow($buyBtn);
-                  }
-              });
-
-                } else {
-                    toastr.error(response.message || 'Something went wrong.');
-                    enableBuyNow($buyBtn);
-                }
+                  });
+              } else {
+                  toastr.error(response.message || 'Something went wrong.');
+                  enableBuyNow($buyBtn);
+              }
             });
-
-            // $.ajax(settings).done(function (response) {
-            //     if (response.status == 'success') {
-            //         toastr.success('Product purchased successfully.');
-            //         setTimeout(function() {
-            //             window.location.href = '/users/products';
-            //         }, 500);
-            //     } else {
-            //         toastr.error(response.error);
-            //     }
-            // });
             /* AJAX API CALL */
         }
     });
@@ -3952,62 +3921,31 @@ function enableBuyNow(btn) {
                     "nin_document": nin_document
                 }),
             };
-            // $.ajax(settings).done(function (response) {
-            //     if (response.status == 'success') {
-            //         toastr.success('Product purchased successfully.');
-            //         setTimeout(function() {
-            //             window.location.href = '/users/products';
-            //         }, 500);
-            //     } else {
-            //         toastr.error(response.error);
-            //     }
-            // });
-            // /* AJAX API CALL */
-             $.ajax(settings).done(function (response) {
-
+            $.ajax(settings).done(function (response) {
               if (response.status === 'success') {
-
-              // STEP 1: Product purchase saved successfully
-            //   toastr.success('Product purchased successfully.');
-
-              // STEP 2: Initiate Stripe payment (NO UI, NO REDIRECT)
-              $.ajax({
-                  url: "{{ rtrim(config('app.api_url'), '/') }}/stripe/initiate-payment",
-                  method: "POST",
-                  timeout: 0,
-                  headers: {
-                      "Content-Type": "application/json"
-                  },
-                  data: JSON.stringify({
-                      products_purchases_id: response.data.products_purchases_id
-                  }),
-                  success: function (stripeRes) {
-
-                      if (stripeRes.status === 'success') {
-
-                        //   toastr.success(
-                        //       'Payment initiated successfully. Ref: ' +
-                        //       stripeRes.stripe_payment_intent
-                        //   );
-
-                          // Redirect to Stripe Checkout
-                          window.location.href = stripeRes.checkout_url;
-
-                      } else {
-                          toastr.error('Stripe initiation failed: ' + (stripeRes.message || 'Unknown error'));
+                  $.ajax({
+                      url: "{{ rtrim(config('app.api_url'), '/') }}/stripe/initiate-payment",
+                      method: "POST",
+                      timeout: 0,
+                      headers: { "Content-Type": "application/json" },
+                      data: JSON.stringify({ products_purchases_id: response.data.products_purchases_id }),
+                      success: function (stripeRes) {
+                          if (stripeRes.status === 'success' && stripeRes.checkout_url) {
+                              window.location.href = stripeRes.checkout_url;
+                          } else {
+                              toastr.error(stripeRes.message || 'Payment setup failed. Please contact support.');
+                              enableBuyNow($buyBtn);
+                          }
+                      },
+                      error: function () {
+                          toastr.error('Payment service unavailable. Please try again later.');
                           enableBuyNow($buyBtn);
                       }
-                  },
-                  error: function () {
-                      toastr.error('Stripe service unavailable.');
-                      enableBuyNow($buyBtn);
-                  }
-              });
-
-                } else {
-                    toastr.error(response.message || 'Something went wrong.');
-                    enableBuyNow($buyBtn);
-                }
+                  });
+              } else {
+                  toastr.error(response.message || 'Something went wrong.');
+                  enableBuyNow($buyBtn);
+              }
             });
         }
     });
@@ -4054,62 +3992,31 @@ function enableBuyNow(btn) {
                     "recipient_phone": recipient_phone
                 }),
             };
-            // $.ajax(settings).done(function (response) {
-            //     if (response.status == 'success') {
-            //         toastr.success('Task request submitted successfully.');
-            //         setTimeout(function() {
-            //             window.location.href = '/users/products';
-            //         }, 500);
-            //     } else {
-            //         toastr.error(response.error);
-            //     }
-            // });
-            // /* AJAX API CALL */
-             $.ajax(settings).done(function (response) {
-
+            $.ajax(settings).done(function (response) {
               if (response.status === 'success') {
-
-              // STEP 1: Product purchase saved successfully
-            //   toastr.success('Product purchased successfully.');
-
-              // STEP 2: Initiate Stripe payment (NO UI, NO REDIRECT)
-              $.ajax({
-                  url: "{{ rtrim(config('app.api_url'), '/') }}/stripe/initiate-payment",
-                  method: "POST",
-                  timeout: 0,
-                  headers: {
-                      "Content-Type": "application/json"
-                  },
-                  data: JSON.stringify({
-                      products_purchases_id: response.data.products_purchases_id
-                  }),
-                  success: function (stripeRes) {
-
-                      if (stripeRes.status === 'success') {
-
-                          // toastr.success(
-                          //     'Payment initiated successfully. Ref: ' +
-                          //     stripeRes.stripe_payment_intent
-                          // );
-
-                          // Redirect to Stripe Checkout
-                          window.location.href = stripeRes.checkout_url;
-
-                      } else {
-                          toastr.error('Stripe initiation failed: ' + (stripeRes.message || 'Unknown error'));
+                  $.ajax({
+                      url: "{{ rtrim(config('app.api_url'), '/') }}/stripe/initiate-payment",
+                      method: "POST",
+                      timeout: 0,
+                      headers: { "Content-Type": "application/json" },
+                      data: JSON.stringify({ products_purchases_id: response.data.products_purchases_id }),
+                      success: function (stripeRes) {
+                          if (stripeRes.status === 'success' && stripeRes.checkout_url) {
+                              window.location.href = stripeRes.checkout_url;
+                          } else {
+                              toastr.error(stripeRes.message || 'Payment setup failed. Please contact support.');
+                              enableBuyNow($buyBtn);
+                          }
+                      },
+                      error: function () {
+                          toastr.error('Payment service unavailable. Please try again later.');
                           enableBuyNow($buyBtn);
                       }
-                  },
-                  error: function () {
-                      toastr.error('Stripe service unavailable.');
-                      enableBuyNow($buyBtn);
-                  }
-              });
-
-                } else {
-                    toastr.error(response.message || 'Something went wrong.');
-                    enableBuyNow($buyBtn);
-                }
+                  });
+              } else {
+                  toastr.error(response.message || 'Something went wrong.');
+                  enableBuyNow($buyBtn);
+              }
             });
         }
     });

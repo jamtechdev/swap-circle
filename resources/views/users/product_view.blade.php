@@ -48,7 +48,7 @@
                                                                 </div>
                                                                 <div class="flex-grow-1 ms-3">
                                                                     <small class="text-muted d-block">Price</small>
-                                                                    <strong class="text-success">£{{ number_format($product->price, 2) }}</strong>
+                                                                    <strong class="text-success">£{{ number_format($product->custom_price ?? $product->price, 2) }}</strong>
                                                                 </div>
                                                             </div>
                                                         </div>

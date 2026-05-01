@@ -48,7 +48,7 @@
                                             </div>
                                             @endif
                                             <div class="text-center mt-2">
-                                                <strong class="text-success fs-5">&pound;{{ number_format($item->price, 2) }}</strong>
+                                                <strong class="text-success fs-5">&pound;{{ number_format($item->custom_price ?? $item->price, 2) }}</strong>
                                             </div>
                                         </div>
                                     </div>    
