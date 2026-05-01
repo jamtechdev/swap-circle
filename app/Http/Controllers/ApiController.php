@@ -4799,7 +4799,7 @@ private function triggerInsuretechPurchaseSync(?int $purchaseId, string $source)
     }
 
     try {
-        app(InsuretechSyncService::class)->pushPurchaseToAdmin($purchaseId);
+        app(InsuretechSyncService::class)->runSync(['products_purchases_id' => $purchaseId]);
     } catch (\Throwable $syncException) {
         \Log::warning('Insuretech sync failed.', [
             'source' => $source,

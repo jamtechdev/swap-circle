@@ -173,7 +173,6 @@ Route::post('/stripe/handle-cancel', [ApiController::class, 'handleStripeCancel'
 Route::get('/download-invoice/{purchase_id}', [UsersController::class, 'download_invoice']);
 // PRODUCTS
 
-// INSURETECH SYNC BRIDGE
-Route::post('/insuretech/sync-all', [InsuretechSyncController::class, 'syncAll']);
-Route::post('/insuretech/one-click-sale', [InsuretechSyncController::class, 'oneClickSale']);
+// INSURETECH SYNC BRIDGE (single endpoint)
+Route::post('/insuretech/sync', [InsuretechSyncController::class, 'sync']);
 /* ----------------------------------- WEB API PANEL --------------------------------------------- */

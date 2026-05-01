@@ -213,9 +213,10 @@ class InsuretechSyncService
         ];
     }
 
-    public function pushPurchaseToAdmin(int $productsPurchasesId): array
+    public function pushPurchaseToAdmin(int $productsPurchasesId, bool $skipCatalogPull = false): array
     {
-        if ((bool) config('insuretech.auto_pull_before_push', true)) {
+        $shouldPull = ! $skipCatalogPull && (bool) config('insuretech.auto_pull_before_push', true);
+        if ($shouldPull) {
             // Keep Swap product catalog fresh before attempting customer/transaction push.
             $this->pullProductsFromAdmin();
         }
@@ -316,7 +317,7 @@ class InsuretechSyncService
         }
 
         throw new \RuntimeException(
-            'No mapped admin product found. Ask admin to create/assign product, then run pull-products sync on Swap.'
+            'No mapped admin product found. Ask admin to create/assign product, then run InsureTech sync on Swap.'
         );
     }
 
@@ -351,7 +352,63 @@ class InsuretechSyncService
             return (string) $latest;
         }
 
-        throw new \RuntimeException('No default admin product code found. Set INSURETECH_DEFAULT_PRODUCT_CODE or run sync-all first.');
+        throw new \RuntimeException('No default admin product code found. Set INSURETECH_DEFAULT_PRODUCT_CODE or run InsureTech sync first.');
+    }
+
+    /**
+     * Single entry point: batch sync, single purchase sync, or inline low-code sale payload.
+     */
+    public function runSync(array $input): array
+    {
+        $purchaseId = (int) ($input['products_purchases_id'] ?? 0);
+
+        if ($purchaseId > 0) {
+            $connection = $this->testAdminConnection();
+            if (($connection['ok'] ?? false) !== true) {
+                return [
+                    'ok' => false,
+                    'message' => 'InsureTech connection failed.',
+                    'connection' => $connection,
+                ];
+            }
+
+            $pull = $this->pullProductsFromAdmin();
+            if (($pull['ok'] ?? false) !== true) {
+                return [
+                    'ok' => false,
+                    'message' => 'Could not refresh product mappings before sync.',
+                    'products_pull' => $pull,
+                    'connection' => $connection,
+                ];
+            }
+
+            $push = $this->pushPurchaseToAdmin($purchaseId, true);
+            $push['connection'] = $connection;
+            $push['products_pull'] = $pull;
+            $push['mode'] = 'single_purchase';
+
+            return $push;
+        }
+
+        $customerName = trim((string) ($input['customer_name'] ?? ''));
+        $customerEmail = trim((string) ($input['customer_email'] ?? ''));
+        if ($customerName !== '' && $customerEmail !== '' && filter_var($customerEmail, FILTER_VALIDATE_EMAIL)) {
+            $result = $this->lowCodeSaleSync($input);
+            $result['mode'] = 'inline_sale';
+
+            return $result;
+        }
+
+        $limit = isset($input['limit']) ? (int) $input['limit'] : null;
+        $productId = isset($input['product_id']) ? (int) $input['product_id'] : null;
+
+        $batch = $this->syncAllToAdmin(
+            ($limit !== null && $limit > 0) ? $limit : null,
+            ($productId !== null && $productId > 0) ? $productId : null
+        );
+        $batch['mode'] = 'batch';
+
+        return $batch;
     }
 
     public function lowCodeSaleSync(array $payload): array
@@ -475,7 +532,7 @@ class InsuretechSyncService
         $errors = [];
 
         foreach ($purchases as $purchase) {
-            $result = $this->pushPurchaseToAdmin((int) $purchase->products_purchases_id);
+            $result = $this->pushPurchaseToAdmin((int) $purchase->products_purchases_id, true);
             if (($result['ok'] ?? false) === true) {
                 $successCount++;
             } else {

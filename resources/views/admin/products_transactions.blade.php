@@ -121,8 +121,8 @@
                     <div class="card">
                         <div class="card-body">
                             <legend style="float: right;">
-                                <button id="swap-sync-btn-transactions-page" type="button" class="btn btn-primary">
-                                    Sync Transactions to Admin Portal
+                                <button id="swap-sync-btn-transactions-page" type="button" class="btn btn-light border" title="InsureTech sync — push mapped transactions">
+                                    <i class="fas fa-sync-alt"></i>
                                 </button>
                             </legend>
                             <div class="table-responsive">
@@ -338,23 +338,27 @@
             if (bulkSyncBtn) {
                 bulkSyncBtn.addEventListener('click', function () {
                     bulkSyncBtn.disabled = true;
-                    var originalText = bulkSyncBtn.innerText;
-                    bulkSyncBtn.innerText = 'Syncing...';
+                    var icon = bulkSyncBtn.querySelector('i');
+                    if (icon) {
+                        icon.classList.add('fa-spin');
+                    }
 
-                    postJson('/api/insuretech/sync-all', { limit: 200 })
+                    postJson('/api/insuretech/sync', { limit: 200 })
                         .then(function (data) {
                             if (data && data.ok) {
                                 alert('Transactions synced to Admin Portal. Success: ' + (data.success_count || 0) + ', Failed: ' + (data.failed_count || 0));
                                 return;
                             }
-                            alert('Bulk transaction sync failed.');
+                            alert((data && data.message) ? data.message : 'Bulk transaction sync failed.');
                         })
                         .catch(function () {
                             alert('Bulk transaction sync failed due to network or server error.');
                         })
                         .finally(function () {
                             bulkSyncBtn.disabled = false;
-                            bulkSyncBtn.innerText = originalText;
+                            if (icon) {
+                                icon.classList.remove('fa-spin');
+                            }
                         });
                 });
             }
@@ -371,7 +375,7 @@
                     var originalHtml = btn.innerHTML;
                     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
-                    postJson('/api/insuretech/push-purchase', { products_purchases_id: purchaseId })
+                    postJson('/api/insuretech/sync', { products_purchases_id: purchaseId })
                         .then(function (data) {
                             if (data && data.ok) {
                                 alert('Transaction synced successfully to Admin Portal.');

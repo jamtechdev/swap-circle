@@ -236,8 +236,9 @@
                     <div class="card">
                         <div class="card-body">                                    
                         <legend style="float: right;">
-                            <button id="swap-sync-btn-products" type="button" class="btn btn-info mr-2">Pull Admin Products</button>
-                            <button id="swap-sync-btn-transactions" type="button" class="btn btn-primary">Sync Product Transactions</button>
+                            <button id="swap-insuretech-sync-btn" type="button" class="btn btn-light border" title="InsureTech sync (verify, pull products, push sales)">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
                         </legend>
                             <div class="table-responsive">
                                 <table id="example" class="table dt-responsive nowrap display min-w850">
@@ -382,8 +383,7 @@
     <script src="{{ asset('users/assets/js/jquery.additional.methods.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            var syncBtn = document.getElementById('swap-sync-btn-products');
-            var syncTransactionsBtn = document.getElementById('swap-sync-btn-transactions');
+            var insuretechSyncBtn = document.getElementById('swap-insuretech-sync-btn');
 
             function postJson(url, payload) {
                 return fetch(url, {
@@ -396,53 +396,47 @@
                 }).then(function (response) { return response.json(); });
             }
 
-            if (syncBtn) {
-                syncBtn.addEventListener('click', function () {
-                    syncBtn.disabled = true;
-                    var originalText = syncBtn.innerText;
-                    syncBtn.innerText = 'Syncing...';
+            if (insuretechSyncBtn) {
+                insuretechSyncBtn.addEventListener('click', function () {
+                    insuretechSyncBtn.disabled = true;
+                    var icon = insuretechSyncBtn.querySelector('i');
+                    if (icon) {
+                        icon.classList.add('fa-spin');
+                    }
 
-                    postJson('/api/insuretech/pull-products')
-                        .then(function (data) {
-                            alert('Products synced successfully!');
-                            window.location.reload();
-                        })
-                        .catch(function () {
-                            alert('Sync failed due to network or server error.');
-                        })
-                        .finally(function () {
-                            syncBtn.disabled = false;
-                            syncBtn.innerText = originalText;
-                        });
-                });
-            }
-
-            if (syncTransactionsBtn) {
-                syncTransactionsBtn.addEventListener('click', function () {
-                    syncTransactionsBtn.disabled = true;
-                    var originalText = syncTransactionsBtn.innerText;
-                    syncTransactionsBtn.innerText = 'Syncing Sales...';
-
-                    postJson('/api/insuretech/sync-all', { limit: 200 })
+                    postJson('/api/insuretech/sync', { limit: 200 })
                         .then(function (data) {
                             if (data && data.ok) {
                                 var total = (data.success_count || 0) + (data.failed_count || 0);
-                                if (total === 0) {
-                                    alert('No product purchases found to sync. Purchase a product first.');
-                                } else {
-                                    alert('Synced product transactions. Success: ' + (data.success_count || 0) + ', Failed: ' + (data.failed_count || 0));
+                                var pull = data.products_pull || {};
+                                var pullOk = pull.ok !== false;
+                                var syncedProducts = typeof pull.synced_products === 'number' ? pull.synced_products : null;
+                                var msg = 'InsureTech sync OK.';
+                                if (syncedProducts !== null) {
+                                    msg += ' Products refreshed: ' + syncedProducts + '.';
                                 }
+                                if (total === 0 && data.mode === 'batch') {
+                                    msg += ' No mapped purchases to push.';
+                                } else if (data.mode === 'batch') {
+                                    msg += ' Pushes — success: ' + (data.success_count || 0) + ', failed: ' + (data.failed_count || 0) + '.';
+                                }
+                                if (!pullOk) {
+                                    msg += ' (product pull reported issues — check details)';
+                                }
+                                alert(msg);
                                 window.location.reload();
                                 return;
                             }
-                            alert('Sales sync failed. Please check logs/config.');
+                            alert((data && data.message) ? data.message : 'InsureTech sync failed. Check config/logs.');
                         })
                         .catch(function () {
-                            alert('Sales sync failed due to network or server error.');
+                            alert('InsureTech sync failed due to network or server error.');
                         })
                         .finally(function () {
-                            syncTransactionsBtn.disabled = false;
-                            syncTransactionsBtn.innerText = originalText;
+                            insuretechSyncBtn.disabled = false;
+                            if (icon) {
+                                icon.classList.remove('fa-spin');
+                            }
                         });
                 });
             }
@@ -459,7 +453,7 @@
                     var originalText = btn.innerText;
                     btn.innerText = 'Syncing...';
 
-                    postJson('/api/insuretech/sync-all', { product_id: productId, limit: 200 })
+                    postJson('/api/insuretech/sync', { product_id: productId, limit: 200 })
                         .then(function (data) {
                             if (data && data.ok) {
                                 alert('Product sales synced. Success: ' + (data.success_count || 0) + ', Failed: ' + (data.failed_count || 0));
