@@ -1,14 +1,14 @@
 <!-- SCRIPTS -->
 <script src="{{ asset('users/assets/js/bootstrap.bundle.js') }}"></script>
 <script src="{{ asset('users/assets/js/jquery.min.js') }}"></script>
-<script src="{{ asset('users/assets/js/jquery.validate.min.js') }}"></script>
 <script src="{{ asset('users/assets/js/jquery.ui.min.js') }}"></script>
-<script src="{{ asset('users/assets/js/jquery.additional.methods.js') }}"></script>
 <script src="{{ asset('users/assets/js/clipboard.min.js') }}"></script>
 <script src="{{ asset('users/assets/plugin/splide/splide.min.js') }}"></script>
 <script src="{{ asset('users/assets/js/file-upload/index.js') }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="{{ asset('users/assets/js/jquery.validate.min.js') }}"></script>
+<script src="{{ asset('users/assets/js/jquery.additional.methods.js') }}"></script>
 <script>
     var el = document.getElementById("dashboard-wrapper")
     var toggleButton = document.getElementById("menu-toggle")

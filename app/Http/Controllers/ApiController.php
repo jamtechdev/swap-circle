@@ -3762,7 +3762,7 @@ public function paymentSuccess(Request $request)
     if (!DB::table('users_customers')->where([['users_customers_id', $req->users_customers_id], ['status', 'Active']])->exists()) {
       return response()->json(['status' => 'error', 'message' => "users_customers_id '{$req->users_customers_id}' does not exist."], 400);
     }
-    if (!DB::table('products')->where([['products_id', $req->products_id], ['type', $req->type], ['status', 'Active']])->exists()) {
+    if (!DB::table('products')->where([['products_id', $req->products_id], ['type', $req->type], ['status', 'Active']])->where(function($q) { $q->whereNull('insurtech_status')->orWhere('insurtech_status', 'Active'); })->exists()) {
       return response()->json(['status' => 'error', 'message' => "product does not exist."], 400);
     }
     /*  Common fields requirement */

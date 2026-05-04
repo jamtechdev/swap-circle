@@ -346,13 +346,23 @@
                     postJson('/api/insuretech/sync', { limit: 200 })
                         .then(function (data) {
                             if (data && data.ok) {
-                                alert('Transactions synced to Admin Portal. Success: ' + (data.success_count || 0) + ', Failed: ' + (data.failed_count || 0));
+                                var msg = 'Transactions synced to Admin Portal. Success: ' + (data.success_count || 0) + ', Failed: ' + (data.failed_count || 0);
+                                if (data.errors && data.errors.length > 0) {
+                                    msg += '\n\nErrors:\n';
+                                    data.errors.forEach(function(e) {
+                                        msg += 'Purchase #' + e.products_purchases_id + ': ' + e.message + '\n';
+                                        if (e.details) msg += 'Details: ' + JSON.stringify(e.details) + '\n';
+                                    });
+                                }
+                                alert(msg);
                                 return;
                             }
-                            alert((data && data.message) ? data.message : 'Bulk transaction sync failed.');
+                            var msg = (data && data.message) ? data.message : 'Bulk sync failed.';
+                            if (data && data.connection && data.connection.error) msg += '\nConnection: ' + data.connection.error;
+                            alert(msg);
                         })
-                        .catch(function () {
-                            alert('Bulk transaction sync failed due to network or server error.');
+                        .catch(function (err) {
+                            alert('Bulk transaction sync failed due to network or server error.\n' + (err ? err.toString() : ''));
                         })
                         .finally(function () {
                             bulkSyncBtn.disabled = false;
@@ -381,10 +391,14 @@
                                 alert('Transaction synced successfully to Admin Portal.');
                                 return;
                             }
-                            alert('Transaction sync failed.');
+                            var msg = (data && data.message) ? data.message : 'Sync failed.';
+                            var detail = '';
+                            if (data && data.connection && data.connection.error) detail += '\nConnection: ' + data.connection.error;
+                            if (data && data.details) detail += '\nDetails: ' + JSON.stringify(data.details);
+                            alert('Transaction sync failed.\n' + msg + detail);
                         })
-                        .catch(function () {
-                            alert('Transaction sync failed due to network or server error.');
+                        .catch(function (err) {
+                            alert('Transaction sync failed due to network or server error.\n' + (err ? err.toString() : ''));
                         })
                         .finally(function () {
                             btn.disabled = false;
