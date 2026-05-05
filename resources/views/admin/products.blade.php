@@ -248,7 +248,6 @@
                                             <th>Name</th>
                                             <th>Type</th>
                                             <th>Price</th>
-                                            <th>Currency</th>
                                             <th>Image</th>
                                             <th>Description</th>
                                             <th>Status</th>
@@ -261,16 +260,11 @@
                                             <td>{{ $key + 1 }}</td>
                                             <td>{{ $item->name }}</td>
                                             <td>{{ $item->type ?? 'A' }}</td>
-                                            <td>{{ number_format((float)($item->custom_price ?? $item->price ?? 0), 2) }}
-                                                @if(isset($item->custom_price) && $item->custom_price !== null && $item->custom_price !== '')
-                                                    <br><small class="text-muted">Guide: {{ number_format((float)($item->price ?? 0), 2) }}</small>
-                                                @endif
-                                            </td>
                                             <td>
-                                                @if($item->currency_symbol || $item->currency_code)
-                                                    {{ $item->currency_symbol }} {{ $item->currency_code }}
+                                                @if($item->custom_price)
+                                                    {{ number_format((float)$item->custom_price, 2) }}
                                                 @else
-                                                    N/A
+                                                    <span class="text-muted">Price not set</span>
                                                 @endif
                                             </td>
                                             <td>
@@ -352,22 +346,10 @@
                                                                                 <input type="text" class="form-control mt-1" value="{{ $item->name }}" readonly style="background:#f8f9fa;">
                                                                             </div>
                                                                         </div>
-                                                                        <div class="col-md-6 mb-3">
-                                                                            <div class="form-group">
-                                                                                <b>Type</b>
-                                                                                <input type="text" class="form-control mt-1" value="{{ $item->type ?? 'A' }}" readonly style="background:#f8f9fa;">
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="col-md-6 mb-3">
-                                                                            <div class="form-group">
-                                                                                <b>Guide Price (from Insurtech)</b>
-                                                                                <input type="number" class="form-control mt-1" value="{{ $item->price ?? 0 }}" readonly style="background:#f8f9fa;">
-                                                                            </div>
-                                                                        </div>
                                                                         <div class="col-md-12 mb-3">
                                                                             <div class="form-group">
                                                                                 <b>Custom Price</b> <small class="text-muted">(leave empty to use base price)</small>
-                                                                                <input type="number" step="0.01" min="0" name="custom_price" class="form-control mt-1" value="{{ $item->custom_price ?? '' }}" placeholder="{{ $item->price ?? 0 }}">
+                                                                                <input type="number" step="0.01" min="0" name="custom_price" class="form-control mt-1" value="{{ $item->custom_price ?? '' }}" placeholder="Enter price">
                                                                             </div>
                                                                         </div>
                                                                         <div class="col-md-12 mb-3">

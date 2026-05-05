@@ -48,9 +48,10 @@
                                             </div>
                                             @endif
                                             <div class="text-center mt-2">
-                                                <strong class="text-success fs-5">{{ $item->currency_symbol ?: '£' }}{{ number_format($item->custom_price ?? $item->price, 2) }}</strong>
-                                                @if($item->currency_code)
-                                                    <span class="text-muted" style="font-size:13px;"> {{ $item->currency_code }}</span>
+                                                @if($item->custom_price)
+                                                    <strong class="text-success fs-5">&euro;{{ number_format($item->custom_price, 2) }}</strong>
+                                                @else
+                                                    <span class="text-muted">Price not set</span>
                                                 @endif
                                             </div>
                                         </div>

@@ -43,7 +43,13 @@
                                                                     </a>
                                                                 </td>
                                                                 <td>{{ $item->type ?? 'A' }}</td>
-                                                                <td>{{ $item->currency_symbol ?: '₦' }}{{ number_format((float) ($item->custom_price ?? $item->price ?? 0), 2) }}{{ $item->currency_code ? ' ' . $item->currency_code : '' }}</td>
+                                                                <td>
+                                                                    @if($item->custom_price)
+                                                                        &euro;{{ number_format((float) $item->custom_price, 2) }}
+                                                                    @else
+                                                                        <span class="text-muted">Price not set</span>
+                                                                    @endif
+                                                                </td>
                                                                 <td>{{ $item->status }}</td>
                                                                 <td>{{ \Carbon\Carbon::parse($item->date_added)->format('d-m-Y') }}</td>
                                                                 <td>
