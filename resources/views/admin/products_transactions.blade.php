@@ -156,7 +156,7 @@
                                             </td>
                                             <td>{{ optional($item->product)->name ?? 'N/A' }}</td>
                                     
-                                            <td>₦{{ number_format((float) (optional($item->product)->custom_price ?? optional($item->product)->price ?? 0), 2) }}</td>
+                                            <td>{{ optional($item->product)->currency_symbol ?: '₦' }}{{ number_format((float) (optional($item->product)->custom_price ?? optional($item->product)->price ?? 0), 2) }}{{ optional($item->product)->currency_code ? ' ' . optional($item->product)->currency_code : '' }}</td>
                                             <td>{{ $item->payment_status }}</td>
                                             <td>
                                                 <span 

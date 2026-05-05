@@ -48,7 +48,10 @@
                                             </div>
                                             @endif
                                             <div class="text-center mt-2">
-                                                <strong class="text-success fs-5">&pound;{{ number_format($item->custom_price ?? $item->price, 2) }}</strong>
+                                                <strong class="text-success fs-5">{{ $item->currency_symbol ?: '£' }}{{ number_format($item->custom_price ?? $item->price, 2) }}</strong>
+                                                @if($item->currency_code)
+                                                    <span class="text-muted" style="font-size:13px;"> {{ $item->currency_code }}</span>
+                                                @endif
                                             </div>
                                         </div>
                                     </div>    

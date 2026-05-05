@@ -1205,11 +1205,6 @@ class AdminController extends Controller
         }
 
         $products_purchases = DB::table('products_purchases')
-            ->whereExists(function ($query) {
-                $query->select(DB::raw(1))
-                    ->from('it_product_mappings')
-                    ->whereColumn('it_product_mappings.local_product_id', 'products_purchases.products_id');
-            })
             ->orderBy('products_purchases_id', 'DESC')
             ->get();
 

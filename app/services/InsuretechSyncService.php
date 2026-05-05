@@ -90,6 +90,8 @@ class InsuretechSyncService
                     'name'             => $name !== '' ? $name : ('Product ' . $code),
                     'description'      => (string) ($product['description'] ?? ''),
                     'price'            => $adminGuidePrice,
+                    'currency_code'    => (string) ($product['currency_code'] ?? ''),
+                    'currency_symbol'  => (string) ($product['currency_symbol'] ?? ''),
                     'type'             => 'A',
                     'status'           => 'Active',
                     'insurtech_status' => strtolower((string) ($product['status'] ?? 'active')) === 'active' ? 'Active' : 'Inactive',
@@ -110,6 +112,8 @@ class InsuretechSyncService
                     'name'             => $name !== '' ? $name : (string) ($localProduct->name ?? ''),
                     'description'      => (string) ($product['description'] ?? ($localProduct->description ?? '')),
                     'price'            => $adminGuidePrice > 0 ? $adminGuidePrice : (float) ($localProduct->price ?? 0),
+                    'currency_code'    => (string) ($product['currency_code'] ?? ($localProduct->currency_code ?? '')),
+                    'currency_symbol'  => (string) ($product['currency_symbol'] ?? ($localProduct->currency_symbol ?? '')),
                     'insurtech_status' => strtolower((string) ($product['status'] ?? 'active')) === 'active' ? 'Active' : 'Inactive',
                     'image'            => (string) ($product['image_url'] ?? ($localProduct->image ?? '')),
                     'date_modified'    => now()->toDateTimeString(),
@@ -343,9 +347,6 @@ class InsuretechSyncService
         if (! ($pullResult['ok'] ?? false)) return ['ok' => false, 'message' => 'Sync aborted: failed to pull products from InsureTech admin.', 'connection' => $connectionResult, 'products_pull' => $pullResult];
 
         $purchaseQuery = DB::table('products_purchases')
-            ->whereExists(function ($query) {
-                $query->select(DB::raw(1))->from('it_product_mappings')->whereColumn('it_product_mappings.local_product_id', 'products_purchases.products_id');
-            })
             ->orderByDesc('products_purchases_id')
             ->select(['products_purchases_id']);
 

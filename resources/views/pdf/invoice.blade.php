@@ -98,7 +98,7 @@ table.tbl tr:nth-child(even) td { background: #fafbff; }
 
     <div class="amount-box">
         <div class="amount-label">Total Amount Paid</div>
-        <div class="amount-val">&pound;{{ number_format($product->custom_price ?? $product->price ?? 0, 2) }}</div>
+        <div class="amount-val">{{ $product->currency_symbol ?: '&pound;' }}{{ number_format($product->custom_price ?? $product->price ?? 0, 2) }}{{ $product->currency_code ? ' ' . $product->currency_code : '' }}</div>
     </div>
 
     <div class="footer">

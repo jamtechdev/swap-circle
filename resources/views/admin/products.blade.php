@@ -248,6 +248,7 @@
                                             <th>Name</th>
                                             <th>Type</th>
                                             <th>Price</th>
+                                            <th>Currency</th>
                                             <th>Image</th>
                                             <th>Description</th>
                                             <th>Status</th>
@@ -263,6 +264,13 @@
                                             <td>{{ number_format((float)($item->custom_price ?? $item->price ?? 0), 2) }}
                                                 @if(isset($item->custom_price) && $item->custom_price !== null && $item->custom_price !== '')
                                                     <br><small class="text-muted">Guide: {{ number_format((float)($item->price ?? 0), 2) }}</small>
+                                                @endif
+                                            </td>
+                                            <td>
+                                                @if($item->currency_symbol || $item->currency_code)
+                                                    {{ $item->currency_symbol }} {{ $item->currency_code }}
+                                                @else
+                                                    N/A
                                                 @endif
                                             </td>
                                             <td>
