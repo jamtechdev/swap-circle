@@ -457,7 +457,7 @@
                                     if (item.status === "Deleted") {
                                         return;
                                     }
-                                    var profile_image = "{{ url('/public') }}" + "/" +item.icon;
+                                    var profile_image = "{{ url('/') }}" + "/" +item.icon;
                                     $('tbody').append('\
                                         <tr class="odd gradeX">\
                                         <td>' + (key+1) + '</td>\
@@ -482,7 +482,7 @@
             };
 
             $.ajax(settings).done(function (response) {
-                        var profile_image = "{{ url('/public') }}" + "/" +response.data.icon;
+                        var profile_image = "{{ url('/') }}" + "/" +response.data.icon;
                         if(response.status == "error"){
                             toastr.success(response.message);
                         }else{
@@ -555,7 +555,7 @@
                             $('.image-row').removeClass('d-none');
                             $('#cc_icon').attr(
                                 'src',
-                                "{{ url('/public') }}/" + response.data.icon
+                                "{{ url('/') }}/" + response.data.icon
                             );
                         } else {
                             $('.image-row').addClass('d-none');

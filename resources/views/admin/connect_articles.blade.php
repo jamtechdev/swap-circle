@@ -509,7 +509,7 @@
                                         actionHtml += '<i class="fa fa-trash"></i>';
                                         actionHtml += '</button>';
                                     }
-                                    var profile_image = "{{ url('/public') }}" + "/" +item.image;
+                                    var profile_image = "{{ url('/') }}" + "/" +item.image;
                                     $('tbody').append('\
                                         <tr class="odd gradeX">\
                                         <td>' + (key+1) + '</td>\
@@ -536,7 +536,7 @@
                 };
 
                 $.ajax(settings).done(function (response) {
-                    var profile_image = "{{ url('/public') }}" + "/" +response.data.image;
+                    var profile_image = "{{ url('/') }}" + "/" +response.data.image;
                     if(response.status == "error"){
                         toastr.success(response.message);
                     }else{
@@ -614,7 +614,7 @@
                             <span class="colon">:</span>
                             <span class="value">
                                 <div class="thumb-wrapper">
-                                    <img src="{{ url('/public') }}/${response.data.image}"
+                                    <img src="{{ url('/') }}/${response.data.image}"
                                         class="zoomable-image"
                                         alt="Article Image">
                                 </div>

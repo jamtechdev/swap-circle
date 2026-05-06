@@ -423,7 +423,7 @@
             searchable: false,
             render: function (img) {
             if (!img) return '-';
-            const src = "{{ url('/public') }}/" + img;
+            const src = "{{ url('/') }}/" + img;
             return `<img src="${src}" width="80" height="80" class="zoomable-image">`;
             }
         },
@@ -541,7 +541,7 @@
 
             if (response.data.image) {
             $('.image-box-wrapper').removeClass('d-none');
-            $('#image').attr('src', "{{ url('/public') }}/" + response.data.image);
+            $('#image').attr('src', "{{ url('/') }}/" + response.data.image);
             } else {
             $('.image-box-wrapper').addClass('d-none');
             }
