@@ -269,7 +269,7 @@ function enableBuyNow(btn) {
                 var wallets = response.data.slice(0, 7);
 
                 $.each(wallets, function (key, item) {
-                    var flag_image = "{{ url('public') }}" + item.currency.country.image;
+                    var flag_image = "{{ url('/') }}" + item.currency.country.image;
                     $('#wallets').append('\
                         <li class="wallet-item">\
                             <img src="'+ flag_image +'" class="img-fluid me-2" alt="image">\
@@ -411,8 +411,8 @@ function enableBuyNow(btn) {
                         liked_offer = '<img src="{{ asset('users/assets/images/icons/heart.png') }}" class="ms-3 img-fluid cursor_pointer" alt="" onclick="add_to_favorite_offers('+ item.swap_offers_id +'); event.stopPropagation();" id="favorite_offer_'+ item.swap_offers_id +'">';
                     }
 
-                    var from_currency_country_flag   = "{{ url('/public') }}" + item.from_currency.country.image;
-                    var to_currency_country_flag     = "{{ url('/public') }}" + item.to_currency.country.image;
+                    var from_currency_country_flag   = "{{ url('/') }}" + item.from_currency.country.image;
+                    var to_currency_country_flag     = "{{ url('/') }}" + item.to_currency.country.image;
                     
                     $('#hot_swap_offers').append('\
                         <div class="col-md-6 col-xl-4">\
@@ -825,7 +825,7 @@ function enableBuyNow(btn) {
                     var profile_pic = (user.profile_pic !== null && user.profile_pic !== '') 
                                         ? user.profile_pic 
                                         : 'users/assets/images/default_user.jpeg';
-                    $('#sc2_receiver_image').attr('src', "{{ url('/public') }}" + "/" + profile_pic);
+                    $('#sc2_receiver_image').attr('src', "{{ url('/') }}" + "/" + profile_pic);
 
 
                     // country
@@ -1089,8 +1089,8 @@ function enableBuyNow(btn) {
                         liked_offer = '<img src="{{ asset('users/assets/images/icons/heart.png') }}" class="ms-3 img-fluid cursor_pointer" alt="" onclick="add_to_favorite_offers('+ item.swap_offers_id +'); event.stopPropagation();" id="favorite_offer_'+ item.swap_offers_id +'">';
                     }
 
-                    var from_currency_country_flag   = "{{ url('/public') }}" + item.from_currency.country.image;
-                    var to_currency_country_flag     = "{{ url('/public') }}" + item.to_currency.country.image;
+                    var from_currency_country_flag   = "{{ url('/') }}" + item.from_currency.country.image;
+                    var to_currency_country_flag     = "{{ url('/') }}" + item.to_currency.country.image;
                     
                     $('#all_offers').append('\
                         <div class="col-md-6 col-xl-4">\
@@ -1159,8 +1159,8 @@ function enableBuyNow(btn) {
                 var offers = response.data;
 
                 $.each(offers, function (key, item) {
-                    var from_currency_country_flag   = "{{ url('/public') }}" + item.from_currency.country.image;
-                    var to_currency_country_flag     = "{{ url('/public') }}" + item.to_currency.country.image;
+                    var from_currency_country_flag   = "{{ url('/') }}" + item.from_currency.country.image;
+                    var to_currency_country_flag     = "{{ url('/') }}" + item.to_currency.country.image;
 
                     $('#favorite_offers').append('\
                         <div class="col-md-6 col-xl-4">\
@@ -1228,8 +1228,8 @@ function enableBuyNow(btn) {
                 var offers = response.data;
 
                 $.each(offers, function (key, item) {
-                    var from_currency_country_flag   = "{{ url('/public') }}" + item.from_currency.country.image;
-                    var to_currency_country_flag     = "{{ url('/public') }}" + item.to_currency.country.image;
+                    var from_currency_country_flag   = "{{ url('/') }}" + item.from_currency.country.image;
+                    var to_currency_country_flag     = "{{ url('/') }}" + item.to_currency.country.image;
 
                     $('#my_offers').append('\
                         <div class="col-md-6 col-xl-4">\
@@ -1648,7 +1648,7 @@ function enableBuyNow(btn) {
                         if (item.user_data.last_name !== null) {
                             last_name += item.user_data.last_name;
                         }
-                        var sender_image = "{{ url('/public') }}" + "/" + item.user_data.profile_pic;
+                        var sender_image = "{{ url('/') }}" + "/" + item.user_data.profile_pic;
 
                         $('#offer_requests').append('\
                             <div class="col-sm-6">\
@@ -1885,7 +1885,7 @@ function enableBuyNow(btn) {
                     } else {
                         liked_article = '<img src="{{ asset('users/assets/images/icons/heart1.png') }}" alt="" onclick="like_popular_article('+ item.connect_articles_id +'); event.stopPropagation();" id="unliked_popular_article_'+ item.connect_articles_id +'">';
                     }
-                    var article_image       = "{{ url('/public') }}" + "/" + item.image;
+                    var article_image       = "{{ url('/') }}" + "/" + item.image;
                     var article_blog_link   = "https://portal.swapcircle.trade/" + "users/connect/blog/";
     
                     $('#popular_articles').append('\
@@ -1943,7 +1943,7 @@ function enableBuyNow(btn) {
                     } else{
                         liked_article = '<img src="{{ asset('users/assets/images/icons/heart1.png') }}" alt="" onclick="like_other_article('+ item.connect_articles_id +'); event.stopPropagation();" id="unliked_other_article_'+ item.connect_articles_id +'">';
                     }
-                    var article_image       = "{{ url('/public') }}" + "/" + item.image;
+                    var article_image       = "{{ url('/') }}" + "/" + item.image;
                     var article_blog_link   = "https://portal.swapcircle.trade/" + "users/connect/blog/";
     
                     $('#other_articles').append('\
@@ -2136,7 +2136,7 @@ function enableBuyNow(btn) {
                     var article = Object.values(response.data).filter(obj => obj.connect_articles_id === connect_articles_id);
                   
                     $.each(article, function (key, item) {
-                        var article_image = "{{ url('/public') }}" + "/" + item.image;
+                        var article_image = "{{ url('/') }}" + "/" + item.image;
     
                         $('#connect_article_blog').append('\
                             <div class="row mt-0 d-flex justify-content-center">\
@@ -2863,7 +2863,7 @@ function enableBuyNow(btn) {
                 var accounts = response.data;
 
                 $.each(accounts, function (key, item) { 
-                    var user_image = "{{ url('/public') }}" + "/" + item.user_data.profile_pic;
+                    var user_image = "{{ url('/') }}" + "/" + item.user_data.profile_pic;
                     $('#all_accounts').append('\
                         <div class="col-lg-4 col-md-6">\
                             <div class="card border-0 mb-3 rounded-4">\
@@ -3323,7 +3323,7 @@ function enableBuyNow(btn) {
                         user_name += item.user_data.last_name;
 
                     var user_image = '';
-                        user_image += "{{ url('/public') }}" + "/" + item.user_data.profile_pic;
+                        user_image += "{{ url('/') }}" + "/" + item.user_data.profile_pic;
 
                     $('#all_chats').append('\
                         <li class="px-3 py-0 d-flex gap-0 msg-tab" onclick="get_messages('+ user_id +')">\
@@ -3393,7 +3393,7 @@ function enableBuyNow(btn) {
                         my_msg += '<p class="msg  ms-auto text-start">'+ item.message +'</p>';
                         my_msg += '<small class="sm-auto">'+ item.time +'</small>';
                     } else { 
-                        other_user_image += "{{ url('/public')}}" +"/" + item.user_data.profile_pic;
+                        other_user_image += "{{ url('/')}}" +"/" + item.user_data.profile_pic;
                         other_user_msg += '<div class="position-relative me-4">';
                         other_user_msg += '<img src="'+ other_user_image +'" class="img-fluid" alt="image">';
                         other_user_msg += '</div>';
