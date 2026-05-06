@@ -348,7 +348,7 @@
                                                                         </div>
                                                                         <div class="col-md-12 mb-3">
                                                                             <div class="form-group">
-                                                                                <b>Custom Price</b> <small class="text-muted">(leave empty to use base price)</small>
+                                                                                <b>Custom Price</b>
                                                                                 <input type="number" step="0.01" min="0" name="custom_price" class="form-control mt-1" value="{{ $item->custom_price ?? '' }}" placeholder="Enter price">
                                                                             </div>
                                                                         </div>
