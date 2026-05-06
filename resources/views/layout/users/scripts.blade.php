@@ -1844,7 +1844,7 @@ function enableBuyNow(btn) {
                 var categories = response.data; 
 
                 $.each(categories, function (key, item) {
-                    var category_image = "{{ url('/public') }}" + "/" + item.icon; 
+                    var category_image = "{{ url('/') }}" + "/" + item.icon; 
 
                     $('#connect_categories').append('\
                         <div class="connects-category">\
