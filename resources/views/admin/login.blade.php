@@ -10,7 +10,7 @@
         <meta name="viewport" content="width=device-width,initial-scale=1">
         <title><?php echo $system_name[0]->description; ?> :: Admin Portal</title>
         <!-- Favicon icon -->
-		<link rel="icon" type="image" sizes="24x24" href="/public/uploads/system_image/favico.png">
+		<link rel="icon" type="image" sizes="24x24" href="{{ asset('uploads/system_image/favico.png') }}">
         <link href="{{asset('css/style.css')}}" rel="stylesheet">
         @vite(['resources/sass/app.scss', 'resources/js/app.js'])
         <style>
@@ -29,7 +29,7 @@
                                 <div class="col-xl-12">
                                     <div class="auth-form">
                                         <div class="text-center mb-4 logo">
-                                            <img class="text-center mb-4" style="width: 75%;" src="/public/uploads/system_image/{{$system_image[0]->description}}" alt="image">
+                                            <img class="text-center mb-4" style="width: 75%;" src="{{ asset('uploads/system_image/'.$system_image[0]->description) }}" alt="image">
                                         </div>
 
                                         <h4 class="text-center mb-4">Sign in your account</h4>
@@ -62,11 +62,8 @@
         <script src="{{asset('vendor/global/global.min.js')}}"></script>
         <script src="{{asset('vendor/global/bootstrap.bundle.min.js')}}"></script>
         <script src="{{asset('vendor/metismenu/js/metisMenu.min.js')}}"></script>
-        <script src="{{asset('vendor/perfect-scrollbar/js/perfect-scrollbar.min.js')}}"></script>
     	<script src="{{asset('vendor/bootstrap-select/dist/js/bootstrap-select.min.js')}}"></script>
         <script src="{{asset('js/settings.js')}}"></script>
-        <script src="{{asset('js/custom.min.js')}}"></script>
-        <script src="{{asset('js/deznav-init.js')}}"></script>
 
         <link href="{{asset('toasters/toastr.min.css')}}" rel="stylesheet" type="text/css" />   
         <script src="{{asset('toasters/toastr.min.js')}}" type="text/javascript"></script>
