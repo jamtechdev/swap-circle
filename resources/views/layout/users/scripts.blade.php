@@ -234,7 +234,7 @@ function enableBuyNow(btn) {
                 var wallets = response.data;
 
                 $.each(wallets, function (key, item) {
-                    var flag_image = "{{ url('public') }}" + item.currency.country.image;
+                    var flag_image = "{{ url('') }}" + item.currency.country.image;
                     $('#all_wallets').append('\
                         <li class="col-lg-3 text-center wallet-item">\
                             <img src="'+ flag_image +'" class="img-fluid me-2" alt="image">\
@@ -269,7 +269,7 @@ function enableBuyNow(btn) {
                 var wallets = response.data.slice(0, 7);
 
                 $.each(wallets, function (key, item) {
-                    var flag_image = "{{ url('/') }}" + item.currency.country.image;
+                    var flag_image = "{{ url('') }}" + item.currency.country.image;
                     $('#wallets').append('\
                         <li class="wallet-item">\
                             <img src="'+ flag_image +'" class="img-fluid me-2" alt="image">\
@@ -2554,7 +2554,7 @@ function enableBuyNow(btn) {
         };
         $.ajax(settings).done(function (response) {
             if (response.status == 'success') {
-                var profile_image = "{{ url('public') }}" + "/" + response.data.profile_pic;
+                var profile_image = "{{ url('') }}" + "/" + response.data.profile_pic;
 
                 $('#user_profile').attr('src', profile_image); 
                 $('#profile_pic').attr('src', profile_image); 
@@ -2614,7 +2614,7 @@ function enableBuyNow(btn) {
                         };
                         $.ajax(settings).done(function (response) {
                             if (response.status == 'success') {
-                                var new_dp = "{{ url('public') }}" + "/" + response.data[0].profile_pic;
+                                var new_dp = "{{ url('') }}" + "/" + response.data[0].profile_pic;
                                 $('#user_profile').attr('src', new_dp); 
                                 $('#profile_pic').attr('src', new_dp); 
                                 $('#edit_profile_pic').attr('src', new_dp); 
@@ -2648,7 +2648,7 @@ function enableBuyNow(btn) {
                         };
                         $.ajax(settings).done(function (response) { 
                             if (response.status == 'success') {
-                                var new_dp = "{{ url('public') }}" + '/' + response.data[0].profile_pic;
+                                var new_dp = "{{ url('') }}" + '/' + response.data[0].profile_pic;
                                 $('#user_profile').attr('src', new_dp); 
                                 $('#profile_pic').attr('src', new_dp); 
                                 $('#edit_profile_pic').attr('src', new_dp); 
@@ -2920,7 +2920,7 @@ function enableBuyNow(btn) {
                 var currencies = response.data;
 
                 $.each(currencies, function (key, item) {
-                    var flag_image = "{{ url('public') }}" + item.currency.country.image;
+                    var flag_image = "{{ url('') }}" + item.currency.country.image;
                     $('#account_currency').append('\
                         <option value="'+item.system_currencies_id+'">\
                             '+item.currency.name+' ('+item.currency.code+')\
@@ -3511,7 +3511,7 @@ function enableBuyNow(btn) {
                 var notifications = response.data;
 
                 $.each(notifications, function (key, item) {
-                    var sender_image = "{{ url('public') }}" + "/" + item.notification_sender.profile_pic;
+                    var sender_image = "{{ url('') }}" + "/" + item.notification_sender.profile_pic;
                     $("#notifications").append('\
                         <div class="row px-3 py-3">\
                             <div class="col-lg col-xl">\

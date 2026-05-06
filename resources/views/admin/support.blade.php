@@ -94,7 +94,7 @@
                 <footer id="send_message"  class="mx-auto" style="position: absolute;bottom: 40px;right:0;left:0;width: 94%; display: none;">
                     <div class="d-flex rounded-xxl py-0" >
                         <input style="border:none;margin-left:10px;background-color:#F3F3F3;box-shadow: none;" type="text" class="form-control" placeholder="Enter message here.." id="message">
-                        <button type="button" class="btn shadow-0" onclick="send_messages();"><img src="/public/images/card/email.svg" alt="image"></button>
+                        <button type="button" class="btn shadow-0" onclick="send_messages();"><img src="{{ asset('images/card/email.svg') }}" alt="image"></button>
                     </div>
                 </footer>
             </div>

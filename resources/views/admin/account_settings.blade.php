@@ -84,7 +84,7 @@
                                                     <div class="col-xl-12 form-group">
                                                         <label class="col-lg-4 col-form-label" for="val-username">Image <span class="text-danger">*</span> </label>
                                                         <div class="col-lg-12">
-                                                            <img src="{{ url('public') }}/{{ $items->user_image }}" width="150px" height="150px">
+                                                            <img src="{{ asset($items->user_image) }}" width="150px" height="150px">
                                                         </div>
 
                                                         <div class="col-lg-4">
