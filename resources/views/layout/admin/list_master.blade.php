@@ -10,7 +10,7 @@
 	    <meta name="viewport" content="width=device-width,initial-scale=1">
 	    <title><?php echo $system_name[0]->description; ?> :: Admin Portal</title>
 	    <!-- Favicon icon -->
-		<link rel="icon" type="image" sizes="24x24" href="/public/uploads/system_image/favico.png">
+		<link rel="icon" type="image" sizes="24x24" href="{{ asset('uploads/system_image/favico.png') }}">
 	    <!-- Datatable -->
 	    <link href="{{asset('vendor/datatables/css/jquery.dataTables.min.css')}}" rel="stylesheet">
 	    <!-- Custom Stylesheet -->
@@ -62,7 +62,7 @@
 					<a href="{{ url('/admin/dashboard') }}">
 						<img 
 							style="width: 100%; margin-top: 30px; cursor: pointer;" 
-							src="/public/uploads/system_image/{{$system_image[0]->description}}" 
+							src="{{ asset('uploads/system_image/'.$system_image[0]->description) }}" 
 							alt="image"
 						>
 					</a>

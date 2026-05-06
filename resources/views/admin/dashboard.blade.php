@@ -36,7 +36,7 @@
 				<div class="col-xl col-md-6 col-sm-6">
 					<div class="card">
 						<div style="padding: 0.25rem !important;" class="card-body p-4">
-							<img src="/public/images/users.svg" alt="image">
+							<img src="{{ asset('images/users.svg') }}" alt="image">
 							<span class="donut1" data-peity="{ &quot;fill&quot;: [&quot;rgb(255, 195, 210)&quot;, &quot;rgba(255, 255, 255, 1)&quot;],   &quot;innerRadius&quot;: 45, &quot;radius&quot;: 10}" style="display: none;">3/8</span>
 							<div style="padding-left: 20px;padding-bottom: 20px;">
 								<h2 class="fs-24 text-black font-w600 mb-0">{{$total_users_customers}}</h2>
@@ -49,7 +49,7 @@
 				<div class="col-xl col-md-4 col-sm-6">
 					<div class="card">
 						<div style="padding: 0.25rem !important;" class="card-body p-4">
-							<img src="/public/images/total-transactions.svg" alt="image">
+							<img src="{{ asset('images/total-transactions.svg') }}" alt="image">
 							<span class="donut1" data-peity="{ &quot;fill&quot;: [&quot;rgb(255, 213, 174)&quot;, &quot;rgba(255, 255, 255, 1)&quot;],   &quot;innerRadius&quot;: 45, &quot;radius&quot;: 10}" style="display: none;">5/8</span>
 							<div style="padding-left: 20px;padding-bottom: 20px;">
 								<h2 class="fs-24 text-black font-w600 mb-0">6</h2>
@@ -62,7 +62,7 @@
 				<div class="col-xl col-md-4 col-sm-6">
 					<div class="card">
 						<div style="padding: 0.25rem !important;" class="card-body p-4">
-							<img src="/public/images/total-offers.svg" alt="image">
+							<img src="{{ asset('images/total-offers.svg') }}" alt="image">
 							<span class="donut1" data-peity="{ &quot;fill&quot;: [&quot;rgb(238, 252, 255)&quot;, &quot;rgba(255, 255, 255, 1)&quot;],   &quot;innerRadius&quot;: 45, &quot;radius&quot;: 10}" style="display: none;">8/8</span>
 							<div style="padding-left: 20px;padding-bottom: 20px;">
 								<h2 class="fs-24 text-black font-w600 mb-0">6</h2>
@@ -75,7 +75,7 @@
 				<div class="col-xl col-md-4 col-md-6">
 					<div class="card">
 						<div style="padding: 0.25rem !important;" class="card-body p-4">
-							<img src="/public/images/total-connects.svg" alt="image">
+							<img src="{{ asset('images/total-connects.svg') }}" alt="image">
 							<span class="donut1" data-peity="{ &quot;fill&quot;: [&quot;rgb(238, 252, 255)&quot;, &quot;rgba(255, 255, 255, 1)&quot;],   &quot;innerRadius&quot;: 45, &quot;radius&quot;: 10}" style="display: none;">8/8</span>
 							<div style="padding-left: 20px;padding-bottom: 20px;">
 								<h2 class="fs-24 font-w600 mb-0 {{ $isApiConnected ? 'text-success' : 'text-danger' }}">

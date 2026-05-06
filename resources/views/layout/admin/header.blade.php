@@ -37,7 +37,7 @@
                     
                     <li class="nav-item dropdown header-profile">
                         <a class="nav-link" href="#" role="button" data-toggle="dropdown">
-                            <img src="{{ url('public') }}/{{ $img }}" width="20" alt=""/>
+                            <img src="{{ asset($img) }}" width="20" alt=""/>
                         </a>
 
                         <div class="dropdown-menu dropdown-menu-right">
