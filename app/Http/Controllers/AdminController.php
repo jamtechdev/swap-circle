@@ -102,7 +102,9 @@ class AdminController extends Controller
     public function dashboard()
     {
         if (session()->has('admin_id')) {
-            $total_users_customers     = number_format(DB::table('users_customers')->count());
+            $total_users_customers  = number_format(DB::table('users_customers')->count());
+            $total_transactions    = number_format(DB::table('users_customers_txns')->count());
+            $total_swap_offers     = number_format(DB::table('swap_offers')->count());
             $system_currency    = DB::table('system_settings')->select('description')->where('type', 'system_currency')->first();
             $dbToken = (string) optional(DB::table('system_settings')->where('type', 'insuretech_partner_token')->first())->description;
             $dbBaseUrl = (string) optional(DB::table('system_settings')->where('type', 'insuretech_admin_base_url')->first())->description;
@@ -137,6 +139,8 @@ class AdminController extends Controller
 
             return view('admin.dashboard', compact(
                 'total_users_customers',
+                'total_transactions',
+                'total_swap_offers',
                 'isTokenConfigured',
                 'isApiConnected',
                 'connectionMessage'
