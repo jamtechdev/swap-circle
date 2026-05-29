@@ -40,10 +40,19 @@
                                             <div class="d-flex align-items-center justify-content-center pb-0 mb-3 flex-wrap">
                                                 <button class="btn btn-primary" style="cursor:default;">{{ $item->name }}</button>    
                                             </div>
-                                            @if($item->image)
+                                            @php
+                                                $defaultProductImage = asset('images/upload.svg');
+                                                $image = trim((string) ($item->image ?? ''));
+                                                $imageHost = $image ? parse_url($image, PHP_URL_HOST) : null;
+                                                $isDeadLocalImage = in_array($imageHost, ['127.0.0.1', 'localhost'], true);
+                                                $productImageUrl = $image && !$isDeadLocalImage
+                                                    ? (\Illuminate\Support\Str::startsWith($image, ['http://', 'https://']) ? $image : asset($image))
+                                                    : $defaultProductImage;
+                                            @endphp
+                                            @if($productImageUrl)
                                             <div class="d-flex align-items-center justify-content-center pb-0 mb-3 flex-wrap">
                                                 <div class="image-wrapper">
-                                                    <img src="{{ asset($item->image) }}" alt="Product">
+                                                    <img src="{{ $productImageUrl }}" alt="Product" onerror="this.onerror=null;this.src='{{ $defaultProductImage }}';">
                                                 </div>
                                             </div>
                                             @endif

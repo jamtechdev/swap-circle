@@ -248,10 +248,21 @@ class InsuretechSyncService
         }
 
         if (str_starts_with($image, 'http://') || str_starts_with($image, 'https://')) {
+            $host = parse_url($image, PHP_URL_HOST);
+            if (in_array($host, ['127.0.0.1', 'localhost'], true)) {
+                return null;
+            }
+
             return $image;
         }
 
-        return url('/' . ltrim($image, '/'));
+        $baseUrl = request()?->getSchemeAndHttpHost() ?: (string) config('app.url');
+        $host = parse_url($baseUrl, PHP_URL_HOST);
+        if (in_array($host, ['127.0.0.1', 'localhost'], true)) {
+            return null;
+        }
+
+        return rtrim($baseUrl, '/') . '/' . ltrim($image, '/');
     }
 
     private function productSnapshot(object $product, string $adminProductCode): array

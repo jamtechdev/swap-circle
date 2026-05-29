@@ -95,17 +95,24 @@
         }
         .product-description-preview {
             display: -webkit-box;
-            line-clamp: 4;
-            -webkit-line-clamp: 4;
+            line-clamp: 3;
+            -webkit-line-clamp: 3;
             -webkit-box-orient: vertical;
-            max-height: 84px;
+            max-height: 63px;
             overflow: hidden;
             line-height: 1.45;
             color: #4b5563;
         }
         .product-description-preview.expanded {
             display: block;
-            max-height: none;
+            height: 72px;
+            max-height: 72px;
+            overflow-y: auto;
+            padding: 8px 10px;
+            border: 1px solid #d8dde6;
+            border-radius: 8px;
+            background: #fff;
+            white-space: pre-wrap;
         }
         .product-description-toggle {
             border: 0;
@@ -114,6 +121,14 @@
             cursor: pointer;
             font-size: 12px;
             padding: 4px 0 0;
+        }
+        .product-table-image {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            background: #f8fafc;
         }
     </style>
     <!-- Add Product -->
@@ -171,7 +186,7 @@
                             <div class="col-md-12">
                                 <div class="form-group">
                                 <label><b>Description</b></label>
-                                <textarea rows="5" name="description" class="form-control mt-1" required></textarea>
+                                <textarea rows="3" name="description" class="form-control mt-1" required></textarea>
                                 </div>
                             </div>
                             <div class="col-md-12"> 
@@ -259,11 +274,16 @@
                                                 @endif
                                             </td>
                                             <td>
-                                                @if($item->image)
-                                                    <img src="{{ asset($item->image) }}" alt="Image 1" style="width:100px; height: 100px;">
-                                                @else
-                                                    N/A
-                                                @endif
+                                                @php
+                                                    $defaultProductImage = asset('images/upload.svg');
+                                                    $image = trim((string) ($item->image ?? ''));
+                                                    $imageHost = $image ? parse_url($image, PHP_URL_HOST) : null;
+                                                    $isDeadLocalImage = in_array($imageHost, ['127.0.0.1', 'localhost'], true);
+                                                    $productImageUrl = $image && !$isDeadLocalImage
+                                                        ? (\Illuminate\Support\Str::startsWith($image, ['http://', 'https://']) ? $image : asset($image))
+                                                        : $defaultProductImage;
+                                                @endphp
+                                                <img src="{{ $productImageUrl }}" alt="Product image" class="product-table-image" onerror="this.onerror=null;this.src='{{ $defaultProductImage }}';">
                                             </td>
                                             <td class="product-description-cell">
                                                 @if($item->description)
@@ -380,7 +400,7 @@
                                                                         <div class="col-md-12 mb-3">
                                                                             <div class="form-group">
                                                                                 <b>Description</b>
-                                                                                <textarea rows="4" name="description" class="form-control mt-1" required>{{ $item->description }}</textarea>
+                                                                                <textarea rows="3" name="description" class="form-control mt-1" required>{{ $item->description }}</textarea>
                                                                             </div>
                                                                         </div>
                                                                     </div>

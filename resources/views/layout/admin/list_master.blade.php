@@ -149,7 +149,9 @@
 
 	    <script>
 	        $(document).ready(function () {
-	    		$('#example').DataTable();
+	    		if ($('#example').length && !$.fn.DataTable.isDataTable('#example')) {
+	    			$('#example').DataTable();
+	    		}
 
                 var globalSyncBtn = document.getElementById('swap-global-insuretech-sync');
                 if (globalSyncBtn) {

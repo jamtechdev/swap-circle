@@ -42,31 +42,51 @@ let dataSet = [
 
 (function($) {
     "use strict"
+
+    function initDataTable(selector, options) {
+        if (!$(selector).length) {
+            return null;
+        }
+
+        if ($.fn.DataTable.isDataTable(selector)) {
+            return $(selector).DataTable();
+        }
+
+        return $(selector).DataTable(options || {});
+    }
+
+    function bindRowSelection(table, selector) {
+        if (!table) {
+            return;
+        }
+
+        $(selector + ' tbody').off('click.rowSelection').on('click.rowSelection', 'tr', function() {
+            var node = table.row(this).node();
+            if (!node) {
+                return;
+            }
+
+            $(node).toggleClass('selected');
+        });
+
+        table.rows().every(function() {
+            $(this.node()).removeClass('selected')
+        });
+    }
+
     //example 1
-    var table = $('#example').DataTable({
+    var table = initDataTable('#example', {
         createdRow: function ( row, data, index ) {
            $(row).addClass('selected')
         } 
     });
-      
-    table.on('click', 'tbody tr', function() {
-    var $row = table.row(this).nodes().to$();
-    var hasClass = $row.hasClass('selected');
-    if (hasClass) {
-        $row.removeClass('selected')
-    } else {
-        $row.addClass('selected')
-    }
-    })
-    
-    table.rows().every(function() {
-        $(this.node()).removeClass('selected')
-    });
+
+    bindRowSelection(table, '#example');
 
 
 
     //example 2
-    var table2 = $('#example2').DataTable( {
+    var table2 = initDataTable('#example2', {
         createdRow: function ( row, data, index ) {
             $(row).addClass('selected')
         },
@@ -76,24 +96,9 @@ let dataSet = [
         "paging":         false
     });
 
-    table2.on('click', 'tbody tr', function() {
-        var $row = table2.row(this).nodes().to$();
-        var hasClass = $row.hasClass('selected');
-        if (hasClass) {
-            $row.removeClass('selected')
-        } else {
-            $row.addClass('selected')
-        }
-    })
-        
-    table2.rows().every(function() {
-        $(this.node()).removeClass('selected')
-    });
+    bindRowSelection(table2, '#example2');
 	
 	// 
-	var table = $('#example3, #example4, #example5').DataTable();
-	$('#example tbody').on('click', 'tr', function () {
-		var data = table.row( this ).data();
-	});
+	var table3 = initDataTable('#example3, #example4, #example5');
    
 })(jQuery);
