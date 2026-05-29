@@ -193,7 +193,6 @@ class UsersController extends Controller{
 
         $products = DB::table('products')
             ->where('status', 'Active')
-            ->where(function($q) { $q->whereNull('insurtech_status')->orWhere('insurtech_status', 'Active'); })
             ->orderBy('products_id', 'ASC')
             ->get();
 
@@ -289,7 +288,7 @@ class UsersController extends Controller{
     	if (!session()->has('id')) {
             return redirect('/');
         } else{
-            $products      = DB::table('products')->where('status', 'Active')->where(function($q) { $q->whereNull('insurtech_status')->orWhere('insurtech_status', 'Active'); })->orderBy('products_id', 'ASC')->get();
+            $products      = DB::table('products')->where('status', 'Active')->orderBy('products_id', 'ASC')->get();
             return view('users.users_customers_products', compact('products'));
         }
     }

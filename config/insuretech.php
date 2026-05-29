@@ -7,5 +7,5 @@ return [
     'default_admin_product_code' => env('INSURETECH_DEFAULT_PRODUCT_CODE', ''),
     'default_sync_limit' => (int) env('INSURETECH_DEFAULT_SYNC_LIMIT', 25),
     'max_sync_limit' => (int) env('INSURETECH_MAX_SYNC_LIMIT', 200),
-    'auto_pull_before_push' => (bool) env('INSURETECH_AUTO_PULL_BEFORE_PUSH', true),
+    'auto_pull_before_push' => (bool) env('INSURETECH_AUTO_PULL_BEFORE_PUSH', false),
 ];

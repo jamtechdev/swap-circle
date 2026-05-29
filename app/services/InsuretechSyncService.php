@@ -62,85 +62,33 @@ class InsuretechSyncService
         }
 
         $products      = (array) data_get($response->json(), 'data', []);
-        $incomingCodes = [];
         $synced        = 0;
-        $deactivated   = 0;
 
         foreach ($products as $product) {
             $name            = (string) ($product['name'] ?? '');
             $code            = (string) ($product['product_code'] ?? '');
-            $adminGuidePrice = (float) ($product['price'] ?? 0);
 
             if ($code === '') continue;
 
-            $incomingCodes[] = $code;
-            $mapped          = DB::table('it_product_mappings')->where('admin_product_code', $code)->first();
-            $localProduct    = null;
-
-            if ($mapped && ! empty($mapped->local_product_id)) {
-                $localProduct = DB::table('products')->where('products_id', (int) $mapped->local_product_id)->first();
-            }
-
-            if (! $localProduct && $name !== '') {
-                $localProduct = DB::table('products')->where('name', $name)->first();
-            }
-
-            if (! $localProduct) {
-                $newId        = DB::table('products')->insertGetId([
-                    'name'             => $name !== '' ? $name : ('Product ' . $code),
-                    'description'      => (string) ($product['description'] ?? ''),
-                    'price'            => $adminGuidePrice,
-                    'type'             => 'A',
-                    'status'           => 'Active',
-                    'insurtech_status' => strtolower((string) ($product['status'] ?? 'active')) === 'active' ? 'Active' : 'Inactive',
-                    'image'            => (string) ($product['image_url'] ?? ''),
-                    'date_added'       => now()->toDateTimeString(),
-                    'date_modified'    => now()->toDateTimeString(),
-                ]);
-                $localProduct = DB::table('products')->where('products_id', $newId)->first();
+            $mappedLocalId = DB::table('it_product_mappings')->where('admin_product_code', $code)->value('local_product_id');
+            if (! $mappedLocalId && $name !== '') {
+                $mappedLocalId = DB::table('products')->where('name', $name)->value('products_id');
             }
 
             DB::table('it_product_mappings')->updateOrInsert(
                 ['admin_product_code' => $code],
-                ['local_product_id' => $localProduct->products_id ?? null, 'admin_product_uuid' => null, 'admin_product_name' => $name !== '' ? $name : null, 'last_synced_at' => now(), 'updated_at' => now(), 'created_at' => now()]
-            );
-
-            if ($localProduct && isset($localProduct->products_id)) {
-                DB::table('products')->where('products_id', $localProduct->products_id)->update([
-                    'name'             => $name !== '' ? $name : (string) ($localProduct->name ?? ''),
-                    'description'      => (string) ($product['description'] ?? ($localProduct->description ?? '')),
-                    'price'            => $adminGuidePrice > 0 ? $adminGuidePrice : (float) ($localProduct->price ?? 0),
-                    'insurtech_status' => strtolower((string) ($product['status'] ?? 'active')) === 'active' ? 'Active' : 'Inactive',
-                    'image'            => (string) ($product['image_url'] ?? ($localProduct->image ?? '')),
-                    'date_modified'    => now()->toDateTimeString(),
-                ]);
-            }
-
-            DB::table('it_products')->updateOrInsert(
-                ['product_code' => $code],
-                ['name' => $name !== '' ? $name : 'Product ' . $code, 'slug' => Str::slug($name !== '' ? $name : $code), 'description' => (string) ($product['description'] ?? ''), 'currency' => 'NGN', 'price' => $adminGuidePrice, 'cover_duration_rule' => 'both', 'status' => strtolower((string) ($product['status'] ?? 'active')) === 'active' ? 'active' : 'inactive', 'updated_at' => now(), 'created_at' => now()]
+                ['local_product_id' => $mappedLocalId ?: null, 'admin_product_uuid' => null, 'admin_product_name' => $name !== '' ? $name : null, 'last_synced_at' => now(), 'updated_at' => now(), 'created_at' => now()]
             );
 
             $synced++;
         }
 
-        $incomingCodes = array_values(array_unique($incomingCodes));
-        if (! empty($incomingCodes)) {
-            $activeLocalIds = DB::table('it_product_mappings')->whereIn('admin_product_code', $incomingCodes)->whereNotNull('local_product_id')->pluck('local_product_id')->map(fn ($id) => (int) $id)->unique()->values()->all();
-            $staleLocalIds  = DB::table('it_product_mappings')->whereNotIn('admin_product_code', $incomingCodes)->whereNotNull('local_product_id')->pluck('local_product_id')->map(fn ($id) => (int) $id)->unique()->values()->all();
-            $toDeactivate   = array_values(array_diff($staleLocalIds, $activeLocalIds));
-
-            if (! empty($toDeactivate)) {
-                $deactivated = DB::table('products')->whereIn('products_id', $toDeactivate)->update(['insurtech_status' => 'Inactive', 'date_modified' => now()->toDateTimeString()]);
-            }
-        }
-
-        return ['ok' => true, 'message' => 'Products pulled from admin portal.', 'synced_products' => $synced, 'deactivated_products' => $deactivated];
+        return ['ok' => true, 'message' => 'Product mappings refreshed; Swap product profiles were not changed.', 'synced_products' => $synced, 'deactivated_products' => 0];
     }
 
     public function pushPurchaseToAdmin(int $productsPurchasesId, bool $skipCatalogPull = false): array
     {
-        if (! $skipCatalogPull && (bool) config('insuretech.auto_pull_before_push', true)) {
+        if (! $skipCatalogPull && (bool) config('insuretech.auto_pull_before_push', false)) {
             $this->pullProductsFromAdmin();
         }
 
@@ -171,7 +119,8 @@ class InsuretechSyncService
         $idempotencyKey = $fixedTransactionNumber . '-' . substr(md5(uniqid('', true)), 0, 8);
 
         $coverDuration = $this->resolveCoverDuration((string) ($purchase->cover_duration ?? ''));
-        $partnerPrice  = (float) ($product->custom_price ?? $product->price ?? 0);
+        $partnerPrice  = $this->productSalePrice($product);
+        $currencyCode  = $this->productCurrencyCode($product);
 
         $submitPayload = [
             'transaction_number' => $fixedTransactionNumber,
@@ -182,7 +131,8 @@ class InsuretechSyncService
             'status'             => $this->normalizePartnerTransactionStatus((string) ($purchase->payment_status ?? 'Pending')),
             'notes'              => (string) ($purchase->payment_message ?? 'Synced from swap-circle'),
             'amount'             => $partnerPrice,
-            'currency'           => 'NGN',
+            'currency'           => $currencyCode,
+            'product'            => $this->productSnapshot($product, $adminProductCode),
             'date_added'         => (string) ($purchase->date_added ?? now()),
         ];
 
@@ -238,7 +188,84 @@ class InsuretechSyncService
             return (string) $mapping->admin_product_code;
         }
 
-        throw new \RuntimeException('No mapped admin product found. Ask admin to create/assign product, then run InsureTech sync on Swap.');
+        $productCode = $this->localProductCode($localProduct);
+
+        DB::table('it_product_mappings')->updateOrInsert(
+            ['admin_product_code' => $productCode],
+            [
+                'local_product_id' => $localProduct->products_id,
+                'admin_product_uuid' => null,
+                'admin_product_name' => (string) ($localProduct->name ?? ''),
+                'last_synced_at' => now(),
+                'updated_at' => now(),
+                'created_at' => now(),
+            ]
+        );
+
+        return $productCode;
+    }
+
+    private function localProductCode(object $localProduct): string
+    {
+        try {
+            if (DB::getSchemaBuilder()->hasColumn('products', 'product_code') && ! empty($localProduct->product_code)) {
+                return strtoupper(Str::slug((string) $localProduct->product_code, '_'));
+            }
+        } catch (\Throwable $exception) {
+        }
+
+        return 'SWAP_PRODUCT_' . (int) $localProduct->products_id;
+    }
+
+    private function productSalePrice(object $product): float
+    {
+        foreach (['custom_price', 'price'] as $field) {
+            if (isset($product->{$field}) && is_numeric($product->{$field})) {
+                return (float) $product->{$field};
+            }
+        }
+
+        return 0.0;
+    }
+
+    private function productCurrencyCode(object $product): string
+    {
+        $currency = strtoupper(trim((string) ($product->currency_code ?? 'NGN')));
+
+        return preg_match('/^[A-Z]{3}$/', $currency) ? $currency : 'NGN';
+    }
+
+    private function productCurrencySymbol(object $product): string
+    {
+        return trim((string) ($product->currency_symbol ?? '₦')) ?: '₦';
+    }
+
+    private function productImageUrl(object $product): ?string
+    {
+        $image = trim((string) ($product->image ?? ''));
+        if ($image === '') {
+            return null;
+        }
+
+        if (str_starts_with($image, 'http://') || str_starts_with($image, 'https://')) {
+            return $image;
+        }
+
+        return url('/' . ltrim($image, '/'));
+    }
+
+    private function productSnapshot(object $product, string $adminProductCode): array
+    {
+        return [
+            'product_code'    => $adminProductCode,
+            'name'            => (string) ($product->name ?? ('Product ' . $adminProductCode)),
+            'description'     => (string) ($product->description ?? ''),
+            'price'           => $this->productSalePrice($product),
+            'currency'        => $this->productCurrencyCode($product),
+            'currency_symbol' => $this->productCurrencySymbol($product),
+            'image_url'       => $this->productImageUrl($product),
+            'status'          => strtolower((string) ($product->status ?? 'Active')) === 'active' ? 'active' : 'inactive',
+        ];
     }
 
     private function resolveCoverDuration(string $rawCoverDuration): string
@@ -270,12 +297,9 @@ class InsuretechSyncService
             $connection = $this->testAdminConnection();
             if (! ($connection['ok'] ?? false)) return ['ok' => false, 'message' => 'InsureTech connection failed.', 'connection' => $connection];
 
-            $pull = $this->pullProductsFromAdmin();
-            if (! ($pull['ok'] ?? false)) return ['ok' => false, 'message' => 'Could not refresh product mappings before sync.', 'products_pull' => $pull, 'connection' => $connection];
-
             $push = $this->pushPurchaseToAdmin($purchaseId, true);
             $push['connection']    = $connection;
-            $push['products_pull'] = $pull;
+            $push['products_pull'] = ['ok' => true, 'message' => 'Skipped; Swap owns product profiling.'];
             $push['mode']          = 'single_purchase';
 
             return $push;
@@ -303,9 +327,6 @@ class InsuretechSyncService
         $connection = $this->testAdminConnection();
         if (! ($connection['ok'] ?? false)) return ['ok' => false, 'message' => 'InsureTech connection failed.', 'connection' => $connection];
 
-        $pull = $this->pullProductsFromAdmin();
-        if (! ($pull['ok'] ?? false)) return ['ok' => false, 'message' => 'Could not refresh product mappings before sync.', 'products_pull' => $pull];
-
         $productCode   = (string) ($payload['product_code'] ?? $this->resolveDefaultAdminProductCode());
         $txnNumber     = (string) ($payload['transaction_number'] ?? ('SWAP-LOWCODE-' . now()->timestamp . '-' . random_int(100, 999)));
         $coverDuration = $this->resolveCoverDuration((string) ($payload['cover_duration'] ?? '30_days'));
@@ -331,7 +352,7 @@ class InsuretechSyncService
 
         if (! $kycResponse->successful()) return ['ok' => false, 'message' => 'Policy submitted but KYC step failed.', 'details' => $kycResponse->json()];
 
-        return ['ok' => true, 'message' => 'Low-code sync completed.', 'transaction_number' => $txnNumber, 'product_code' => $productCode, 'connection' => $connection, 'products_pull' => $pull];
+        return ['ok' => true, 'message' => 'Low-code sync completed.', 'transaction_number' => $txnNumber, 'product_code' => $productCode, 'connection' => $connection, 'products_pull' => ['ok' => true, 'message' => 'Skipped; Swap owns product profiling.']];
     }
 
     public function syncAllToAdmin(?int $limit = null, ?int $productId = null): array
@@ -339,8 +360,7 @@ class InsuretechSyncService
         $connectionResult = $this->testAdminConnection();
         if (! ($connectionResult['ok'] ?? false)) return ['ok' => false, 'message' => 'Sync aborted: unable to verify InsureTech admin connection.', 'connection' => $connectionResult];
 
-        $pullResult = $this->pullProductsFromAdmin();
-        if (! ($pullResult['ok'] ?? false)) return ['ok' => false, 'message' => 'Sync aborted: failed to pull products from InsureTech admin.', 'connection' => $connectionResult, 'products_pull' => $pullResult];
+        $pullResult = ['ok' => true, 'message' => 'Skipped; Swap owns product profiling.'];
 
         $purchaseQuery = DB::table('products_purchases')
             ->orderByDesc('products_purchases_id')
@@ -367,6 +387,6 @@ class InsuretechSyncService
             }
         }
 
-        return ['ok' => true, 'message' => 'Centralized sync completed (connection + product pull + purchase push).', 'connection' => $connectionResult, 'products_pull' => $pullResult, 'product_id_filter' => $productId, 'limit_applied' => $effectiveLimit, 'total_attempted' => $purchases->count(), 'success_count' => $successCount, 'failed_count' => $failedCount, 'errors' => $errors];
+        return ['ok' => true, 'message' => 'Sale sync completed (connection + purchase push).', 'connection' => $connectionResult, 'products_pull' => $pullResult, 'product_id_filter' => $productId, 'limit_applied' => $effectiveLimit, 'total_attempted' => $purchases->count(), 'success_count' => $successCount, 'failed_count' => $failedCount, 'errors' => $errors];
     }
 }

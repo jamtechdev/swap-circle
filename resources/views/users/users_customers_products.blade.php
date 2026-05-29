@@ -16,6 +16,11 @@
             height: 100%;
             object-fit: cover;     /* cover container without distortion */
         }
+        .product-description {
+            min-height: 72px;
+            max-height: 96px;
+            overflow: hidden;
+        }
     </style>
     <div class="page-content-wrapper">
         <div class="page-content-tab">
@@ -44,12 +49,16 @@
                                             @endif
                                             @if($item->description)
                                             <div class="d-flex align-items-center justify-content-center pb-0 mb-0 flex-wrap">
-                                                <p>{{ $item->description }}</p>
+                                                <p class="product-description">{{ \Illuminate\Support\Str::limit($item->description, 220) }}</p>
                                             </div>
                                             @endif
                                             <div class="text-center mt-2">
-                                                @if($item->custom_price)
-                                                    <strong class="text-success fs-5">&euro;{{ number_format($item->custom_price, 2) }}</strong>
+                                                @php
+                                                    $displayPrice = $item->custom_price ?? $item->price ?? null;
+                                                    $currencySymbol = $item->currency_symbol ?? '₦';
+                                                @endphp
+                                                @if($displayPrice !== null && $displayPrice !== '')
+                                                    <strong class="text-success fs-5">{{ $currencySymbol }}{{ number_format((float) $displayPrice, 2) }}</strong>
                                                 @else
                                                     <span class="text-muted">Price not set</span>
                                                 @endif

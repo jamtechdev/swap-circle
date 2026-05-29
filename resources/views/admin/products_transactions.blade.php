@@ -157,8 +157,12 @@
                                             <td>{{ optional($item->product)->name ?? 'N/A' }}</td>
                                     
                                             <td>
-                                                @if(optional($item->product)->custom_price)
-                                                    &#8358;{{ number_format((float) optional($item->product)->custom_price, 2) }}
+                                                @php
+                                                    $displayPrice = optional($item->product)->custom_price ?? optional($item->product)->price ?? null;
+                                                    $currencySymbol = optional($item->product)->currency_symbol ?? '₦';
+                                                @endphp
+                                                @if($displayPrice !== null && $displayPrice !== '')
+                                                    {{ $currencySymbol }}{{ number_format((float) $displayPrice, 2) }}
                                                 @else
                                                     <span class="text-muted">Price not set</span>
                                                 @endif

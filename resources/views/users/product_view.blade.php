@@ -48,7 +48,15 @@
                                                                 </div>
                                                                 <div class="flex-grow-1 ms-3">
                                                                     <small class="text-muted d-block">Price</small>
-                                                                    <strong class="text-success">£{{ number_format($product->custom_price ?? $product->price, 2) }}</strong>
+                                                                    @php
+                                                                        $displayPrice = $product->custom_price ?? $product->price ?? null;
+                                                                        $currencySymbol = $product->currency_symbol ?? '₦';
+                                                                    @endphp
+                                                                    @if($displayPrice !== null && $displayPrice !== '')
+                                                                        <strong class="text-success">{{ $currencySymbol }}{{ number_format((float) $displayPrice, 2) }}</strong>
+                                                                    @else
+                                                                        <strong class="text-muted">Price not set</strong>
+                                                                    @endif
                                                                 </div>
                                                             </div>
                                                         </div>

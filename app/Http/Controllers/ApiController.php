@@ -3762,7 +3762,7 @@ public function paymentSuccess(Request $request)
     if (!DB::table('users_customers')->where([['users_customers_id', $req->users_customers_id], ['status', 'Active']])->exists()) {
       return response()->json(['status' => 'error', 'message' => "users_customers_id '{$req->users_customers_id}' does not exist."], 400);
     }
-    if (!DB::table('products')->where([['products_id', $req->products_id], ['type', $req->type], ['status', 'Active']])->where(function($q) { $q->whereNull('insurtech_status')->orWhere('insurtech_status', 'Active'); })->exists()) {
+    if (!DB::table('products')->where([['products_id', $req->products_id], ['type', $req->type], ['status', 'Active']])->exists()) {
       return response()->json(['status' => 'error', 'message' => "product does not exist."], 400);
     }
     /*  Common fields requirement */
@@ -4205,11 +4205,6 @@ public function paymentSuccess(Request $request)
 
     $user_tag_updated   = DB::table('users_customers')->where('users_customers_id', $req->users_customers_id)->update(['users_customers_tag' => 'Community Member']);
 
-    $this->triggerInsuretechPurchaseSync(
-      !empty($prod_purchased->products_purchases_id) ? (int) $prod_purchased->products_purchases_id : null,
-      'purchase_product'
-    );
-
     return response()->json(['status' => 'success', 'data'   => $prod_purchased], 200);
   }
   /* PURCHASE PRODUCT */
@@ -4514,9 +4509,13 @@ public function initiateStripePayment(Request $req)
 
     \Stripe\Stripe::setApiKey($stripeSecret);
 
-     // Always use GBP
-     $currency = 'gbp';
-     $price = isset($product->custom_price) ? $product->custom_price : ($product->price ?? null);
+     $currency = strtolower((string) ($product->currency_code ?? 'ngn'));
+     if (!preg_match('/^[a-z]{3}$/', $currency)) {
+         $currency = 'ngn';
+     }
+     $price = (isset($product->custom_price) && is_numeric($product->custom_price))
+         ? $product->custom_price
+         : ($product->price ?? null);
      if (!is_numeric($price)) {
          return response()->json(['status' => 'error', 'message' => 'Invalid product price'], 400);
      }

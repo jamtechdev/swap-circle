@@ -99,8 +99,12 @@ table.tbl tr:nth-child(even) td { background: #fafbff; }
     <div class="amount-box">
         <div class="amount-label">Total Amount Paid</div>
         <div class="amount-val">
-            @if($product->custom_price)
-                &euro;{{ number_format($product->custom_price, 2) }}
+            @php
+                $displayPrice = $product->custom_price ?? $product->price ?? null;
+                $currencySymbol = $product->currency_symbol ?? '₦';
+            @endphp
+            @if($displayPrice !== null && $displayPrice !== '')
+                {{ $currencySymbol }}{{ number_format((float) $displayPrice, 2) }}
             @else
                 Price not set
             @endif

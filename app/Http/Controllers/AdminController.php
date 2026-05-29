@@ -1044,7 +1044,7 @@ class AdminController extends Controller
     public function manage_products()
     {
         if (session()->has('admin_id')) {
-            $products = DB::table('products')->where('status', '!=', 'Deleted')->where(function($q) { $q->whereNull('insurtech_status')->orWhere('insurtech_status', 'Active'); })->orderBy('products_id', 'ASC')->get();
+            $products = DB::table('products')->where('status', '!=', 'Deleted')->orderBy('products_id', 'ASC')->get();
             return view('admin.products', compact('products'));
         } else {
             return redirect('admin');
@@ -1059,15 +1059,29 @@ class AdminController extends Controller
             return redirect('admin');
         }
 
-        $custom_price = $req->custom_price;
-        // If empty string or not provided, set to null (use base price)
-        $custom_price = ($custom_price !== null && $custom_price !== '') ? (float) $custom_price : null;
+        $req->validate([
+            'products_id' => 'required|integer',
+            'name' => 'required|string|max:255',
+            'type' => 'required|in:A,B,C',
+            'price' => 'required|numeric|min:0',
+            'currency_code' => 'nullable|string|max:10',
+            'currency_symbol' => 'nullable|string|max:10',
+            'description' => 'required|string',
+            'delivery_request_limit' => 'nullable|integer|min:1',
+            'image' => 'nullable|image|max:4096',
+        ]);
+
+        $data = $this->swapProductPayload($req);
+        $image = $this->storeSwapProductImage($req);
+        if ($image !== null) {
+            $data['image'] = $image;
+        }
 
         DB::table('products')
             ->where('products_id', $req->products_id)
-            ->update(['custom_price' => $custom_price]);
+            ->update($data);
 
-        Session::flash('success', 'Product price updated successfully.');
+        Session::flash('success', 'Product updated successfully.');
         return redirect('admin/manage_products');
     }
     // ------------- PRODUCTS EDIT -------------- //
@@ -1079,10 +1093,80 @@ class AdminController extends Controller
             return redirect('admin');
         }
 
-        Session::flash('error', 'Product creation is disabled on Swap. Please create products from Insurtech Admin portal.');
+        $req->validate([
+            'name' => 'required|string|max:255',
+            'type' => 'required|in:A,B,C',
+            'price' => 'required|numeric|min:0',
+            'currency_code' => 'nullable|string|max:10',
+            'currency_symbol' => 'nullable|string|max:10',
+            'description' => 'required|string',
+            'delivery_request_limit' => 'nullable|integer|min:1',
+            'image' => 'nullable|image|max:4096',
+        ]);
+
+        $data = $this->swapProductPayload($req);
+        $data['status'] = 'Active';
+        $data['date_added'] = date('Y-m-d H:i:s');
+
+        $image = $this->storeSwapProductImage($req);
+        if ($image !== null) {
+            $data['image'] = $image;
+        }
+
+        DB::table('products')->insert($this->filterProductColumns($data));
+
+        Session::flash('success', 'Product created successfully.');
         return redirect('admin/manage_products');
     }
     // ------------- PRODUCTS ADD -------------- //
+
+    private function swapProductPayload(Request $req): array
+    {
+        $price = (float) $req->price;
+        $currencyCode = strtoupper(trim((string) ($req->currency_code ?: 'NGN')));
+        if (!preg_match('/^[A-Z]{3}$/', $currencyCode)) {
+            $currencyCode = 'NGN';
+        }
+
+        $data = [
+            'name' => $req->name,
+            'type' => $req->type,
+            'price' => $price,
+            'custom_price' => $price,
+            'currency_code' => $currencyCode,
+            'currency_symbol' => trim((string) ($req->currency_symbol ?: '₦')),
+            'description' => $req->description,
+            'delivery_request_limit' => $req->type === 'C' ? (int) ($req->delivery_request_limit ?: 1) : null,
+            'date_modified' => date('Y-m-d H:i:s'),
+        ];
+
+        return $this->filterProductColumns($data);
+    }
+
+    private function filterProductColumns(array $data): array
+    {
+        return collect($data)
+            ->filter(fn ($value, $column) => \Illuminate\Support\Facades\Schema::hasColumn('products', $column))
+            ->all();
+    }
+
+    private function storeSwapProductImage(Request $req): ?string
+    {
+        if (!$req->hasFile('image') || !$req->file('image')->isValid()) {
+            return null;
+        }
+
+        $file = $req->file('image');
+        $path = public_path('uploads/products/');
+        if (!is_dir($path)) {
+            mkdir($path, 0755, true);
+        }
+
+        $imgName = 'product-' . md5(uniqid('', true)) . '.' . $file->extension();
+        $file->move($path, $imgName);
+
+        return 'uploads/products/' . $imgName;
+    }
 
     // ------------- PRODUCTS UPDATE -------------- //
     public function products_update($status, $id)

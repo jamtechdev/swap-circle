@@ -116,8 +116,26 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                <label><b>Base Price (User-side)</b></label>
+                                <label><b>Price</b></label>
                                 <input type="number" step="0.01" min="0" name="price" class="form-control mt-1" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                <label><b>Currency Code</b></label>
+                                <input type="text" name="currency_code" value="NGN" maxlength="10" class="form-control mt-1" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                <label><b>Currency Symbol</b></label>
+                                <input type="text" name="currency_symbol" value="₦" maxlength="10" class="form-control mt-1" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                <label><b>Delivery Request Limit (Type C)</b></label>
+                                <input type="number" min="1" name="delivery_request_limit" class="form-control mt-1" placeholder="Only used for type C">
                                 </div>
                             </div>
                             <div class="col-md-12">
@@ -236,8 +254,11 @@
                     <div class="card">
                         <div class="card-body">                                    
                         <legend style="float: right;">
-                            <button id="swap-insuretech-sync-btn" type="button" class="btn btn-light border" title="InsureTech sync (verify, pull products, push sales)">
-                                Sync <i class="fas fa-sync-alt"></i>
+                            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modal_add">
+                                Add Product <i class="fas fa-plus"></i>
+                            </button>
+                            <button id="swap-insuretech-sync-btn" type="button" class="btn btn-light border" title="InsureTech sync (verify connection and push completed sales)">
+                                Sync Sales <i class="fas fa-sync-alt"></i>
                             </button>
                         </legend>
                             <div class="table-responsive">
@@ -261,8 +282,12 @@
                                             <td>{{ $item->name }}</td>
                                             <td>{{ $item->type ?? 'A' }}</td>
                                             <td>
-                                                @if($item->custom_price)
-                                                    {{ number_format((float)$item->custom_price, 2) }}
+                                                @php
+                                                    $displayPrice = $item->custom_price ?? $item->price ?? null;
+                                                    $currencySymbol = $item->currency_symbol ?? '₦';
+                                                @endphp
+                                                @if($displayPrice !== null && $displayPrice !== '')
+                                                    {{ $currencySymbol }}{{ number_format((float)$displayPrice, 2) }}
                                                 @else
                                                     <span class="text-muted">Price not set</span>
                                                 @endif
@@ -336,32 +361,66 @@
                                                         </div>
                                                         <div class="modal-body">
                                                             <div class="basic-form">
-                                                                <form method="post" action="{{ url('admin/products_edit') }}">
+                                                                <form method="post" action="{{ url('admin/products_edit') }}" enctype="multipart/form-data">
                                                                     @csrf
                                                                     <input type="hidden" name="products_id" value="{{ $item->products_id }}">
                                                                     <div class="row">
                                                                         <div class="col-md-12 mb-3">
                                                                             <div class="form-group">
                                                                                 <b>Name</b>
-                                                                                <input type="text" class="form-control mt-1" value="{{ $item->name }}" readonly style="background:#f8f9fa;">
+                                                                                <input type="text" name="name" class="form-control mt-1" value="{{ $item->name }}" required>
                                                                             </div>
                                                                         </div>
-                                                                        <div class="col-md-12 mb-3">
+                                                                        <div class="col-md-6 mb-3">
                                                                             <div class="form-group">
-                                                                                <b>Custom Price</b>
-                                                                                <input type="number" step="0.01" min="0" name="custom_price" class="form-control mt-1" value="{{ $item->custom_price ?? '' }}" placeholder="Enter price">
+                                                                                <b>Type</b>
+                                                                                <select name="type" class="form-control mt-1" required>
+                                                                                    <option value="A" {{ ($item->type ?? 'A') == 'A' ? 'selected' : '' }}>A</option>
+                                                                                    <option value="B" {{ ($item->type ?? 'A') == 'B' ? 'selected' : '' }}>B</option>
+                                                                                    <option value="C" {{ ($item->type ?? 'A') == 'C' ? 'selected' : '' }}>C</option>
+                                                                                </select>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="col-md-6 mb-3">
+                                                                            <div class="form-group">
+                                                                                <b>Price</b>
+                                                                                <input type="number" step="0.01" min="0" name="price" class="form-control mt-1" value="{{ $item->custom_price ?? $item->price ?? '' }}" placeholder="Enter price" required>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="col-md-6 mb-3">
+                                                                            <div class="form-group">
+                                                                                <b>Currency Code</b>
+                                                                                <input type="text" maxlength="10" name="currency_code" class="form-control mt-1" value="{{ $item->currency_code ?? 'NGN' }}" required>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="col-md-6 mb-3">
+                                                                            <div class="form-group">
+                                                                                <b>Currency Symbol</b>
+                                                                                <input type="text" maxlength="10" name="currency_symbol" class="form-control mt-1" value="{{ $item->currency_symbol ?? '₦' }}" required>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="col-md-6 mb-3">
+                                                                            <div class="form-group">
+                                                                                <b>Delivery Request Limit (Type C)</b>
+                                                                                <input type="number" min="1" name="delivery_request_limit" class="form-control mt-1" value="{{ $item->delivery_request_limit ?? '' }}" placeholder="Only used for type C">
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="col-md-6 mb-3">
+                                                                            <div class="form-group">
+                                                                                <b>Image</b>
+                                                                                <input type="file" name="image" accept="image/*" class="form-control mt-1">
                                                                             </div>
                                                                         </div>
                                                                         <div class="col-md-12 mb-3">
                                                                             <div class="form-group">
                                                                                 <b>Description</b>
-                                                                                <textarea rows="4" class="form-control mt-1" readonly style="background:#f8f9fa;">{{ $item->description }}</textarea>
+                                                                                <textarea rows="4" name="description" class="form-control mt-1" required>{{ $item->description }}</textarea>
                                                                             </div>
                                                                         </div>
                                                                     </div>
                                                                     <div class="d-flex justify-content-end mt-3">
                                                                         <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
-                                                                        <button type="submit" class="btn btn-primary ml-2">Save Price</button>
+                                                                        <button type="submit" class="btn btn-primary ml-2">Save Product</button>
                                                                     </div>
                                                                 </form>
                                                             </div>
@@ -416,9 +475,9 @@
                                 var pull = data.products_pull || {};
                                 var pullOk = pull.ok !== false;
                                 var syncedProducts = typeof pull.synced_products === 'number' ? pull.synced_products : null;
-                                var msg = 'InsureTech sync OK.';
-                                if (syncedProducts !== null) {
-                                    msg += ' Products refreshed: ' + syncedProducts + '.';
+                                var msg = 'InsureTech sales sync OK.';
+                                if (syncedProducts !== null && syncedProducts > 0) {
+                                    msg += ' Existing product mappings checked: ' + syncedProducts + '.';
                                 }
                                 if (total === 0 && data.mode === 'batch') {
                                     msg += ' No mapped purchases to push.';

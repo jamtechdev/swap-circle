@@ -44,8 +44,12 @@
                                                                 </td>
                                                                 <td>{{ $item->type ?? 'A' }}</td>
                                                                 <td>
-                                                                    @if($item->custom_price)
-                                                                        &euro;{{ number_format((float) $item->custom_price, 2) }}
+                                                                    @php
+                                                                        $displayPrice = $item->custom_price ?? $item->price ?? null;
+                                                                        $currencySymbol = $item->currency_symbol ?? '₦';
+                                                                    @endphp
+                                                                    @if($displayPrice !== null && $displayPrice !== '')
+                                                                        {{ $currencySymbol }}{{ number_format((float) $displayPrice, 2) }}
                                                                     @else
                                                                         <span class="text-muted">Price not set</span>
                                                                     @endif
