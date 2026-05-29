@@ -1,4 +1,7 @@
 @extends('layout.admin.list_master')
+@section('titleBar')
+<span class="ml-2">Manage Products</span>
+@endsection
 @section('content')
     <style>
         .btn-light{
@@ -84,6 +87,33 @@
         /* Ensure icon keeps color */
         table td .btn i {
             color: inherit;
+        }
+        table.dataTable tbody td.product-description-cell {
+            max-width: 320px;
+            min-width: 260px;
+            white-space: normal !important;
+        }
+        .product-description-preview {
+            display: -webkit-box;
+            line-clamp: 4;
+            -webkit-line-clamp: 4;
+            -webkit-box-orient: vertical;
+            max-height: 84px;
+            overflow: hidden;
+            line-height: 1.45;
+            color: #4b5563;
+        }
+        .product-description-preview.expanded {
+            display: block;
+            max-height: none;
+        }
+        .product-description-toggle {
+            border: 0;
+            background: transparent;
+            color: #28c76f;
+            cursor: pointer;
+            font-size: 12px;
+            padding: 4px 0 0;
         }
     </style>
     <!-- Add Product -->
@@ -175,74 +205,10 @@
     </div>
     <!-- Add Product -->
 
-    <!-- Edit Rate Api -->
-    <div class="modal fade" id="editRateApiModal">
-        <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content">
-            @section('titleBar')
-            <span class="ml-2">Edit Rate Api</span>
-            @endsection 
-                <div class="modal-header">
-                    <h5 class="modal-title">Edit Rate Api</h5>
-                    <button type="button" class="close" data-bs-dismiss="modal"><span>&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <div class="basic-form">
-
-                        <div class="row col-md-12"> 
-                            <div class="form-group col-md-12">
-                                <b>Name</b>
-                                <b><input  type="text" name="name" id="name" class="form-control input" required></b>
-                            </div>
-                        </div>
-                        <div class="row col-md-12"> 
-                            <div class="form-group col-md-12">
-                                <b>URL</b>
-                                <b><input  type="text" name="url" id="url" class="form-control input" required></b>
-                            </div>
-                        </div>
-                        <input type="hidden" class="input" id="rate_api_id">
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-danger light" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" id="edit_rate_api">Edit</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- Edit Rate Api -->
-
-    <!-- View Rate Api -->
-    <div class="modal fade" id="viewRateApiModal">
-        <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content">
-            @section('titleBar')
-            <span class="ml-2">View Rate Api</span>
-            @endsection 
-                <div class="modal-header">
-                    <h5 class="modal-title">View Rate Api</h5>
-                    <button type="button" class="close" data-bs-dismiss="modal"><span>&times;</span>
-                    </button>
-                </div>
-                <div id="RateApiViewModal">
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-danger light" data-bs-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- Edit Rate Api -->
-
     <div class="content-body">
         <div class="container-fluid">
             <div class="page-titles mb-n5">
 				<ol class="breadcrumb">
-                    @section('titleBar')
-                    <span class="ml-2">Manage Products</span>
-                    @endsection
 				</ol>
             </div>
             <!-- row -->
@@ -299,9 +265,12 @@
                                                     N/A
                                                 @endif
                                             </td>
-                                            <td>
+                                            <td class="product-description-cell">
                                                 @if($item->description)
-                                                    {!! wordwrap(e($item->description), 60, '<br>') !!}
+                                                    <div class="product-description-preview">{{ $item->description }}</div>
+                                                    @if(\Illuminate\Support\Str::length($item->description) > 220)
+                                                        <button type="button" class="product-description-toggle">Show more</button>
+                                                    @endif
                                                 @else
                                                     N/A
                                                 @endif
@@ -351,9 +320,6 @@
                                             <div class="modal fade" id="modal_edit{{ $item->products_id }}">
                                                 <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
                                                     <div class="modal-content">
-                                                        @section('titleBar')
-                                                        <span class="ml-2">Manage Products</span>
-                                                        @endsection 
                                                         <div class="modal-header">
                                                             <h5 class="modal-title">Edit Product Details</h5>
                                                             <button type="button" class="close" data-dismiss="modal"><span>&times;</span>
@@ -533,6 +499,18 @@
                             btn.disabled = false;
                             btn.innerText = originalText;
                         });
+                });
+            });
+
+            document.querySelectorAll('.product-description-toggle').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var preview = btn.previousElementSibling;
+                    if (!preview) {
+                        return;
+                    }
+
+                    preview.classList.toggle('expanded');
+                    btn.innerText = preview.classList.contains('expanded') ? 'Show less' : 'Show more';
                 });
             });
         });
