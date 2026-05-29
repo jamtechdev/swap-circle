@@ -123,12 +123,32 @@
             padding: 4px 0 0;
         }
         .product-table-image {
-            width: 100px;
-            height: 100px;
-            object-fit: cover;
-            border-radius: 8px;
+            width: 72px;
+            height: 72px;
+            object-fit: contain;
+            border-radius: 12px;
             border: 1px solid #e5e7eb;
+            background: #fff;
+            padding: 4px;
+            display: block;
+        }
+        .product-image-placeholder {
+            width: 72px;
+            height: 72px;
+            border: 1px dashed #cbd5e1;
+            border-radius: 12px;
             background: #f8fafc;
+            color: #94a3b8;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            font-size: 11px;
+            line-height: 1;
+        }
+        .product-image-placeholder i {
+            font-size: 20px;
         }
     </style>
     <!-- Add Product -->
@@ -275,15 +295,19 @@
                                             </td>
                                             <td>
                                                 @php
-                                                    $defaultProductImage = asset('images/upload.svg');
                                                     $image = trim((string) ($item->image ?? ''));
                                                     $imageHost = $image ? parse_url($image, PHP_URL_HOST) : null;
                                                     $isDeadLocalImage = in_array($imageHost, ['127.0.0.1', 'localhost'], true);
                                                     $productImageUrl = $image && !$isDeadLocalImage
                                                         ? (\Illuminate\Support\Str::startsWith($image, ['http://', 'https://']) ? $image : asset($image))
-                                                        : $defaultProductImage;
+                                                        : null;
                                                 @endphp
-                                                <img src="{{ $productImageUrl }}" alt="Product image" class="product-table-image" onerror="this.onerror=null;this.src='{{ $defaultProductImage }}';">
+                                                @if($productImageUrl)
+                                                    <img src="{{ $productImageUrl }}" alt="Product image" class="product-table-image" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                                                    <div class="product-image-placeholder" style="display:none;"><i class="fa fa-image"></i><span>No image</span></div>
+                                                @else
+                                                    <div class="product-image-placeholder"><i class="fa fa-image"></i><span>No image</span></div>
+                                                @endif
                                             </td>
                                             <td class="product-description-cell">
                                                 @if($item->description)
@@ -426,11 +450,6 @@
           	</div>
         </div>
     </div>
-    <script src="{{ asset('users/assets/js/bootstrap.bundle.js') }}"></script>
-    <script src="{{ asset('users/assets/js/jquery.min.js') }}"></script>
-    <script src="{{ asset('users/assets/js/jquery.validate.min.js') }}"></script>
-    <script src="{{ asset('users/assets/js/jquery.ui.min.js') }}"></script>
-    <script src="{{ asset('users/assets/js/jquery.additional.methods.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             var insuretechSyncBtn = document.getElementById('swap-insuretech-sync-btn');
