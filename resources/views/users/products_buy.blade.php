@@ -1,5 +1,12 @@
 @extends('layout.users.master')
 @section('content') 
+    @php
+        $requiresAgeLimit = (int) ($product->products_id ?? 0) === 1 || \Illuminate\Support\Str::contains(
+            \Illuminate\Support\Str::lower((string) ($product->name ?? '')),
+            'nigerian community beneficiary'
+        );
+    @endphp
+    <input type="hidden" id="product_age_limited" value="{{ $requiresAgeLimit ? 1 : 0 }}">
     <style>
         .box-container {
             display: flex;
@@ -558,6 +565,31 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-ui-timepicker-addon/1.6.3/jquery-ui-timepicker-addon.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-ui-timepicker-addon/1.6.3/jquery-ui-timepicker-addon.min.js"></script>
     <script>
+        function yearsAgoDate(years) {
+            var date = new Date();
+            date.setFullYear(date.getFullYear() - years);
+            return date;
+        }
+
+        function parseDob(value) {
+            var parts = (value || '').split('-');
+            if (parts.length !== 3) {
+                return null;
+            }
+
+            return new Date(parseInt(parts[2], 10), parseInt(parts[1], 10) - 1, parseInt(parts[0], 10));
+        }
+
+        function ageFromDob(dob) {
+            var today = new Date();
+            var age = today.getFullYear() - dob.getFullYear();
+            var monthDiff = today.getMonth() - dob.getMonth();
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+                age--;
+            }
+            return age;
+        }
+
         function calculateCoverEndDate(product) {
             var startDateVal = $('#prod' + product + '_cover_start_date').val();
             var duration = $('#prod' + product + '_cover_duration').val();
@@ -592,17 +624,51 @@
             $('#prod' + product + '_cover_end_date').val(yyyy + "-" + mm + "-" + dd);
         }
         $(document).ready(function() {
-            // DOB fields (canâ€™t select future dates)
-            $('.dob').datepicker({
-                dateFormat: "dd-mm-yy", 
-                maxDate: 0,
+            window.swapProductRequiresAgeLimit = $('#product_age_limited').val() === '1';
+
+            if ($.validator && !$.validator.methods.productAgeLimit) {
+                $.validator.addMethod('productAgeLimit', function(value) {
+                    if (!window.swapProductRequiresAgeLimit || !value) {
+                        return true;
+                    }
+
+                    var dob = parseDob(value);
+                    if (!dob || isNaN(dob.getTime())) {
+                        return false;
+                    }
+
+                    var age = ageFromDob(dob);
+                    return age >= 18 && age <= 65;
+                }, 'Age must be between 18 and 65 years.');
+            }
+
+            var dobPickerOptions = {
+                dateFormat: "dd-mm-yy",
+                maxDate: window.swapProductRequiresAgeLimit ? yearsAgoDate(18) : 0,
+                minDate: window.swapProductRequiresAgeLimit ? yearsAgoDate(65) : null,
                 changeMonth: true,
                 changeYear: true,
-                yearRange: "-100:+0",
+                yearRange: window.swapProductRequiresAgeLimit ? "-65:-18" : "-100:+0",
                 onSelect: function(dateText, inst) {
                     $(this).valid(); 
                 }
-            });
+            };
+
+            // DOB fields (canâ€™t select future dates)
+            $('.dob').datepicker(dobPickerOptions);
+
+            if (window.swapProductRequiresAgeLimit) {
+                $('#prodA_dob, #prodB_dob').each(function () {
+                    if ($(this).length && $(this).rules) {
+                        $(this).rules('add', {
+                            productAgeLimit: true,
+                            messages: {
+                                productAgeLimit: 'Age must be between 18 and 65 years.'
+                            }
+                        });
+                    }
+                });
+            }
 
             // On selecting start date
             $('.cover_start_date').datepicker({

@@ -1067,6 +1067,7 @@ class AdminController extends Controller
             'currency_code' => 'nullable|string|max:10',
             'currency_symbol' => 'nullable|string|max:10',
             'description' => 'required|string',
+            'product_information' => 'nullable|string',
             'delivery_request_limit' => 'nullable|integer|min:1',
             'image' => 'nullable|image|max:4096',
         ]);
@@ -1100,6 +1101,7 @@ class AdminController extends Controller
             'currency_code' => 'nullable|string|max:10',
             'currency_symbol' => 'nullable|string|max:10',
             'description' => 'required|string',
+            'product_information' => 'nullable|string',
             'delivery_request_limit' => 'nullable|integer|min:1',
             'image' => 'nullable|image|max:4096',
         ]);
@@ -1136,6 +1138,7 @@ class AdminController extends Controller
             'currency_code' => $currencyCode,
             'currency_symbol' => trim((string) ($req->currency_symbol ?: '₦')),
             'description' => $req->description,
+            'product_information' => $req->product_information,
             'delivery_request_limit' => $req->type === 'C' ? (int) ($req->delivery_request_limit ?: 1) : null,
             'date_modified' => date('Y-m-d H:i:s'),
         ];
@@ -1166,6 +1169,34 @@ class AdminController extends Controller
         $file->move($path, $imgName);
 
         return 'uploads/products/' . $imgName;
+    }
+
+    public function products_information_image_upload(Request $req)
+    {
+        if (!session()->has('admin_id')) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthenticated'], 401);
+        }
+
+        $req->validate([
+            'image' => 'required|image|max:4096',
+        ]);
+
+        $file = $req->file('image');
+        $path = public_path('uploads/products/information/');
+        if (!is_dir($path)) {
+            mkdir($path, 0755, true);
+        }
+
+        $imgName = 'product-info-' . md5(uniqid('', true)) . '.' . $file->extension();
+        $file->move($path, $imgName);
+
+        $relativePath = 'uploads/products/information/' . $imgName;
+
+        return response()->json([
+            'status' => 'success',
+            'path' => $relativePath,
+            'url' => asset($relativePath),
+        ]);
     }
 
     // ------------- PRODUCTS UPDATE -------------- //

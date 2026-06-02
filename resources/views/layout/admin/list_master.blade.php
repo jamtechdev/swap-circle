@@ -145,7 +145,7 @@
 		
 	    <!-- Datatable -->
 	    <script src="{{asset('vendor/datatables/js/jquery.dataTables.min.js')}}"></script>
-	    <script src="{{ asset('js/plugins-init/datatables.init.js') }}?v={{ filemtime(public_path('js/plugins-init/datatables.init.js')) }}"></script>
+	    <script src="{{ asset('js/plugins-init/datatables.init.js') }}?v=20260601-2-{{ filemtime(public_path('js/plugins-init/datatables.init.js')) }}"></script>
 
 	    <script>
 	        $(document).ready(function () {

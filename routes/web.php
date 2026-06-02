@@ -180,6 +180,7 @@ Route::get('/admin/swap_offers', [AdminController::class, 'swap_offers'])->name(
 Route::get('/admin/manage_products', [AdminController::class, 'manage_products']);
 Route::post('/admin/products_add', [AdminController::class, 'products_add']);
 Route::post('/admin/products_edit', [AdminController::class, 'products_edit']);
+Route::post('/admin/products/information-image', [AdminController::class, 'products_information_image_upload']);
 Route::get('/admin/products_update/{status}/{id}', [AdminController::class, 'products_update']);
 // PRODUCTS
 

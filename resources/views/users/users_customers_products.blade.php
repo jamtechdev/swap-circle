@@ -21,6 +21,27 @@
             max-height: 96px;
             overflow: hidden;
         }
+        .product-info-btn {
+            background: #e8f8ef;
+            border: 1px solid #38d77c;
+            color: #159352;
+            font-weight: 600;
+            border-radius: 8px;
+            padding: 8px 14px;
+        }
+        .product-info-btn:hover {
+            background: #38d77c;
+            color: #fff;
+        }
+        .product-info-modal-body {
+            max-height: 65vh;
+            overflow-y: auto;
+        }
+        .product-info-modal-body img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+        }
     </style>
     <div class="page-content-wrapper">
         <div class="page-content-tab">
@@ -34,6 +55,10 @@
                         <div class="tab-content" id="pills-tabContent">
                             <div class="row">
                                 @foreach($products as $key => $item)
+                                @php
+                                    $productInfo = trim((string) ($item->product_information ?? ''));
+                                    $productInfoModalId = 'productInfoModal' . $item->products_id;
+                                @endphp
                                 <div class="col-md-4 col-xl-4">
                                     <div class="card border-0 mb-3">
                                         <div class="card-body">
@@ -74,8 +99,11 @@
                                             </div>
                                         </div>
                                     </div>    
-                                    <div class="d-flex align-items-center justify-content-center pb-0 mb-3 flex-wrap">
+                                    <div class="d-flex align-items-center justify-content-center pb-0 mb-3 flex-wrap gap-2">
                                         <a href="{{ url('users/product/' . $item->type . '/' . $item->products_id) }}" class="btn btn-primary">Buy now</a>
+                                        <button type="button" class="product-info-btn" data-bs-toggle="modal" data-bs-target="#{{ $productInfoModalId }}">
+                                            Product Information
+                                        </button>
                                         <!-- @if($item->type == 'A')
                                             <button class="btn btn-primary" onclick="openProductModal('A', {{ $item->products_id }})">Buy now</button>  
                                         @endif 
@@ -86,6 +114,32 @@
                                             <button class="btn btn-primary" onclick="openProductModal('C', {{ $item->products_id }})">Buy now</button> 
                                         @endif   -->
                                     </div> 
+                                </div>
+                                <div class="modal fade" id="{{ $productInfoModalId }}" tabindex="-1" aria-labelledby="{{ $productInfoModalId }}Label" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="{{ $productInfoModalId }}Label">{{ $item->name }}</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body product-info-modal-body">
+                                                <div class="text-center mb-3">
+                                                    <img src="{{ $productImageUrl }}" alt="{{ $item->name }}" style="max-height:180px;" onerror="this.onerror=null;this.src='{{ $defaultProductImage }}';">
+                                                </div>
+                                                @if($productInfo !== '')
+                                                    {!! $productInfo !!}
+                                                @elseif($item->description)
+                                                    <p>{{ $item->description }}</p>
+                                                @else
+                                                    <p class="text-muted mb-0">No product information available.</p>
+                                                @endif
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                <a href="{{ url('users/product/' . $item->type . '/' . $item->products_id) }}" class="btn btn-primary">Buy now</a>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                                 @endforeach
                             </div>

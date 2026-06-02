@@ -3762,7 +3762,8 @@ public function paymentSuccess(Request $request)
     if (!DB::table('users_customers')->where([['users_customers_id', $req->users_customers_id], ['status', 'Active']])->exists()) {
       return response()->json(['status' => 'error', 'message' => "users_customers_id '{$req->users_customers_id}' does not exist."], 400);
     }
-    if (!DB::table('products')->where([['products_id', $req->products_id], ['type', $req->type], ['status', 'Active']])->exists()) {
+    $productRecord = DB::table('products')->where([['products_id', $req->products_id], ['type', $req->type], ['status', 'Active']])->first();
+    if (!$productRecord) {
       return response()->json(['status' => 'error', 'message' => "product does not exist."], 400);
     }
     /*  Common fields requirement */
@@ -3778,6 +3779,9 @@ public function paymentSuccess(Request $request)
         if (empty($req->$field)) {
           return response()->json(['status' => 'error', 'message' => "Field '$field' is required for product type $type."], 400);
         }
+      }
+      if ($this->requiresBeneficiaryAgeLimit($productRecord) && !$this->isBeneficiaryAgeAllowed((string) $req->date_of_birth)) {
+        return response()->json(['status' => 'error', 'message' => 'Age must be between 18 and 65 years.'], 400);
       }
       if (!DB::table('occupations')->where([['occupations_id', $req->occupations_id], ['status', 'Active']])->exists()) {
         return response()->json(['status' => 'error', 'message' => "occupations_id '{$req->occupations_id}' does not exist."], 400);
@@ -4519,7 +4523,17 @@ public function initiateStripePayment(Request $req)
      if (!is_numeric($price)) {
          return response()->json(['status' => 'error', 'message' => 'Invalid product price'], 400);
      }
-     $amount = (int) round(((float) $price) * 100);
+     $price = (float) $price;
+     $minimumPrice = $this->stripeMinimumPriceForCurrency($currency);
+     if ($minimumPrice !== null && $price < $minimumPrice) {
+         return response()->json([
+             'status' => 'error',
+             'message' => 'Product price is below Stripe minimum. Please update this product price on SWAP admin before checkout.',
+             'minimum_price' => $minimumPrice,
+             'currency' => strtoupper($currency),
+         ], 400);
+     }
+     $amount = (int) round($price * 100);
      if ($amount < 30) {
          return response()->json(['status' => 'error', 'message' => 'Amount below Stripe minimum'], 400);
      }
@@ -4776,6 +4790,35 @@ public function handleStripeCancel(Request $req)
     }
 }
 
+
+private function requiresBeneficiaryAgeLimit(object $product): bool
+{
+    return (int) ($product->products_id ?? 0) === 1
+        || str_contains(strtolower((string) ($product->name ?? '')), 'nigerian community beneficiary');
+}
+
+private function isBeneficiaryAgeAllowed(string $dateOfBirth): bool
+{
+    try {
+        $dob = Carbon::parse($dateOfBirth)->startOfDay();
+    } catch (\Throwable $exception) {
+        return false;
+    }
+
+    $age = $dob->age;
+
+    return $age >= 18 && $age <= 65;
+}
+
+private function stripeMinimumPriceForCurrency(string $currency): ?float
+{
+    return match (strtolower($currency)) {
+        'gbp' => 0.30,
+        'usd', 'eur' => 0.50,
+        'ngn' => 600.00,
+        default => null,
+    };
+}
 
 public function sendTestMail()
 {

@@ -150,6 +150,49 @@
         .product-image-placeholder i {
             font-size: 20px;
         }
+        .product-info-editor-wrap {
+            border: 1px solid #d7dde5;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #fff;
+        }
+        .product-info-editor-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            padding: 8px;
+            background: #f6f8fb;
+            border-bottom: 1px solid #d7dde5;
+        }
+        .product-info-editor-toolbar button {
+            border: 1px solid #cfd6df;
+            background: #fff;
+            border-radius: 5px;
+            padding: 5px 9px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .product-info-editor-toolbar button:hover {
+            background: #e9f7ef;
+            border-color: #38d77c;
+        }
+        .product-info-rich-editor {
+            min-height: 190px;
+            max-height: 360px;
+            overflow-y: auto;
+            padding: 12px;
+            outline: none;
+        }
+        .product-info-rich-editor:empty:before {
+            content: attr(data-placeholder);
+            color: #9aa3af;
+        }
+        .product-info-rich-editor img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 8px 0;
+        }
     </style>
     <!-- Add Product -->
     <div class="modal fade" id="modal_add">
@@ -207,6 +250,24 @@
                                 <div class="form-group">
                                 <label><b>Description</b></label>
                                 <textarea rows="3" name="description" class="form-control mt-1" required></textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                <label><b>Product Information</b> <small class="text-muted">(rich text, HTML and images)</small></label>
+                                <textarea name="product_information" class="product-info-source d-none"></textarea>
+                                <div class="product-info-editor-wrap mt-1">
+                                    <div class="product-info-editor-toolbar">
+                                        <button type="button" data-command="bold"><b>B</b></button>
+                                        <button type="button" data-command="italic"><i>I</i></button>
+                                        <button type="button" data-command="insertUnorderedList">Bullets</button>
+                                        <button type="button" data-command="insertOrderedList">Numbers</button>
+                                        <button type="button" class="product-info-link-btn">Link</button>
+                                        <button type="button" class="product-info-image-btn">Upload Image</button>
+                                        <input type="file" class="product-info-image-input d-none" accept="image/*">
+                                    </div>
+                                    <div class="product-info-rich-editor" contenteditable="true" data-placeholder="Add detailed information, terms, benefits, images, and product notes here."></div>
+                                </div>
                                 </div>
                             </div>
                             <div class="col-md-12"> 
@@ -427,6 +488,24 @@
                                                                                 <textarea rows="3" name="description" class="form-control mt-1" required>{{ $item->description }}</textarea>
                                                                             </div>
                                                                         </div>
+                                                                        <div class="col-md-12 mb-3">
+                                                                            <div class="form-group">
+                                                                                <b>Product Information</b> <small class="text-muted">(rich text, HTML and images)</small>
+                                                                                <textarea name="product_information" class="product-info-source d-none">{{ $item->product_information ?? '' }}</textarea>
+                                                                                <div class="product-info-editor-wrap mt-1">
+                                                                                    <div class="product-info-editor-toolbar">
+                                                                                        <button type="button" data-command="bold"><b>B</b></button>
+                                                                                        <button type="button" data-command="italic"><i>I</i></button>
+                                                                                        <button type="button" data-command="insertUnorderedList">Bullets</button>
+                                                                                        <button type="button" data-command="insertOrderedList">Numbers</button>
+                                                                                        <button type="button" class="product-info-link-btn">Link</button>
+                                                                                        <button type="button" class="product-info-image-btn">Upload Image</button>
+                                                                                        <input type="file" class="product-info-image-input d-none" accept="image/*">
+                                                                                    </div>
+                                                                                    <div class="product-info-rich-editor" contenteditable="true" data-placeholder="Add detailed information, terms, benefits, images, and product notes here."></div>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
                                                                     </div>
                                                                     <div class="d-flex justify-content-end mt-3">
                                                                         <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
@@ -551,6 +630,102 @@
                     preview.classList.toggle('expanded');
                     btn.innerText = preview.classList.contains('expanded') ? 'Show less' : 'Show more';
                 });
+            });
+
+            document.querySelectorAll('.product-info-editor-wrap').forEach(function (wrap) {
+                var source = wrap.previousElementSibling;
+                var editor = wrap.querySelector('.product-info-rich-editor');
+                var imageInput = wrap.querySelector('.product-info-image-input');
+
+                if (!source || !editor) {
+                    return;
+                }
+
+                editor.innerHTML = source.value || '';
+
+                function syncProductInformation() {
+                    source.value = editor.innerHTML.trim();
+                }
+
+                wrap.querySelectorAll('[data-command]').forEach(function (button) {
+                    button.addEventListener('click', function () {
+                        editor.focus();
+                        document.execCommand(button.getAttribute('data-command'), false, null);
+                        syncProductInformation();
+                    });
+                });
+
+                var linkButton = wrap.querySelector('.product-info-link-btn');
+                if (linkButton) {
+                    linkButton.addEventListener('click', function () {
+                        var url = window.prompt('Enter link URL');
+                        if (!url) {
+                            return;
+                        }
+                        editor.focus();
+                        document.execCommand('createLink', false, url);
+                        syncProductInformation();
+                    });
+                }
+
+                var imageButton = wrap.querySelector('.product-info-image-btn');
+                if (imageButton && imageInput) {
+                    imageButton.addEventListener('click', function () {
+                        imageInput.click();
+                    });
+
+                    imageInput.addEventListener('change', function () {
+                        var file = imageInput.files && imageInput.files[0];
+                        if (!file) {
+                            return;
+                        }
+
+                        var formData = new FormData();
+                        formData.append('image', file);
+
+                        imageButton.disabled = true;
+                        imageButton.innerText = 'Uploading...';
+
+                        fetch("{{ url('admin/products/information-image') }}", {
+                            method: 'POST',
+                            headers: {
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': "{{ csrf_token() }}"
+                            },
+                            body: formData
+                        })
+                            .then(function (response) {
+                                return response.json().then(function (data) {
+                                    if (!response.ok) {
+                                        throw new Error(data.message || 'Image upload failed.');
+                                    }
+                                    return data;
+                                });
+                            })
+                            .then(function (data) {
+                                if (!data.url) {
+                                    throw new Error('Image upload failed.');
+                                }
+                                editor.focus();
+                                document.execCommand('insertImage', false, data.url);
+                                syncProductInformation();
+                            })
+                            .catch(function (error) {
+                                alert(error.message || 'Image upload failed.');
+                            })
+                            .finally(function () {
+                                imageInput.value = '';
+                                imageButton.disabled = false;
+                                imageButton.innerText = 'Upload Image';
+                            });
+                    });
+                }
+
+                editor.addEventListener('input', syncProductInformation);
+                var form = wrap.closest('form');
+                if (form) {
+                    form.addEventListener('submit', syncProductInformation);
+                }
             });
         });
 
