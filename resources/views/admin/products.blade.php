@@ -421,112 +421,115 @@
                                                     <i class="fa fa-check"></i>
                                                 </a>
                                                 @endif
-                                            <!-- modal start -->
-                                            <div class="modal fade" id="modal_edit{{ $item->products_id }}">
-                                                <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
-                                                    <div class="modal-content">
-                                                        <div class="modal-header">
-                                                            <h5 class="modal-title">Edit Product Details</h5>
-                                                            <button type="button" class="close" data-dismiss="modal"><span>&times;</span>
-                                                            </button>
-                                                        </div>
-                                                        <div class="modal-body">
-                                                            <div class="basic-form">
-                                                                <form method="post" action="{{ url('admin/products_edit') }}" enctype="multipart/form-data">
-                                                                    @csrf
-                                                                    <input type="hidden" name="products_id" value="{{ $item->products_id }}">
-                                                                    <div class="row">
-                                                                        <div class="col-md-12 mb-3">
-                                                                            <div class="form-group">
-                                                                                <b>Name</b>
-                                                                                <input type="text" name="name" class="form-control mt-1" value="{{ $item->name }}" required>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="col-md-6 mb-3">
-                                                                            <div class="form-group">
-                                                                                <b>Type</b>
-                                                                                <select name="type" class="form-control mt-1" required>
-                                                                                    <option value="A" {{ ($item->type ?? 'A') == 'A' ? 'selected' : '' }}>A</option>
-                                                                                    <option value="B" {{ ($item->type ?? 'A') == 'B' ? 'selected' : '' }}>B</option>
-                                                                                    <option value="C" {{ ($item->type ?? 'A') == 'C' ? 'selected' : '' }}>C</option>
-                                                                                </select>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="col-md-6 mb-3">
-                                                                            <div class="form-group">
-                                                                                <b>Price</b>
-                                                                                <input type="number" step="0.01" min="0" name="price" class="form-control mt-1" value="{{ $item->custom_price ?? $item->price ?? '' }}" placeholder="Enter price" required>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="col-md-6 mb-3">
-                                                                            <div class="form-group">
-                                                                                <b>Currency Code</b>
-                                                                                <input type="text" maxlength="10" name="currency_code" class="form-control mt-1" value="{{ $item->currency_code ?? 'NGN' }}" required>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="col-md-6 mb-3">
-                                                                            <div class="form-group">
-                                                                                <b>Currency Symbol</b>
-                                                                                <input type="text" maxlength="10" name="currency_symbol" class="form-control mt-1" value="{{ $item->currency_symbol ?? '₦' }}" required>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="col-md-6 mb-3">
-                                                                            <div class="form-group">
-                                                                                <b>Delivery Request Limit (Type C)</b>
-                                                                                <input type="number" min="1" name="delivery_request_limit" class="form-control mt-1" value="{{ $item->delivery_request_limit ?? '' }}" placeholder="Only used for type C">
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="col-md-6 mb-3">
-                                                                            <div class="form-group">
-                                                                                <b>Image</b>
-                                                                                <input type="file" name="image" accept="image/*" class="form-control mt-1">
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="col-md-12 mb-3">
-                                                                            <div class="form-group">
-                                                                                <b>Description</b>
-                                                                                <textarea rows="3" name="description" class="form-control mt-1" required>{{ $item->description }}</textarea>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="col-md-12 mb-3">
-                                                                            <div class="form-group">
-                                                                                <b>Product Information</b> <small class="text-muted">(rich text, HTML and images)</small>
-                                                                                <textarea name="product_information" class="product-info-source d-none">{{ $item->product_information ?? '' }}</textarea>
-                                                                                <div class="product-info-editor-wrap mt-1">
-                                                                                    <div class="product-info-editor-toolbar">
-                                                                                        <button type="button" data-command="bold"><b>B</b></button>
-                                                                                        <button type="button" data-command="italic"><i>I</i></button>
-                                                                                        <button type="button" data-command="insertUnorderedList">Bullets</button>
-                                                                                        <button type="button" data-command="insertOrderedList">Numbers</button>
-                                                                                        <button type="button" class="product-info-link-btn">Link</button>
-                                                                                        <button type="button" class="product-info-image-btn">Upload Image</button>
-                                                                                        <input type="file" class="product-info-image-input d-none" accept="image/*">
-                                                                                    </div>
-                                                                                    <div class="product-info-rich-editor" contenteditable="true" data-placeholder="Add detailed information, terms, benefits, images, and product notes here."></div>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="d-flex justify-content-end mt-3">
-                                                                        <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
-                                                                        <button type="submit" class="btn btn-primary ml-2">Save Product</button>
-                                                                    </div>
-                                                                </form>
-                                                            </div>
-                                                        </div>
+                                        </td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Edit Modals (outside table to prevent table layout breakage) --}}
+            @foreach($products as $key => $item)
+            <div class="modal fade" id="modal_edit{{ $item->products_id }}">
+                <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Edit Product Details</h5>
+                            <button type="button" class="close" data-dismiss="modal"><span>&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="basic-form">
+                                <form method="post" action="{{ url('admin/products_edit') }}" enctype="multipart/form-data">
+                                    @csrf
+                                    <input type="hidden" name="products_id" value="{{ $item->products_id }}">
+                                    <div class="row">
+                                        <div class="col-md-12 mb-3">
+                                            <div class="form-group">
+                                                <b>Name</b>
+                                                <input type="text" name="name" class="form-control mt-1" value="{{ $item->name }}" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <div class="form-group">
+                                                <b>Type</b>
+                                                <select name="type" class="form-control mt-1" required>
+                                                    <option value="A" {{ ($item->type ?? 'A') == 'A' ? 'selected' : '' }}>A</option>
+                                                    <option value="B" {{ ($item->type ?? 'A') == 'B' ? 'selected' : '' }}>B</option>
+                                                    <option value="C" {{ ($item->type ?? 'A') == 'C' ? 'selected' : '' }}>C</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <div class="form-group">
+                                                <b>Price</b>
+                                                <input type="number" step="0.01" min="0" name="price" class="form-control mt-1" value="{{ $item->custom_price ?? $item->price ?? '' }}" placeholder="Enter price" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <div class="form-group">
+                                                <b>Currency Code</b>
+                                                <input type="text" maxlength="10" name="currency_code" class="form-control mt-1" value="{{ $item->currency_code ?? 'NGN' }}" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <div class="form-group">
+                                                <b>Currency Symbol</b>
+                                                <input type="text" maxlength="10" name="currency_symbol" class="form-control mt-1" value="{{ $item->currency_symbol ?? '₦' }}" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <div class="form-group">
+                                                <b>Delivery Request Limit (Type C)</b>
+                                                <input type="number" min="1" name="delivery_request_limit" class="form-control mt-1" value="{{ $item->delivery_request_limit ?? '' }}" placeholder="Only used for type C">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <div class="form-group">
+                                                <b>Image</b>
+                                                <input type="file" name="image" accept="image/*" class="form-control mt-1">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-12 mb-3">
+                                            <div class="form-group">
+                                                <b>Description</b>
+                                                <textarea rows="3" name="description" class="form-control mt-1" required>{{ $item->description }}</textarea>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-12 mb-3">
+                                            <div class="form-group">
+                                                <b>Product Information</b> <small class="text-muted">(rich text, HTML and images)</small>
+                                                <textarea name="product_information" class="product-info-source d-none">{{ $item->product_information ?? '' }}</textarea>
+                                                <div class="product-info-editor-wrap mt-1">
+                                                    <div class="product-info-editor-toolbar">
+                                                        <button type="button" data-command="bold"><b>B</b></button>
+                                                        <button type="button" data-command="italic"><i>I</i></button>
+                                                        <button type="button" data-command="insertUnorderedList">Bullets</button>
+                                                        <button type="button" data-command="insertOrderedList">Numbers</button>
+                                                        <button type="button" class="product-info-link-btn">Link</button>
+                                                        <button type="button" class="product-info-image-btn">Upload Image</button>
+                                                        <input type="file" class="product-info-image-input d-none" accept="image/*">
                                                     </div>
+                                                    <div class="product-info-rich-editor" contenteditable="true" data-placeholder="Add detailed information, terms, benefits, images, and product notes here."></div>
                                                 </div>
                                             </div>
-                                            <!-- modal end -->
-                                        </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-content-end mt-3">
+                                        <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                                        <button type="submit" class="btn btn-primary ml-2">Save Product</button>
+                                    </div>
+                                </form>
                             </div>
                         </div>
                     </div>
                 </div>
-          	</div>
+            </div>
+            @endforeach
+            </div>
         </div>
     </div>
     <script>
