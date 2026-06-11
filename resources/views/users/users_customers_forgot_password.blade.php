@@ -34,7 +34,7 @@
                         <div class="logo text-center">
                             <img src="{{ asset('uploads/system_image/'.$system_image[0]->description) }}" class="img-fluid img-logo" alt="image">
                             <h3 class="main-heading mt-5">Forget Password?</h3>
-                            <p class="sub-heading mt-2">Enter your registered email to reset <br/> your password.</p>
+                            <p class="sub-heading mt-2">Enter your registered email and we will send <br/> a secure reset password link.</p>
                             <!-- FORM FORGOT PASSWORD START -->
                             <form id="frm_forgot_password" class="mt-5">
                                 @csrf
@@ -45,7 +45,8 @@
                                     <span class="error_msg" id="error_email"></span>
                                 </div>
                                 <div class="pt-4">
-                                    <button type="submit" class="btn btn-login btn-primary w-100 mt-4">Next</button>
+                                        <button type="submit" id="btnForgotPassword" class="btn btn-login btn-primary w-100 mt-4">Send Reset Link</button>
+                                        <a href="{{ url('/') }}" class="d-inline-block mt-3">Back to login</a>
                                 </div>
                             </form>
                             <!-- FORM FORGOT PASSWORD END -->
@@ -104,13 +105,19 @@
                             }),
                         };
 
+                        $("#btnForgotPassword").prop("disabled", true).text("Sending...");
+
                         $.ajax(settings).done(function (response) {
                             if (response.status == "error") { 
                                 Command: toastr["error"](response.message);
                             } else{                      
-                                var users_customers_id = response.data.data.users_customers_id;  alert(response.data.otp);
-                                window.location.href = "/users/verification_code/" + users_customers_id;
+                                Command: toastr["success"](response.data.message || "Password reset link has been sent to your email.");
+                                $("#frm_forgot_password")[0].reset();
                             }
+                        }).fail(function () {
+                            Command: toastr["error"]("Unable to send reset link. Please try again.");
+                        }).always(function () {
+                            $("#btnForgotPassword").prop("disabled", false).text("Send Reset Link");
                         });  
                     }
                 });

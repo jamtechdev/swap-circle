@@ -156,7 +156,7 @@ class UsersController extends Controller{
     // -------------- RESET PASSWORD ------------- //
     public function users_customers_reset_password($email, $otp){
         if(session()->has('id')) {
-            return redirect('/users/dashbaord');
+            return redirect('/users/dashboard');
         } else {
             return view('users.users_customers_reset_password', compact('email', 'otp'));
         } 
@@ -299,10 +299,20 @@ class UsersController extends Controller{
     	if (!session()->has('id')) {
             return redirect('/');
         } else{
+            $product = DB::table('products')
+                ->where('products_id', $id)
+                ->where('type', $type)
+                ->where('status', 'Active')
+                ->first();
+
+            if (!$product) {
+                Session::flash('error', 'Product not found or unavailable.');
+                return redirect('/users/products');
+            }
+
             $occupations     = DB::table('occupations')->where('status', 'Active')->orderBy('occupations_id', 'ASC')->get();
             $relationships   = DB::table('relationships')->where('status', 'Active')->orderBy('relationships_id', 'ASC')->get();
             $tasks_types     = DB::table('tasks_types')->where('status', 'Active')->orderBy('tasks_types_id', 'ASC')->get();
-            $product         = DB::table('products')->where('products_id', $id)->first();
             return view('users.products_buy', compact('product', 'occupations', 'relationships', 'tasks_types'));
         }
     }

@@ -756,49 +756,54 @@ public function paymentSuccess(Request $request)
 
   /* FORGETPASSWORD API */
   public function forgot_password(Request $req){
-    if (isset($req)) {
-      $email=DB::table('users_customers')->where('email', $req->email)->get()->count();
-      if ($email>0) {
-        $data = DB::table('users_customers')->where('email', $req->email)->first();
-        $id = $data->users_customers_id;
-        $onlyEmail = $req->email;
-        $otp = rand(1000,9999);
-        /*$details = [
-            "title"=>"Email Verification Code",
-            "data"=>$data,
-            "body"=> $otp
-        ];
-        $otpSended= Mail::to($onlyEmail)->send(new SendMail($details));*/
+    if (!isset($req->email) || trim((string) $req->email) === '') {
+      $response["code"] = 404;
+      $response["status"] = "error";
+      $response["message"] = "Please enter email address.";
+    } else {
+      $email = trim((string) $req->email);
+      $data = DB::table('users_customers')->where('email', $email)->first();
 
-        /* send mail */
-        $templateBody = $data->first_name .' '. $data->last_name;
-        $otp = rand(1000, 9999);
-        // $templateBody = str_replace('{otp}', $otp, $templateBody); // Assuming you want to replace the OTP
-    
-        $to       = $req->email;
-        $subject  = 'Forgot Password';
-        $message  = 'Hy, reset your password by as follows.';
-        $this->send_simple_mail($to, $subject, $message);
-        /* send mail */
+      if ($data) {
+        $otp = (string) random_int(100000, 999999);
+        DB::table('users_customers')
+          ->where('users_customers_id', $data->users_customers_id)
+          ->update(['verify_code' => $otp]);
 
-        $otpData=array(
-         'verify_code'=>$otp
-        );
-        $UserotpUpdate=DB::table('users_customers')->where('users_customers_id', $id)->update($otpData);
+        $resetLink = url('/users/reset_password/' . rawurlencode($email) . '/' . $otp);
+        $name = trim(($data->first_name ?? '') . ' ' . ($data->last_name ?? ''));
+        $name = $name !== '' ? $name : ($data->company_name ?? 'Customer');
 
-        $details = array('otp' => $otp,'data'=>$data, 'message' => 'OTP sent in the email.');
+        $message = '
+          <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
+            <div style="background:#1a3c6e;padding:24px 30px;border-radius:6px 6px 0 0;">
+              <h1 style="color:#fff;margin:0;font-size:22px;">Reset Your Password</h1>
+              <p style="color:rgba(255,255,255,0.8);margin:6px 0 0;font-size:13px;">Swap Circle account recovery</p>
+            </div>
+            <div style="background:#fff;border:1px solid #ddd;border-top:none;border-radius:0 0 6px 6px;padding:28px 30px;">
+              <p style="font-size:15px;color:#333;">Hello <strong>' . htmlspecialchars($name) . '</strong>,</p>
+              <p style="font-size:14px;color:#555;line-height:1.7;">We received a request to reset your Swap Circle password. Click the button below to create a new password.</p>
+              <div style="text-align:center;margin:28px 0;">
+                <a href="' . htmlspecialchars($resetLink) . '" style="display:inline-block;padding:12px 32px;background:#1a3c6e;color:#fff;text-decoration:none;border-radius:6px;font-size:14px;font-weight:bold;">Reset Password</a>
+              </div>
+              <p style="font-size:13px;color:#777;line-height:1.6;">If the button does not work, copy this link into your browser:<br><a href="' . htmlspecialchars($resetLink) . '">' . htmlspecialchars($resetLink) . '</a></p>
+              <p style="font-size:12px;color:#999;border-top:1px solid #eee;padding-top:16px;margin-top:24px;">If you did not request this reset, you can safely ignore this email.</p>
+            </div>
+          </div>';
+
+        $this->send_simple_mail($email, 'Reset Your Swap Circle Password', $message);
+
         $response["code"] = 200;
         $response["status"] = "success";
-        $response["data"] = $details;
-      }else{
+        $response["data"] = [
+          'email' => $email,
+          'message' => 'Password reset link has been sent to your email.',
+        ];
+      } else {
         $response["code"] = 404;
         $response["status"] = "error";
         $response["message"] = "Email does not exists.";
       }
-    }else{
-      $response["code"] = 404;
-      $response["status"] = "error";
-      $response["message"] = "Please enter email address.";
     }
     
     return response()
@@ -811,8 +816,11 @@ public function paymentSuccess(Request $request)
   public function modify_password(Request $req){
     if (isset($req->email) && isset($req->otp) && isset($req->password) && isset($req->confirm_password)) {
       $forgetOtp = DB::table('users_customers')->select('verify_code')->where('email', $req->email)->first();
-      $otpforgetdb = $forgetOtp->verify_code;
-      if ($otpforgetdb == $req->otp) {
+      if (!$forgetOtp || !$forgetOtp->verify_code) {
+        $response["code"] = 404;
+        $response["status"] = "error";
+        $response["message"] = "Reset link is invalid or expired.";
+      } elseif ((string) $forgetOtp->verify_code === (string) $req->otp) {
         if ($req->confirm_password == $req->password) {
           $otpData=[
            'verify_code'=> null,

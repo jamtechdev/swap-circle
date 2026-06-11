@@ -184,8 +184,12 @@ class AdminController extends Controller
     // ------------- UPDATE CUSTOMERS -------------- //
     public function users_customers_update(Request $req, $id, $status)
     {
+        if (!session()->has('admin_id')) {
+            return redirect('admin');
+        }
+
         $update_array['status'] = $status;
-        if ($req->status == 'Active') {
+        if ($status == 'Active') {
             $update_array['verified_badge'] = 'Yes';
         }
         $updated = DB::table('users_customers')->where('users_customers_id', $id)->update($update_array);
@@ -198,6 +202,110 @@ class AdminController extends Controller
         }
     }
     // ------------- UPDATE CUSTOMERS -------------- //
+
+    public function users_customers_add_data(Request $req)
+    {
+        if (!session()->has('admin_id')) {
+            return redirect('admin');
+        }
+
+        $req->validate([
+            'users_customers_type' => 'required|in:Individual,Company',
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'nullable|string|max:255',
+            'company_name' => 'nullable|string|max:255',
+            'email' => 'required|email|max:255',
+            'phone' => 'required|string|max:50',
+            'password' => 'required|string|min:7',
+            'location' => 'nullable|string|max:255',
+            'status' => 'required|in:Pending,Active,Inactive',
+        ]);
+
+        if (DB::table('users_customers')->where('email', $req->email)->exists()) {
+            Session::flash('error', 'Email already exists.');
+            return back()->withInput();
+        }
+
+        $data = $this->adminCustomerPayload($req);
+        $data['password'] = md5($req->password);
+        $data['notifications'] = 'Yes';
+        $data['social_acc_type'] = 'None';
+        $data['google_access_token'] = '';
+        $data['verified_badge'] = $req->status === 'Active' ? 'Yes' : 'No';
+        $data['date_added'] = date('Y-m-d H:i:s');
+        $data['last_activity'] = Carbon::now();
+
+        DB::table('users_customers')->insert($this->filterUsersCustomerColumns($data));
+
+        Session::flash('success', 'User created successfully.');
+        return redirect('admin/users_customers');
+    }
+
+    public function users_customers_edit_data(Request $req)
+    {
+        if (!session()->has('admin_id')) {
+            return redirect('admin');
+        }
+
+        $req->validate([
+            'users_customers_id' => 'required|integer',
+            'users_customers_type' => 'required|in:Individual,Company',
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'nullable|string|max:255',
+            'company_name' => 'nullable|string|max:255',
+            'email' => 'required|email|max:255',
+            'phone' => 'required|string|max:50',
+            'password' => 'nullable|string|min:7',
+            'location' => 'nullable|string|max:255',
+            'status' => 'required|in:Pending,Active,Inactive,Deleted',
+        ]);
+
+        $emailExists = DB::table('users_customers')
+            ->where('email', $req->email)
+            ->where('users_customers_id', '!=', $req->users_customers_id)
+            ->exists();
+
+        if ($emailExists) {
+            Session::flash('error', 'Email already exists.');
+            return back()->withInput();
+        }
+
+        $data = $this->adminCustomerPayload($req);
+        if (!empty($req->password)) {
+            $data['password'] = md5($req->password);
+        }
+        if ($req->status === 'Active') {
+            $data['verified_badge'] = 'Yes';
+        }
+
+        DB::table('users_customers')
+            ->where('users_customers_id', $req->users_customers_id)
+            ->update($this->filterUsersCustomerColumns($data));
+
+        Session::flash('success', 'User updated successfully.');
+        return redirect('admin/users_customers');
+    }
+
+    private function adminCustomerPayload(Request $req): array
+    {
+        return [
+            'users_customers_type' => $req->users_customers_type,
+            'first_name' => $req->first_name,
+            'last_name' => $req->users_customers_type === 'Individual' ? (string) $req->last_name : '',
+            'company_name' => $req->users_customers_type === 'Company' ? (string) $req->company_name : '',
+            'email' => $req->email,
+            'phone' => $req->phone,
+            'location' => $req->location,
+            'status' => $req->status,
+        ];
+    }
+
+    private function filterUsersCustomerColumns(array $data): array
+    {
+        return collect($data)
+            ->filter(fn ($value, $column) => \Illuminate\Support\Facades\Schema::hasColumn('users_customers', $column))
+            ->all();
+    }
 
     // ------------- DELETE CUSTOMERS -------------- //
     public function users_customers_delete(Request $req, $id)

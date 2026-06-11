@@ -117,6 +117,8 @@ Route::get('/admin/dashboard', [AdminController::class, 'Dashboard']);
 // USERS CUSTOMERS
 Route::get('/admin/users_customers', [AdminController::class, 'users_customers']);
 Route::get('/admin/users_customers_view/{id}', [AdminController::class, 'users_customers_view'])->name('users_customers_view');
+Route::post('/admin/users_customers_add_data', [AdminController::class, 'users_customers_add_data'])->name('admin_users_customers_add_data');
+Route::post('/admin/users_customers_edit_data', [AdminController::class, 'users_customers_edit_data'])->name('admin_users_customers_edit_data');
 Route::get('/admin/users_customers_update/{id}/{status}', [AdminController::class, 'users_customers_update'])->name('users_customers_update');
 Route::get('/admin/users_customers_delete/{id}', [AdminController::class, 'users_customers_delete'])->name('users_customers_delete');
 // USERS CUSTOMERS

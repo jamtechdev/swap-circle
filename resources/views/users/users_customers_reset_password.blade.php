@@ -57,7 +57,8 @@
                                     <span class="error_msg" id="error_confirm_password"></span>
                                 </div>
                                 <div class="pt-4">
-                                    <button type="submit" class="btn btn-login btn-primary w-100 mt-4">Next</button>
+                                    <button type="submit" id="btnResetPassword" class="btn btn-login btn-primary w-100 mt-4">Reset Password</button>
+                                    <a href="{{ url('/') }}" class="d-inline-block mt-3">Back to login</a>
                                 </div>
                             </form>
                             <!-- FORM RESET PASSWORD END -->
@@ -151,12 +152,21 @@
                             }),
                         };
 
+                        $("#btnResetPassword").prop("disabled", true).text("Resetting...");
+
                         $.ajax(settings).done(function (response) {
                             if (response.status == "error"){ 
                                 Command: toastr["error"](response.message);
                             } else{
-                                window.location.href = "/";
+                                Command: toastr["success"]("Password reset successfully. Please login.");
+                                setTimeout(function () {
+                                    window.location.href = "/";
+                                }, 1200);
                             }
+                        }).fail(function () {
+                            Command: toastr["error"]("Unable to reset password. Please try again.");
+                        }).always(function () {
+                            $("#btnResetPassword").prop("disabled", false).text("Reset Password");
                         });
                     }
                 });
