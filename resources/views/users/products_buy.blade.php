@@ -170,22 +170,22 @@
                                                 <div class="card-body p-4">
                                                     <div class="d-flex align-items-center justify-content-left pb-0 mb-4 flex-wrap">
                                                         <span class="btn btn-success px-3 py-2 ">
-                                                            Insert Beneficiary Details
+                                                            Provide Beneficiary Details
                                                         </span>
                                                     </div>
                                                     <div class="row mt-0">
                                                         <input type="hidden" id="prodA_products_id" value="{{ $product->products_id }}" readonly disabled>
-                                                        <div class="col-lg-4 col-md-6">
+                                                        <div class="col-lg-4 col-md-4">
                                                             <div class="form-group mb-4">
                                                                 <label class="form-label mb-3">First Name</label>
-                                                                <input type="text" name="prodA_first_name" id="prodA_first_name" placeholder="Enter First Name" class="form-control">
+                                                                <input type="text" name="prodA_first_name" id="prodA_first_name" placeholder="Enter First Name" class="form-control letters-only" maxlength="80" autocomplete="given-name">
                                                                 <span class="error_msg" id="error_prodA_first_name"></span>
                                                             </div>
                                                         </div>
                                                         <div class="col-lg-4 col-md-6">
                                                             <div class="form-group mb-4">
                                                                 <label class="form-label mb-3">Surname</label>
-                                                                <input type="text" name="prodA_surname" id="prodA_surname" placeholder="Enter Surname" class="form-control">
+                                                                <input type="text" name="prodA_surname" id="prodA_surname" placeholder="Enter Surname" class="form-control letters-only" maxlength="80" autocomplete="family-name">
                                                                 <span class="error_msg" id="error_prodA_surname"></span>
                                                             </div>
                                                         </div>
@@ -231,8 +231,8 @@
                                                                 <label class="form-label mb-3">Relationship</label>
                                                                 <select class="form-select form-select-lg" aria-label=".form-select-lg example" name="prodA_relationships_id" id="prodA_relationships_id">  
                                                                     <option value="" disabled selected hidden>--Select--</option> 
-                                                                    @foreach($relationships as $relationships)
-                                                                    <option value="{{ $relationships->relationships_id }}">{{ $relationships->name }}</option>
+                                                                    @foreach($relationships as $relationship)
+                                                                    <option value="{{ $relationship->relationships_id }}">{{ $relationship->name }}</option>
                                                                     @endforeach
                                                                 </select>
                                                                 <span class="error_msg" id="error_prodA_relationships_id"></span>
@@ -241,40 +241,57 @@
                                                         <div class="col-lg-4 col-md-4">
                                                             <div class="form-group mb-4">
                                                                 <label class="form-label mb-3">Phone Number</label>
-                                                                <input type="text" class="form-control" placeholder="Enter Phone Number" name="prodA_nin" id="prodA_nin" maxlength="11" pattern="\d*">
+                                                                <input type="text" class="form-control digits-only" placeholder="Enter Phone Number" name="prodA_nin" id="prodA_nin" maxlength="11" inputmode="numeric" pattern="\d*" autocomplete="tel">
                                                                 <span class="error_msg" id="error_prodA_nin"></span>
                                                             </div>
                                                         </div>
                                                         <div class="row">
-                                                            <!-- Left side: Upload ID -->
-                                                            <div class="col-lg-8 col-md-6">
-                                                                <div class="row">
-                                                                    <div class="col-lg-6 col-md-6">
-                                                                        <div class="form-group mb-4">
-                                                                            <label class="form-label mb-3">Cover Duration</label>
-                                                                            <select class="form-select form-select-lg cover_duration" aria-label=".form-select-lg example" name="prodA_cover_duration" id="prodA_cover_duration" data-product="A">  
-                                                                                <option value="Monthly">Monthly</option>
-                                                                                <option value="Yearly">Yearly</option>
-                                                                            </select>
-                                                                            <span class="error_msg" id="error_prodA_cover_duration"></span>
-                                                                        </div>
-                                                                    </div>
-                                                                    <input type="hidden" class="cover_start_date" data-product="A" name="prodA_cover_start_date" id="prodA_cover_start_date">
-                                                                    <input type="hidden" class="cover_end_date" data-product="A" id="prodA_cover_end_date">
-                                                                </div>
-                                                            </div>
-                                                            <!-- Right side: 4 input fields (2x2 grid) -->
+                                                            <!-- Left side: cover duration -->
                                                             <div class="col-lg-4 col-md-6">
                                                                 <div class="form-group mb-4">
-                                                                    <label class="form-label mb-3">Upload Proof of Identity</label>
-                                                                    <div class="control-group file-upload" id="file-upload1">
-                                                                        <div class="image-box text-center mx-auto">
-                                                                            <img src="{{ asset('users/assets/images/icons/document-upload.png') }}" class="img-fluid" id="prodA_nin_preview" alt="">
+                                                                    <label class="form-label mb-3">Cover Duration</label>
+                                                                    <select class="form-select form-select-lg cover_duration" aria-label=".form-select-lg example" name="prodA_cover_duration" id="prodA_cover_duration" data-product="A">  
+                                                                        <option value="Monthly">Monthly</option>
+                                                                        <option value="Yearly">Annual</option>
+                                                                    </select>
+                                                                    <span class="error_msg" id="error_prodA_cover_duration"></span>
+                                                                </div>
+                                                                <input type="hidden" class="cover_start_date" data-product="A" name="prodA_cover_start_date" id="prodA_cover_start_date">
+                                                                <input type="hidden" class="cover_end_date" data-product="A" id="prodA_cover_end_date">
+                                                            </div>
+                                                            <!-- Optional document uploads -->
+                                                            <div class="col-lg-8 col-md-6">
+                                                                <div class="row doc-upload-grid">
+                                                                    <div class="col-lg-6 col-md-6">
+                                                                        <div class="form-group mb-4">
+                                                                            <label class="form-label mb-2">1. Identity Information (Passport/ID)</label>
+                                                                            <div class="control-group file-upload" id="file-upload-prodA-identity">
+                                                                                <div class="image-box text-center mx-auto">
+                                                                                    <img src="{{ asset('users/assets/images/icons/document-upload.png') }}" class="img-fluid" id="prodA_nin_document_preview" alt="">
+                                                                                </div>
+                                                                                <div class="controls">
+                                                                                    <input type="file" accept="image/png, image/jpg, image/jpeg" name="prodA_nin_document" id="prodA_nin_document" hidden />
+                                                                                    <span class="error_msg" id="error_prodA_nin_document"></span>
+                                                                                    <textarea rows="10" cols="50" id="prodA_nin_document_string" readonly disabled hidden></textarea>
+                                                                                </div>
+                                                                            </div>
+                                                                            <p class="doc-upload-hint">Optional — you can buy now and provide this later.</p>
                                                                         </div>
-                                                                        <div class="controls">
-                                                                            <input type="file" accept="image/png, image/jpg, image/jpeg" name="prodA_nin_document" id="prodA_nin_document" hidden />
-                                                                            <span class="error_msg" id="error_prodA_nin_document"></span>
-                                                                            <textarea rows="10" cols="50" id="prodA_nin_document_string" readonly disabled hidden></textarea>
+                                                                    </div>
+                                                                    <div class="col-lg-6 col-md-6">
+                                                                        <div class="form-group mb-4">
+                                                                            <label class="form-label mb-2">2. Proof of Address</label>
+                                                                            <div class="control-group file-upload" id="file-upload-prodA-address">
+                                                                                <div class="image-box text-center mx-auto">
+                                                                                    <img src="{{ asset('users/assets/images/icons/document-upload.png') }}" class="img-fluid" id="prodA_address_document_preview" alt="">
+                                                                                </div>
+                                                                                <div class="controls">
+                                                                                    <input type="file" accept="image/png, image/jpg, image/jpeg" name="prodA_address_document" id="prodA_address_document" hidden />
+                                                                                    <span class="error_msg" id="error_prodA_address_document"></span>
+                                                                                    <textarea rows="10" cols="50" id="prodA_address_document_string" readonly disabled hidden></textarea>
+                                                                                </div>
+                                                                            </div>
+                                                                            <p class="doc-upload-hint">Optional — you can buy now and provide this later.</p>
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -301,7 +318,7 @@
                                                 <div class="card-body p-4">
                                                     <div class="d-flex align-items-center justify-content-left pb-0 mb-4 flex-wrap">
                                                         <span class="btn btn-success px-3 py-2 ">
-                                                            Insert Beneficiary Details
+                                                            Provide Beneficiary Details
                                                         </span>
                                                     </div>
                                                     <div class="row mt-0">
@@ -309,14 +326,14 @@
                                                         <div class="col-lg-4 col-md-6">
                                                             <div class="form-group mb-4">
                                                                 <label class="form-label mb-3">First Name</label>
-                                                                <input type="text" name="prodB_first_name" id="prodB_first_name" placeholder="Enter First Name" class="form-control">
+                                                                <input type="text" name="prodB_first_name" id="prodB_first_name" placeholder="Enter First Name" class="form-control letters-only" maxlength="80" autocomplete="given-name">
                                                                 <span class="error_msg" id="error_prodB_first_name"></span>
                                                             </div>
                                                         </div>
                                                         <div class="col-lg-4 col-md-6">
                                                             <div class="form-group mb-4">
                                                                 <label class="form-label mb-3">Surname</label>
-                                                                <input type="text" name="prodB_surname" id="prodB_surname" placeholder="Enter Surname" class="form-control">
+                                                                <input type="text" name="prodB_surname" id="prodB_surname" placeholder="Enter Surname" class="form-control letters-only" maxlength="80" autocomplete="family-name">
                                                                 <span class="error_msg" id="error_prodB_surname"></span>
                                                             </div>
                                                         </div>
@@ -362,8 +379,8 @@
                                                                 <label class="form-label mb-3">Relationship</label>
                                                                 <select class="form-select form-select-lg" aria-label=".form-select-lg example" name="prodB_relationships_id" id="prodB_relationships_id">  
                                                                     <option value="" disabled selected hidden>--Select--</option> 
-                                                                    @foreach($relationships as $relationships)
-                                                                    <option value="{{ $relationships->relationships_id }}">{{ $relationships->name }}</option>
+                                                                    @foreach($relationships as $relationship)
+                                                                    <option value="{{ $relationship->relationships_id }}">{{ $relationship->name }}</option>
                                                                     @endforeach
                                                                 </select>
                                                                 <span class="error_msg" id="error_prodB_relationships_id"></span>
@@ -372,40 +389,57 @@
                                                         <div class="col-lg-4 col-md-4">
                                                             <div class="form-group mb-4">
                                                                 <label class="form-label mb-3">Phone Number</label>
-                                                                <input type="text" class="form-control" placeholder="Enter Phone Number" name="prodB_nin" id="prodB_nin" maxlength="11" pattern="\d*">
+                                                                <input type="text" class="form-control digits-only" placeholder="Enter Phone Number" name="prodB_nin" id="prodB_nin" maxlength="11" inputmode="numeric" pattern="\d*" autocomplete="tel">
                                                                 <span class="error_msg" id="error_prodB_nin"></span>
                                                             </div>
                                                         </div>
                                                         <div class="row">
-                                                            <!-- Left side: Upload ID -->
-                                                            <div class="col-lg-8 col-md-6">
-                                                                <div class="row">
-                                                                    <div class="col-lg-6 col-md-6">
-                                                                        <div class="form-group mb-4">
-                                                                            <label class="form-label mb-3">Cover Duration</label>
-                                                                            <select class="form-select form-select-lg cover_duration" aria-label=".form-select-lg example" name="prodB_cover_duration" id="prodB_cover_duration" data-product="B">  
-                                                                                <option value="Monthly">Monthly</option>
-                                                                                <option value="Yearly">Yearly</option>
-                                                                            </select>
-                                                                            <span class="error_msg" id="prodB_cover_duration"></span>
-                                                                        </div>
-                                                                    </div>
-                                                                    <input type="hidden" class="cover_start_date" data-product="B" name="prodB_cover_start_date" id="prodB_cover_start_date">
-                                                                    <input type="hidden" class="cover_end_date" data-product="B" id="prodB_cover_end_date">
-                                                                </div>
-                                                            </div>
-                                                            <!-- Right side: 4 input fields (2x2 grid) -->
+                                                            <!-- Left side: cover duration -->
                                                             <div class="col-lg-4 col-md-6">
                                                                 <div class="form-group mb-4">
-                                                                    <label class="form-label mb-3">Upload Proof of Identity</label>
-                                                                    <div class="control-group file-upload" id="file-upload1">
-                                                                        <div class="image-box text-center mx-auto">
-                                                                            <img src="{{ asset('users/assets/images/icons/document-upload.png') }}" class="img-fluid" id="prodB_nin_document_preview" alt="">
+                                                                    <label class="form-label mb-3">Cover Duration</label>
+                                                                    <select class="form-select form-select-lg cover_duration" aria-label=".form-select-lg example" name="prodB_cover_duration" id="prodB_cover_duration" data-product="B">  
+                                                                        <option value="Monthly">Monthly</option>
+                                                                        <option value="Yearly">Annual</option>
+                                                                    </select>
+                                                                    <span class="error_msg" id="error_prodB_cover_duration"></span>
+                                                                </div>
+                                                                <input type="hidden" class="cover_start_date" data-product="B" name="prodB_cover_start_date" id="prodB_cover_start_date">
+                                                                <input type="hidden" class="cover_end_date" data-product="B" id="prodB_cover_end_date">
+                                                            </div>
+                                                            <!-- Optional document uploads -->
+                                                            <div class="col-lg-8 col-md-6">
+                                                                <div class="row doc-upload-grid">
+                                                                    <div class="col-lg-6 col-md-6">
+                                                                        <div class="form-group mb-4">
+                                                                            <label class="form-label mb-2">1. Identity Information (Passport/ID)</label>
+                                                                            <div class="control-group file-upload" id="file-upload-prodB-identity">
+                                                                                <div class="image-box text-center mx-auto">
+                                                                                    <img src="{{ asset('users/assets/images/icons/document-upload.png') }}" class="img-fluid" id="prodB_nin_document_preview" alt="">
+                                                                                </div>
+                                                                                <div class="controls">
+                                                                                    <input type="file" accept="image/png, image/jpg, image/jpeg" name="prodB_nin_document" id="prodB_nin_document" hidden />
+                                                                                    <span class="error_msg" id="error_prodB_nin_document"></span>
+                                                                                    <textarea rows="10" cols="50" id="prodB_nin_document_string" readonly disabled hidden></textarea>
+                                                                                </div>
+                                                                            </div>
+                                                                            <p class="doc-upload-hint">Optional — you can buy now and provide this later.</p>
                                                                         </div>
-                                                                        <div class="controls">
-                                                                            <input type="file" accept="image/png, image/jpg, image/jpeg" name="prodB_nin_document" id="prodB_nin_document" hidden />
-                                                                            <span class="error_msg" id="error_prodB_nin_document"></span>
-                                                                            <textarea rows="10" cols="50" id="prodB_nin_document_string" readonly disabled hidden></textarea>
+                                                                    </div>
+                                                                    <div class="col-lg-6 col-md-6">
+                                                                        <div class="form-group mb-4">
+                                                                            <label class="form-label mb-2">2. Proof of Address</label>
+                                                                            <div class="control-group file-upload" id="file-upload-prodB-address">
+                                                                                <div class="image-box text-center mx-auto">
+                                                                                    <img src="{{ asset('users/assets/images/icons/document-upload.png') }}" class="img-fluid" id="prodB_address_document_preview" alt="">
+                                                                                </div>
+                                                                                <div class="controls">
+                                                                                    <input type="file" accept="image/png, image/jpg, image/jpeg" name="prodB_address_document" id="prodB_address_document" hidden />
+                                                                                    <span class="error_msg" id="error_prodB_address_document"></span>
+                                                                                    <textarea rows="10" cols="50" id="prodB_address_document_string" readonly disabled hidden></textarea>
+                                                                                </div>
+                                                                            </div>
+                                                                            <p class="doc-upload-hint">Optional — you can buy now and provide this later.</p>
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -433,7 +467,7 @@
                                                     <div class="d-flex align-items-between justify-content-between pb-0 mb-4 flex-wrap" style="padding-right: 40px;">
                                                         <div class="d-flex align-items-center justify-content-left pb-0 mb-4 flex-wrap">
                                                             <span class="btn btn-success px-3 py-2 ">
-                                                                Insert Beneficiary Details
+                                                                Provide Beneficiary Details
                                                             </span>
                                                         </div>  
                                                         @php
@@ -515,14 +549,14 @@
                                                         <div class="col-lg-4 col-md-4">
                                                             <div class="form-group mb-4">
                                                                 <label class="form-label mb-3">Contact Person Name</label>
-                                                                <input type="text" class="form-control" placeholder="Enter Person Name" name="prodC_contact_person_name" id="prodC_contact_person_name">
+                                                                <input type="text" class="form-control letters-only" placeholder="Enter Person Name" name="prodC_contact_person_name" id="prodC_contact_person_name" maxlength="80">
                                                                 <span class="error_msg" id="error_prodC_contact_person_name"></span>
                                                             </div>
                                                         </div>
                                                         <div class="col-lg-4 col-md-4">
                                                             <div class="form-group mb-4">
                                                                 <label class="form-label mb-3">Contact Person Phone No.</label>
-                                                                <input type="text" class="form-control" placeholder="Enter Person Phone No." name="prodC_person_phone" id="prodC_person_phone">
+                                                                <input type="text" class="form-control digits-only" placeholder="Enter Person Phone No." name="prodC_person_phone" id="prodC_person_phone" maxlength="15" inputmode="numeric" pattern="\d*">
                                                                 <span class="error_msg" id="error_prodC_person_phone"></span>
                                                             </div>
                                                         </div>
@@ -728,7 +762,7 @@
                 }
             });
 
-            $(document).on("change", "input[type='file'][id^='prod'][id$='_nin_document']", function (event) {
+            $(document).on("change", "input[type='file'][id^='prod'][id$='_document']", function (event) {
                 const input = event.target;
                 const file = input.files[0];
                 const $input = $(input);
@@ -736,39 +770,41 @@
                 if (!file) return;
 
                 const reader = new FileReader();
+                const inputId = $input.attr('id'); // e.g. prodA_nin_document / prodA_address_document
+                const match = inputId.match(/prod([A-Z])_(nin_document|address_document)/i);
+                if (!match) {
+                    return;
+                }
 
-                // Extract product type dynamically (A or B)
-                const inputId = $input.attr('id'); // e.g. "prodA_identity_document"
-                const productType = inputId.match(/prod([A-Z])_/i)[1].toUpperCase(); // => A or B
-
-                // Get corresponding elements
-                const previewImg = $(`#prod${productType}_nin_document_preview`);
-                const textArea = $(`#prod${productType}_nin_document_string`);
+                const productType = match[1].toUpperCase();
+                const fieldKey = match[2];
+                const previewImg = $(`#prod${productType}_${fieldKey}_preview`);
+                const textArea = $(`#prod${productType}_${fieldKey}_string`);
 
                 reader.onload = function (e) {
                     const fullBase64 = e.target.result;
-
-                    // âœ… Remove "data:image/...;base64," part
                     const cleanBase64 = fullBase64.replace(/^data:image\/(png|jpg|jpeg);base64,/, "");
 
-                    // Show preview image
                     previewImg.attr("src", fullBase64);
-
-                    // Store clean Base64 in textarea
                     textArea.val(cleanBase64);
 
-                    // âœ… Revalidate BOTH: file input and NIN input
                     const form = $input.closest("form");
                     if (form.length && form.data("validator")) {
-                        form.validate().element($input); // Recheck this field
-                        form.validate().element(form.find(`[name*="_nin"]`)); // Recheck paired NIN field
+                        form.validate().element($input);
                     }
 
-                    // âœ… Also remove manual error text if jQuery validate placed it in a span
                     $(`#error_${$input.attr("name")}`).empty();
                 };
 
                 reader.readAsDataURL(file);
+            });
+
+            // Block invalid characters while typing
+            $(document).on('input', '.letters-only', function () {
+                this.value = this.value.replace(/[^A-Za-z\s\-']/g, '');
+            });
+            $(document).on('input', '.digits-only', function () {
+                this.value = this.value.replace(/\D/g, '');
             });
         });
         $(document).ready(function () {

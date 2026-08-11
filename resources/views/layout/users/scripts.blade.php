@@ -3635,7 +3635,13 @@ function enableBuyNow(btn) {
     }
     /* --------------- OPEN PRODUCT MODAL --------------- */
 
+    // Custom validator: letters / spaces / hyphen / apostrophe only
+    $.validator.addMethod("lettersonly", function(value, element) {
+        return this.optional(element) || /^[A-Za-z\s\-']+$/.test(value);
+    }, 'Letters only are allowed.');
+
     // âœ… Custom validator: at least one of NIN or NIN document must be provided
+    // Kept for compatibility, but documents are optional so buying without uploads is allowed.
     $.validator.addMethod("ninRequired", function(value, element) {
         var form = $(element).closest('form');
         var prefix = element.name.split('_nin')[0]; // e.g., prodA or prodB
@@ -3650,13 +3656,14 @@ function enableBuyNow(btn) {
     $('#frm_prodA_details').validate({
         ignore: [],
         rules: {
-            prodA_first_name: { required: true },
-            prodA_surname: { required: true },
+            prodA_first_name: { required: true, lettersonly: true },
+            prodA_surname: { required: true, lettersonly: true },
             prodA_gender: { required: true },
             prodA_dob: { required: true },
             prodA_address: { required: true },
             prodA_occupations_id: { required: true },
             prodA_relationships_id: { required: true },
+            prodA_cover_duration: { required: true },
             prodA_nin: { 
                 digits: true,
                 minlength: 11,
@@ -3664,13 +3671,14 @@ function enableBuyNow(btn) {
             },
         },
         messages: {
-            prodA_first_name: { required: 'This field is required.' },
-            prodA_surname: { required: 'This field is required.' },
+            prodA_first_name: { required: 'This field is required.', lettersonly: 'Letters only are allowed.' },
+            prodA_surname: { required: 'This field is required.', lettersonly: 'Letters only are allowed.' },
             prodA_gender: { required: 'This field is required.' },
             prodA_dob: { required: 'This field is required.' },
             prodA_address: { required: 'This field is required.' },
             prodA_occupations_id: { required: 'This field is required.' },
             prodA_relationships_id: { required: 'This field is required.' },
+            prodA_cover_duration: { required: 'This field is required.' },
             prodA_nin: { 
                 digits: 'Phone number must contain digits only.',
                 minlength: 'Phone number must be exactly 11 digits.',
@@ -3687,13 +3695,14 @@ function enableBuyNow(btn) {
     $('#frm_prodB_details').validate({
         ignore: [],
         rules: {
-            prodB_first_name: { required: true },
-            prodB_surname: { required: true },
+            prodB_first_name: { required: true, lettersonly: true },
+            prodB_surname: { required: true, lettersonly: true },
             prodB_gender: { required: true },
             prodB_dob: { required: true },
             prodB_address: { required: true },
             prodB_occupations_id: { required: true },
             prodB_relationships_id: { required: true },
+            prodB_cover_duration: { required: true },
             prodB_nin: { 
                 digits: true,
                 minlength: 11,
@@ -3701,13 +3710,14 @@ function enableBuyNow(btn) {
             },
         },
         messages: {
-            prodB_first_name: { required: 'This field is required.' },
-            prodB_surname: { required: 'This field is required.' },
+            prodB_first_name: { required: 'This field is required.', lettersonly: 'Letters only are allowed.' },
+            prodB_surname: { required: 'This field is required.', lettersonly: 'Letters only are allowed.' },
             prodB_gender: { required: 'This field is required.' },
             prodB_dob: { required: 'This field is required.' },
             prodB_address: { required: 'This field is required.' },
             prodB_occupations_id: { required: 'This field is required.' },
             prodB_relationships_id: { required: 'This field is required.' },
+            prodB_cover_duration: { required: 'This field is required.' },
             prodB_nin: { 
                 digits: 'Phone number must contain digits only.',
                 minlength: 'Phone number must be exactly 11 digits.',
@@ -3731,7 +3741,7 @@ function enableBuyNow(btn) {
         prodC_task: { required: true },
         prodC_task_date: { required: true },
         prodC_description: { required: true },
-        prodC_contact_person_name: { required: true },
+        prodC_contact_person_name: { required: true, lettersonly: true },
         prodC_person_phone: {
             required: true,
             digits: true,
@@ -3742,12 +3752,21 @@ function enableBuyNow(btn) {
     },
 
     messages: {
+        prodC_tasks_types_id: { required: 'This field is required.' },
+        prodC_task: { required: 'This field is required.' },
+        prodC_task_date: { required: 'This field is required.' },
+        prodC_description: { required: 'This field is required.' },
+        prodC_contact_person_name: {
+            required: 'This field is required.',
+            lettersonly: 'Letters only are allowed.'
+        },
         prodC_person_phone: {
             required: 'This field is required.',
             digits: 'Phone must contain digits only.',
             minlength: 'Enter at least 10 digits.',
             maxlength: 'Max 15 digits allowed.'
-        }
+        },
+        prodC_acknowledged: { required: 'Please acknowledge before continuing.' }
     },
 
     errorPlacement: function (error, element) {
@@ -3788,6 +3807,7 @@ function enableBuyNow(btn) {
             var relationships_id    = $('#prodA_relationships_id').val();
             var nin                 = $('#prodA_nin').val();
             var nin_document        = $('#prodA_nin_document_string').val();
+            var address_document    = $('#prodA_address_document_string').val();
 
             // console.log(products_id);
             // console.log(cover_duration);
@@ -3826,7 +3846,8 @@ function enableBuyNow(btn) {
                     "occupations_id": occupations_id,
                     "relationships_id": relationships_id,
                     "nin": nin,
-                    "nin_document": nin_document
+                    "nin_document": nin_document,
+                    "address_document": address_document
                 }),
             };
             $.ajax(settings).done(function (response) {
@@ -3880,6 +3901,7 @@ function enableBuyNow(btn) {
             var relationships_id    = $('#prodB_relationships_id').val();
             var nin                 = $('#prodB_nin').val();
             var nin_document        = $('#prodB_nin_document_string').val();
+            var address_document    = $('#prodB_address_document_string').val();
 
             // console.log(products_id);
             // console.log(cover_duration);
@@ -3918,7 +3940,8 @@ function enableBuyNow(btn) {
                     "occupations_id": occupations_id,
                     "relationships_id": relationships_id,
                     "nin": nin,
-                    "nin_document": nin_document
+                    "nin_document": nin_document,
+                    "address_document": address_document
                 }),
             };
             $.ajax(settings).done(function (response) {
@@ -4037,16 +4060,8 @@ function enableBuyNow(btn) {
             },
             acknowledged: {
                 required: true 
-            },
-            claim_image1: {
-                required: true 
-            },
-            claim_image2: {
-                required: true 
-            },
-            claim_image3: {
-                required: true 
             }
+            // Uploads are optional — Identity Information + Proof of Address can be provided later
         },
         messages: {
             products_purchases_id: {
@@ -4060,15 +4075,6 @@ function enableBuyNow(btn) {
             },
             acknowledged: {
                 required: 'You must acknowledge this before submitting.'
-            },
-            claim_image1: {
-                required: 'This field is required.'
-            },
-            claim_image2: {
-                required: 'This field is required.'
-            },
-            claim_image3: {
-                required: 'This field is required.'
             }
         },
         errorPlacement: function (error, element) {
@@ -4084,8 +4090,6 @@ function enableBuyNow(btn) {
                 $('#error_claim_image1').html(error);
             } else if (element.attr('name') == 'claim_image2') {
                 $('#error_claim_image2').html(error);
-            } else if (element.attr('name') == 'claim_image3') {
-                $('#error_claim_image3').html(error);
             }
         }
     });
@@ -4098,9 +4102,8 @@ function enableBuyNow(btn) {
             var products_purchases_id   = $('#products_purchases_id').val();
             var claim_date              = $('#claim_date').val().split('-').reverse().join('-');
             var claim_notes             = $('#claim_notes').val();
-            var claim_image1            = $('#claim_image1_string').val();
-            var claim_image2            = $('#claim_image2_string').val();
-            var claim_image3            = $('#claim_image3_string').val();
+            var claim_image1            = $('#claim_image1_string').val() || '';
+            var claim_image2            = $('#claim_image2_string').val() || '';
 
             /* AJAX API CALL */
             var settings = {
@@ -4116,8 +4119,7 @@ function enableBuyNow(btn) {
                     "date": claim_date,
                     "description": claim_notes,
                     "image1": claim_image1,
-                    "image2": claim_image2,
-                    "image3": claim_image3
+                    "image2": claim_image2
                 }),
             };
             $.ajax(settings).done(function (response) {

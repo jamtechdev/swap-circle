@@ -3788,6 +3788,12 @@ public function paymentSuccess(Request $request)
           return response()->json(['status' => 'error', 'message' => "Field '$field' is required for product type $type."], 400);
         }
       }
+      if (!preg_match("/^[A-Za-z\s\-']+$/", (string) $req->first_name) || !preg_match("/^[A-Za-z\s\-']+$/", (string) $req->surname)) {
+        return response()->json(['status' => 'error', 'message' => 'First name and surname may contain letters only.'], 400);
+      }
+      if (!empty($req->nin) && !preg_match('/^\d{11}$/', (string) $req->nin)) {
+        return response()->json(['status' => 'error', 'message' => 'Phone number must be exactly 11 digits.'], 400);
+      }
       if ($this->requiresBeneficiaryAgeLimit($productRecord) && !$this->isBeneficiaryAgeAllowed((string) $req->date_of_birth)) {
         return response()->json(['status' => 'error', 'message' => 'Age must be between 18 and 65 years.'], 400);
       }
@@ -3804,6 +3810,12 @@ public function paymentSuccess(Request $request)
         if (empty($req->$field)) {
           return response()->json(['status' => 'error', 'message' => "Field '$field' is required for product type C."], 400);
         }
+      }
+      if (!preg_match("/^[A-Za-z\s\-']+$/", (string) $req->recipient_name)) {
+        return response()->json(['status' => 'error', 'message' => 'Contact person name may contain letters only.'], 400);
+      }
+      if (!preg_match('/^\d{10,15}$/', (string) $req->recipient_phone)) {
+        return response()->json(['status' => 'error', 'message' => 'Contact person phone must contain digits only (10-15).'], 400);
       }
       if (!DB::table('tasks_types')->where([['tasks_types_id', $req->tasks_types_id], ['status', 'Active']])->exists()) {
         return response()->json(['status' => 'error', 'message' => "tasks_types_id '{$req->tasks_types_id}' does not exist."], 400);
@@ -3856,6 +3868,14 @@ public function paymentSuccess(Request $request)
 
         file_put_contents($image_path, base64_decode($req->nin_document));
         $data2['nin_document'] = 'uploads/identity_documents/' . $img_name;
+      }
+      if (!empty($req->address_document)) {
+        $prefix = time() . '_addr';
+        $img_name = $prefix . '.jpeg';
+        $image_path = public_path('uploads/identity_documents/') . $img_name;
+
+        file_put_contents($image_path, base64_decode($req->address_document));
+        $data2['address_document'] = 'uploads/identity_documents/' . $img_name;
       }
       DB::table('products_purchases_beneficiaries')->insert($data2);
 
@@ -4223,7 +4243,7 @@ public function paymentSuccess(Request $request)
 
   /* CLAIM PURCHASED PRODUCT */
   public function claim_purchased_product(Request $req){
-    if(isset($req->products_purchases_id) && isset($req->date) && isset($req->description) && isset($req->image1) && isset($req->image2) && isset($req->image3)) {
+    if(isset($req->products_purchases_id) && isset($req->date) && isset($req->description)) {
     //   $claim_exist = DB::table('products_purchases_claims')->where('products_purchases_id', $req->products_purchases_id)->count();
 
     //   if ($claim_exist == 0) {
@@ -4233,27 +4253,25 @@ public function paymentSuccess(Request $request)
           'description'             => $req->description,
           'date_added'              => date('Y-m-d H:i:s')
         ];
-        if (isset($req->image1)) {
+        // Optional uploads: 1 Identity Information (Passport/ID), 2 Proof of Address
+        if (!empty($req->image1)) {
           $image1 = $req->image1;
-          $prefix = time();
           $img_name = uniqid() . '.jpeg';
           $image_path = public_path('uploads/products_claims/').$img_name;
           file_put_contents($image_path, base64_decode($image1));
 
           $data['image1'] = 'uploads/products_claims/'.$img_name;
         }
-        if (isset($req->image2)) {
+        if (!empty($req->image2)) {
           $image2 = $req->image2;
-          $prefix = time();
           $img_name = uniqid() . '.jpeg';
           $image_path = public_path('uploads/products_claims/').$img_name;
           file_put_contents($image_path, base64_decode($image2));
 
           $data['image2'] = 'uploads/products_claims/'.$img_name;
         }
-        if (isset($req->image3)) {
+        if (!empty($req->image3)) {
           $image3 = $req->image3;
-          $prefix = time();
           $img_name = uniqid() . '.jpeg';
           $image_path = public_path('uploads/products_claims/').$img_name;
           file_put_contents($image_path, base64_decode($image3));

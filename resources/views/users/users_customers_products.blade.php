@@ -20,6 +20,24 @@
             min-height: 72px;
             max-height: 96px;
             overflow: hidden;
+            width: 100%;
+            text-align: center;
+            line-height: 1.45;
+            display: -webkit-box;
+            -webkit-line-clamp: 4;
+            -webkit-box-orient: vertical;
+            word-break: break-word;
+        }
+        .product-name-btn {
+            max-width: 100%;
+            white-space: normal;
+            word-break: break-word;
+            line-height: 1.35;
+            min-height: 48px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
         }
         .product-info-btn {
             background: #e8f8ef;
@@ -63,7 +81,7 @@
                                     <div class="card border-0 mb-3">
                                         <div class="card-body">
                                             <div class="d-flex align-items-center justify-content-center pb-0 mb-3 flex-wrap">
-                                                <button class="btn btn-primary" style="cursor:default;">{{ $item->name }}</button>    
+                                                <button class="btn btn-primary product-name-btn" style="cursor:default;">{{ $item->name }}</button>    
                                             </div>
                                             @php
                                                 $defaultProductImage = asset('images/upload.svg');

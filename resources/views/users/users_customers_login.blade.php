@@ -6,13 +6,13 @@
             $system_name_text = config('app.name', 'Swap Circle');
             $auth_bg_image = 'public/users/assets/images/login-bg.jpg';
             $auth_image = 'public/users/assets/images/Rocket_Boy_Flatline.png';
-            $main_heading_label1 = 'Hi,';
-            $main_heading_label2 = 'Welcome Back..!';
-            $subheading_label = 'Sign in to continue.';
+            $main_heading_label1 = 'Welcome to';
+            $main_heading_label2 = 'Swap Circle';
+            $subheading_label = 'A community exchange platform for services. Connect, exchange, and grow together.';
             $forgot_password_link_label = 'Forgot Password?';
             $btn_login_label = 'Login';
-            $signup_text_lable = "Don't have an account?";
-            $signup_link_label = 'Sign up';
+            $signup_text_lable = "New to the community?";
+            $signup_link_label = 'Get started here!';
 
             try {
                 $system_image_file = optional(DB::table('system_settings')->select('description')->where('type', 'system_image')->first())->description ?: $system_image_file;
@@ -36,99 +36,101 @@
         <title><?php echo $system_name_text; ?> :: Users Customers Portal</title>
         
         <link rel="icon" type="image" sizes="24x24" href="{{ asset('uploads/system_image/favico.png') }}">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
         <link href="{{ asset('users/assets/css/bootstrap.min.css') }}" rel="stylesheet" type="text/css" />
         <link href="{{ asset('users/assets/css/style.css') }}" rel="stylesheet" type="text/css" />
         <link href="{{ asset('users/assets/css/custom.css') }}" rel="stylesheet" type="text/css" />
     </head>
-    <body>
-        <div id="wrapper">
-            <div class="container-fluid">
-                <div class="row login min-vh-100">
+    <body class="login-page-body">
+        <div id="wrapper" class="login-wrapper">
+            <div class="container-fluid p-0">
+                <div class="row login g-0 min-vh-100">
                     <!-- LEFT SECTION START -->
-                    <!-- <div class="col-lg-6 left d-lg-flex align-items-center justify-content-center justify-content-md-start py-5 d-none">
-                        <img src="{{ asset('users/assets/images/Rocket_Boy_Flatline.png') }}" class="img-fluid w-75 mx-auto" alt="image">
-                    </div> -->
-                    <div class="col-lg-6 left d-lg-flex align-items-center justify-content-center justify-content-md-start py-5 d-none" style="background-image: url('{{ asset($auth_bg_image) }}'); background-size: cover; background-position: center right;">
-                        <img src="{{ asset($auth_image) }}" class="img-fluid w-75 mx-auto" alt="image">    
+                    <div class="col-lg-6 left community-hero d-none d-lg-flex flex-column justify-content-between">
+                        <div class="community-hero-glow"></div>
+                        <div class="community-hero-orb community-hero-orb-1"></div>
+                        <div class="community-hero-orb community-hero-orb-2"></div>
+                        <div class="community-hero-top">
+                            <p class="community-hero-brand">Swap Circle</p>
+                        </div>
+                        <div class="community-hero-mid text-center">
+                            <img src="{{ asset($auth_image) }}" class="img-fluid community-hero-img" alt="Swap Circle community">
+                        </div>
+                        <div class="community-hero-copy text-white">
+                            <p class="community-hero-eyebrow mb-3">Community Exchange Platform</p>
+                            <h2 class="community-hero-title mb-3">Trade services.<br>Build connections.</h2>
+                            <p class="community-hero-text mb-0">Swap Circle brings people together to exchange skills, services, and opportunities inside one trusted community.</p>
+                        </div>
                     </div>
                     <!-- LEFT SECTION END -->
 
                     <!-- RIGHT SECTION START -->
-                    <div class="col-lg-6 d-flex flex-column justify-content-sm-around justify-content-center align-items-center flex-wrap py-5">
-                        <div class="logo text-center">
-                            <img src="{{ asset('uploads/system_image/'.$system_image_file) }}" class="img-fluid img-logo" alt="image">
-                            <!-- <h3 class="main-heading mt-4">Hi,👋<br/>Welcome Back..!</h3>
-                            <p class="sub-heading">Sign In to your <?php echo $system_name_text; ?> account.</p> -->
-
-                            <!-- <h3 class="main-heading mt-4">Hi,👋</h3>
-                            <h3 class="main-heading" style="margin-top: -8px;">Welcome Back..!</h3>
-                            <p class="sub-heading">Sign In to your <?php echo $system_name_text; ?> account.</p> -->
-
-                            <h3 class="main-heading mt-4">{{ $main_heading_label1 }}</h3>
-                            <h3 class="main-heading" style="margin-top: -8px;">{{ $main_heading_label2 }}</h3>
-                            <p class="sub-heading">{{ $subheading_label }}</p>
-                        </div>
-                        <div class="login-tabs text-center mt-4 w-100 d-flex flex-column align-items-center">
-                            <ul class="nav nav-pills mb-5 mx-auto" id="pills-tab" role="tablist">
-                                <li class="nav-item" role="presentation">
-                                  <button class="nav-link active" id="pills-home-tab" data-bs-toggle="pill" data-bs-target="#pills-home" type="button" role="tab" aria-controls="pills-home" aria-selected="true">Individual</button>
-                                </li>
-                                <li class="nav-item" role="presentation">
-                                  <button class="nav-link" id="pills-profile-tab" data-bs-toggle="pill" data-bs-target="#pills-profile" type="button" role="tab" aria-controls="pills-profile" aria-selected="false">Corporate</button>
-                                </li>
-                            </ul>
-                            <div class="tab-content" id="pills-tabContent">
-                                <div class="tab-pane fade show active" id="pills-home" role="tabpanel" aria-labelledby="pills-home-tab" tabindex="0">
-                                    <!-- FORM LOGIN INDIVIDUAL START -->
-                                    <form id="frm_login_individual">
-                                        @csrf
-                                        <!-- EMAIL -->
-                                        <div class="form-group position-relative mb-3">
-                                            <span class="input-icon"><img src="{{ asset('users/assets/images/icons/email.png') }}" class="img-fluid"></span>
-                                            <input type="email" class="form-control" placeholder="Email address" aria-label="Email address" name="email" id="email">
-                                            <span class="error_msg" id="error_email"></span>
-                                        </div>
-                                        <div class="form-group position-relative w-pass mb-3">
-                                            <!-- PASSWORD -->
-                                            <span class="input-icon"><img src="{{ asset('users/assets/images/icons/lock.png') }}" class="img-fluid"></span>
-                                            <input type="password" class="form-control" placeholder="Enter password" aria-label="Enter password" name="password" id="password">
-                                            <span class="input-icon right"><img src="{{ asset('users/assets/images/icons/Eye-slash 1.png') }}" class="img-fluid" id="icon_password"></span>
-                                            <span class="error_msg" id="error_password"></span>
-                                            <!-- FORGOT PASSWORD LINK -->
-                                            <a href="{{ url('/users/forgot_password') }}" class="text-success float-end mb-5 mt-3 pb-5">{{ $forgot_password_link_label }}</a>
-                                        </div>
-                                        <button type="submit" class="btn btn-login btn-primary w-100 mt-5">{{ $btn_login_label }}</button>
-                                    </form>
-                                    <!-- FORM LOGIN INDIVIDUAL END -->
-                                </div>
-                                <div class="tab-pane fade" id="pills-profile" role="tabpanel" aria-labelledby="pills-profile-tab" tabindex="0">
-                                    <!-- FORM LOGIN COMPANY START -->
-                                    <form id="frm_login_company">
-                                        @csrf
-                                        <!-- EMAIL -->
-                                        <div class="form-group position-relative mb-3">
-                                            <span class="input-icon"><img src="{{ asset('users/assets/images/icons/email.png') }}" class="img-fluid"></span>
-                                            <input type="email" class="form-control" placeholder="Email address" aria-label="Email address" name="company_email" id="company_email">
-                                            <span class="error_msg" id="error_company_email"></span>
-                                        </div>
-                                        <div class="form-group position-relative w-pass mb-3">
-                                            <!-- PASSWORD -->
-                                            <span class="input-icon"><img src="{{ asset('users/assets/images/icons/lock.png') }}" class="img-fluid"></span>
-                                            <input type="password" class="form-control" placeholder="Enter password" aria-label="Enter password" name="company_password" id="company_password">
-                                            <span class="input-icon right"><img src="{{ asset('users/assets/images/icons/Eye-slash 1.png') }}" class="img-fluid" id="icon_company_password"></span>
-                                            <span class="error_msg" id="error_company_password"></span>
-                                            <!-- FORGOT PASSWORD LINK -->
-                                            <a href="{{ url('/users/forgot_password') }}" class="text-success float-end  mb-5 mt-3 pb-5">{{ $forgot_password_link_label }}</a>
-                                        </div>
-                                        <button type="submit" class="btn btn-login btn-primary w-100 mt-5">{{ $btn_login_label }}</button>
-                                    </form>
-                                    <!-- FORM LOGIN COMPANY END -->
-                                </div>
+                    <div class="col-lg-6 d-flex flex-column justify-content-center align-items-center py-5 px-3 login-panel">
+                        <div class="login-card w-100">
+                            <div class="logo text-center">
+                                <img src="{{ asset('uploads/system_image/'.$system_image_file) }}" class="img-fluid img-logo" alt="{{ $system_name_text }}">
+                                <h1 class="main-heading login-welcome-heading mt-4 mb-0">
+                                    <span class="d-block welcome-line">{{ $main_heading_label1 }}</span>
+                                    <span class="community-brand-heading">{{ $main_heading_label2 }}</span>
+                                </h1>
+                                <p class="sub-heading community-subheading mt-3 mb-0">{{ $subheading_label }}</p>
                             </div>
-                            <!-- SIGNUP LINK START -->
-                            <p class="text-primary mt-4">{{ $signup_text_lable }} <a href="{{ url('/users/signup') }}">{{ $signup_link_label }}</a></p>
-                            <!-- SIGNUP LINK START -->
-                        </div> 
+                            <div class="login-tabs text-center mt-4 w-100 d-flex flex-column align-items-center">
+                                <ul class="nav nav-pills mb-4 mx-auto" id="pills-tab" role="tablist">
+                                    <li class="nav-item" role="presentation">
+                                      <button class="nav-link active" id="pills-home-tab" data-bs-toggle="pill" data-bs-target="#pills-home" type="button" role="tab" aria-controls="pills-home" aria-selected="true">Individual</button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                      <button class="nav-link" id="pills-profile-tab" data-bs-toggle="pill" data-bs-target="#pills-profile" type="button" role="tab" aria-controls="pills-profile" aria-selected="false">Corporate</button>
+                                    </li>
+                                </ul>
+                                <div class="tab-content w-100" id="pills-tabContent">
+                                    <div class="tab-pane fade show active" id="pills-home" role="tabpanel" aria-labelledby="pills-home-tab" tabindex="0">
+                                        <!-- FORM LOGIN INDIVIDUAL START -->
+                                        <form id="frm_login_individual">
+                                            @csrf
+                                            <div class="form-group position-relative mb-3">
+                                                <span class="input-icon"><img src="{{ asset('users/assets/images/icons/email.png') }}" class="img-fluid" alt=""></span>
+                                                <input type="email" class="form-control" placeholder="Email address" aria-label="Email address" name="email" id="email" autocomplete="email">
+                                                <span class="error_msg" id="error_email"></span>
+                                            </div>
+                                            <div class="form-group position-relative w-pass mb-2">
+                                                <span class="input-icon"><img src="{{ asset('users/assets/images/icons/lock.png') }}" class="img-fluid" alt=""></span>
+                                                <input type="password" class="form-control" placeholder="Enter password" aria-label="Enter password" name="password" id="password" autocomplete="current-password">
+                                                <span class="input-icon right"><img src="{{ asset('users/assets/images/icons/Eye-slash 1.png') }}" class="img-fluid" id="icon_password" alt="Show password"></span>
+                                                <span class="error_msg" id="error_password"></span>
+                                                <a href="{{ url('/users/forgot_password') }}" class="forgot-link text-success">{{ $forgot_password_link_label }}</a>
+                                            </div>
+                                            <button type="submit" class="btn btn-login btn-primary w-100 mt-4">{{ $btn_login_label }}</button>
+                                        </form>
+                                        <!-- FORM LOGIN INDIVIDUAL END -->
+                                    </div>
+                                    <div class="tab-pane fade" id="pills-profile" role="tabpanel" aria-labelledby="pills-profile-tab" tabindex="0">
+                                        <!-- FORM LOGIN COMPANY START -->
+                                        <form id="frm_login_company">
+                                            @csrf
+                                            <div class="form-group position-relative mb-3">
+                                                <span class="input-icon"><img src="{{ asset('users/assets/images/icons/email.png') }}" class="img-fluid" alt=""></span>
+                                                <input type="email" class="form-control" placeholder="Email address" aria-label="Email address" name="company_email" id="company_email" autocomplete="email">
+                                                <span class="error_msg" id="error_company_email"></span>
+                                            </div>
+                                            <div class="form-group position-relative w-pass mb-2">
+                                                <span class="input-icon"><img src="{{ asset('users/assets/images/icons/lock.png') }}" class="img-fluid" alt=""></span>
+                                                <input type="password" class="form-control" placeholder="Enter password" aria-label="Enter password" name="company_password" id="company_password" autocomplete="current-password">
+                                                <span class="input-icon right"><img src="{{ asset('users/assets/images/icons/Eye-slash 1.png') }}" class="img-fluid" id="icon_company_password" alt="Show password"></span>
+                                                <span class="error_msg" id="error_company_password"></span>
+                                                <a href="{{ url('/users/forgot_password') }}" class="forgot-link text-success">{{ $forgot_password_link_label }}</a>
+                                            </div>
+                                            <button type="submit" class="btn btn-login btn-primary w-100 mt-4">{{ $btn_login_label }}</button>
+                                        </form>
+                                        <!-- FORM LOGIN COMPANY END -->
+                                    </div>
+                                </div>
+                                <p class="signup-prompt mt-4 mb-0">{{ $signup_text_lable }} <a href="{{ url('/users/signup') }}">{{ $signup_link_label }}</a></p>
+                            </div>
+                        </div>
                     </div>
                     <!-- RIGHT SECTION END -->
                 </div>

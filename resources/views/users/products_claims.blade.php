@@ -190,48 +190,39 @@
                                                 <span class="error_msg" id="error_claim_notes"></span>
                                             </div>
 
-                                            <!-- Upload Row (3 Upload Buttons in One Line) -->
+                                            <!-- Upload Row (2 optional uploads) -->
                                             <div class="col-md-3">
                                                 <button class="btn btn-primary w-100" type="button" style="cursor:default;">Upload</button>
                                             </div>
-                                            <div class="col-md-9 d-flex gap-4 flex-wrap">
-                                                <!-- Upload 1 -->
-                                                <div class="col-md-3">
-                                                    <div class="control-group file-upload" id="file-upload1">
-                                                        <div class="image-box text-center mx-auto">
-                                                            <img src="{{ asset('users/assets/images/icons/document-upload.png') }}" class="img-fluid" id="claim_image1_preview" alt="">
+                                            <div class="col-md-9">
+                                                <div class="row g-3 claim-upload-grid">
+                                                    <div class="col-md-6">
+                                                        <label class="form-label fw-semibold mb-2">1. Identity Information (Passport/ID)</label>
+                                                        <div class="control-group file-upload" id="file-upload1">
+                                                            <div class="image-box text-center mx-auto">
+                                                                <img src="{{ asset('users/assets/images/icons/document-upload.png') }}" class="img-fluid" id="claim_image1_preview" alt="">
+                                                            </div>
+                                                            <div class="controls">
+                                                                <input type="file" accept="image/png, image/jpg, image/jpeg" name="claim_image1" id="claim_image1" hidden />
+                                                                <span class="error_msg" id="error_claim_image1"></span>
+                                                                <textarea id="claim_image1_string" hidden></textarea>
+                                                            </div>
                                                         </div>
-                                                        <div class="controls">
-                                                            <input type="file" accept="image/png, image/jpg, image/jpeg" name="claim_image1" id="claim_image1" hidden />
-                                                            <span class="error_msg" id="error_claim_image1"></span>
-                                                            <textarea id="claim_image1_string" hidden></textarea>
-                                                        </div>
+                                                        <p class="doc-upload-hint mb-0">Optional — you can submit now and provide this later.</p>
                                                     </div>
-                                                </div>
-                                                <!-- Upload 2 -->
-                                                <div class="col-md-3">
-                                                    <div class="control-group file-upload" id="file-upload2">
-                                                        <div class="image-box text-center mx-auto">
-                                                            <img src="{{ asset('users/assets/images/icons/document-upload.png') }}" class="img-fluid" id="claim_image2_preview" alt="">
+                                                    <div class="col-md-6">
+                                                        <label class="form-label fw-semibold mb-2">2. Proof of Address</label>
+                                                        <div class="control-group file-upload" id="file-upload2">
+                                                            <div class="image-box text-center mx-auto">
+                                                                <img src="{{ asset('users/assets/images/icons/document-upload.png') }}" class="img-fluid" id="claim_image2_preview" alt="">
+                                                            </div>
+                                                            <div class="controls">
+                                                                <input type="file" accept="image/png, image/jpg, image/jpeg" name="claim_image2" id="claim_image2" hidden />
+                                                                <span class="error_msg" id="error_claim_image2"></span>
+                                                                <textarea id="claim_image2_string" hidden></textarea>
+                                                            </div>
                                                         </div>
-                                                        <div class="controls">
-                                                            <input type="file" accept="image/png, image/jpg, image/jpeg" name="claim_image2" id="claim_image2" hidden />
-                                                            <span class="error_msg" id="error_claim_image2"></span>
-                                                            <textarea id="claim_image2_string" hidden></textarea>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <!-- Upload 3 -->
-                                                <div class="col-md-3">
-                                                    <div class="control-group file-upload" id="file-upload3">
-                                                        <div class="image-box text-center mx-auto">
-                                                            <img src="{{ asset('users/assets/images/icons/document-upload.png') }}" class="img-fluid" id="claim_image3_preview" alt="">
-                                                        </div>
-                                                        <div class="controls">
-                                                            <input type="file" accept="image/png, image/jpg, image/jpeg" name="claim_image3" id="claim_image3" hidden />
-                                                            <span class="error_msg" id="error_claim_image3"></span>
-                                                            <textarea id="claim_image3_string" hidden></textarea>
-                                                        </div>
+                                                        <p class="doc-upload-hint mb-0">Optional — you can submit now and provide this later.</p>
                                                     </div>
                                                 </div>
                                             </div>
