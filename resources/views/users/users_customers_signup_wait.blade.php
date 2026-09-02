@@ -1,35 +1,24 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <?php 
-            $system_image=DB::table('system_settings')->select('description')->where('type', 'system_image')->get(); 
-            $system_name=DB::table('system_settings')->select('description')->where('type', 'system_name')->get(); 
-        ?>
-        <meta charset="UTF-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title><?php echo $system_name[0]->description; ?> :: Users Customers Portal</title>
+@extends('layout.auth.master')
 
-        <link href="{{ asset('users/assets/css/bootstrap.min.css') }}" rel="stylesheet" type="text/css" />
-        <link href="{{ asset('users/assets/css/style.css') }}" rel="stylesheet" type="text/css" />
-    </head>
-    <body class="bg-black">
-        <div id="wrapper">
-            <div class="container-fluid">
-                <div class="row align-items-center min-vh-100">
-                    <div class="col-md-5 mx-auto text-center">
-                        <h3 class="title text-white">Please Wait...</h3>
-                        <h3 class="title text-success">Verifying your ID</h3>
-                        <ul class="list-unstyled d-flex justify-content-center loading-animation">
-                            <li></li>
-                            <li></li>
-                            <li></li>
-                            <li></li>
-                        </ul>
-                        <img src="{{ asset('users/assets/images/verifiy-screen.png') }}" class="img-fluid mt-5" alt="image">
-                    </div>
-                </div>
-            </div>
+@section('title', ($brandName ?? 'Swap Circle') . ' — Verifying')
+
+@php
+    $heroTitle = 'Hang tight.<br>Almost ready.';
+    $heroText = 'We\'re verifying your details and setting up your account. This usually takes just a moment.';
+@endphp
+
+@section('content')
+    <div class="text-center">
+        <img src="{{ asset('uploads/system_image/' . $brandLogo) }}" alt="{{ $brandName }}" class="mx-auto h-12 w-auto">
+        <h1 class="mt-8 font-display text-3xl font-bold text-forest">Please wait…</h1>
+        <p class="mt-2 text-sm font-semibold text-lime-hover">Verifying your account</p>
+
+        <div class="mt-10 flex justify-center gap-2">
+            <span class="h-3 w-3 animate-bounce rounded-full bg-lime [animation-delay:-0.3s]"></span>
+            <span class="h-3 w-3 animate-bounce rounded-full bg-lime [animation-delay:-0.15s]"></span>
+            <span class="h-3 w-3 animate-bounce rounded-full bg-lime"></span>
         </div>
-    </body>
-</html>
+
+        <img src="{{ asset('users/assets/images/verifiy-screen.png') }}" alt="" class="mx-auto mt-10 max-h-48 w-auto opacity-90">
+    </div>
+@endsection

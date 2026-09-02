@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\Session;
 use Carbon\Carbon;
 use App\Helpers\Helper;
 use App\services\InsuretechSyncService;
+use App\Support\UserPortal;
+use App\Support\EmailStyles;
 use App\Http\Controllers\PushNotificationController;
 use Barryvdh\DomPDF\Facade\Pdf;
 
@@ -47,7 +49,13 @@ public function paymentSuccess(Request $request)
     $this->send_simple_mail(
         $data['email'],
         'Your Invoice - Swap Circle',
-        '<p>Dear ' . $data['name'] . ', please find your invoice attached.</p>',
+        EmailStyles::wrap(EmailStyles::card(
+            'Your Invoice',
+            'Swap Circle payment receipt',
+            '<p class="email-card-greeting">Dear ' . htmlspecialchars($data['name']) . ',</p>'
+            . '<p class="email-card-text">Thank you for your payment. Please find your invoice attached to this email.</p>'
+            . '<p class="email-card-text">If you have any questions about this transaction, reply to this email or contact <a href="mailto:support@swapcircle.trade">support@swapcircle.trade</a>.</p>'
+        )),
         [$pdfPath]
     );
 
@@ -139,150 +147,33 @@ public function paymentSuccess(Request $request)
     if (!empty($beneficiary->phone_number)) {
       $ninInfo = htmlspecialchars($beneficiary->phone_number);
     } elseif (!empty($beneficiary->nin_document)) {
-      $ninInfo = '<img src="' . asset($beneficiary->nin_document) . '" alt="NIN Document" style="max-width:200px; max-height:150px; border:1px solid #ccc; border-radius:4px;" />';
+      $ninInfo = '<img src="' . asset($beneficiary->nin_document) . '" alt="NIN Document" class="email-nin-document" />';
     } else {
       $ninInfo = 'Not Provided';
     }
 
     $invoiceUrl = $purchase_id ? url('/api/download-invoice/'.$purchase_id) : '';
-    return '
-      <html>
-      <head>
-        <style>
-          body {
-            font-family: Arial, sans-serif; 
-            color: #333;
-            margin: 0;
-            padding: 20px;
-            background-color: #fff;
-          }
-          .email-text-fullwidth {
-            width: 100%;
-            font-size: 14px;
-            line-height: 1.5;
-            margin-bottom: 20px;
-            box-sizing: border-box;
-          }
-          .receipt-container {
-            width: 100%;
-            max-width: 600px;
-            margin: 0 auto 20px auto;
-            background: #f9f9f9;
-            border: 1px solid #ccc;
-            padding: 20px;
-            box-sizing: border-box;
-          }
-          .receipt-container h2 {
-            text-align: center;
-            font-weight: bold;
-            margin-bottom: 20px;
-            font-size: 18px;
-          }
-          .receipt-container table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 14px;
-            color: #333;
-          }
-          .receipt-container th, 
-          .receipt-container td {
-            border: 1px solid #ccc;
-            padding: 8px 12px;
-            vertical-align: top;
-          }
-          .receipt-container th {
-            text-align: left;
-            width: 180px;
-            background-color: #f0f0f0;
-            font-weight: 600;
-          }
-        </style>
-      </head>
-      <body>
+    $greeting = 'Dear ' . htmlspecialchars(trim($customer->first_name . ' ' . ($customer->last_name ?? ''))) . ',<br><br>Thank you for your purchase with <strong>Swap Circle</strong>. Your order has been successfully received. Please find below the details of your purchase:';
+    $table = '
+            <tr><th>Product Name</th><td>' . $productName . '</td></tr>
+            <tr><th>Cover Duration</th><td>' . $coverDuration . '</td></tr>
+            <tr><th>Cover Start Date</th><td>' . $coverStartDate . '</td></tr>
+            <tr><th>Cover End Date</th><td>' . $coverEndDate . '</td></tr>
+            <tr><th>Beneficiary First Name</th><td>' . $firstName . '</td></tr>
+            <tr><th>Beneficiary Surname</th><td>' . ($surname ?? '-') . '</td></tr>
+            <tr><th>Beneficiary Gender</th><td>' . $gender . '</td></tr>
+            <tr><th>Beneficiary Date of Birth</th><td>' . $dateOfBirth . '</td></tr>
+            <tr><th>Beneficiary Address</th><td>' . $address . '</td></tr>
+            <tr><th>Beneficiary Occupation</th><td>' . $occupation . '</td></tr>
+            <tr><th>Beneficiary Relationship</th><td>' . $relationship . '</td></tr>
+            <tr><th>Beneficiary Phone Number</th><td>' . $ninInfo . '</td></tr>';
 
-        <div class="email-text-fullwidth">
-          Dear ' . trim($customer->first_name . ' ' . ($customer->last_name ?? '')) . ',<br><br>
-          Thank you for your purchase with <strong>Swap Circle</strong>. Your order has been successfully received. Please find below the details of your purchase:
-        </div>
-        <div class="receipt-container">
-          <h2>Swap Circle - Purchase Confirmation</h2>
-          <table>
-            <tr>
-              <th>Product Name</th>
-              <td>' . $productName . '</td>
-            </tr>
-            <tr>
-              <th>Cover Duration</th>
-              <td>' . $coverDuration . '</td>
-            </tr>
-            <tr>
-              <th>Cover Start Date</th>
-              <td>' . $coverStartDate . '</td>
-            </tr>
-            <tr>
-              <th>Cover End Date</th>
-              <td>' . $coverEndDate . '</td>
-            </tr>
-            <tr>
-              <th>Beneficiary First Name</th>
-              <td>' . $firstName . '</td>
-            </tr>
-            <tr>
-              <th>Beneficiary Surname</th>
-              <td>' . ($surname ?? '-') . '</td>
-            </tr>
-            <tr>
-              <th>Beneficiary Gender</th>
-              <td>' . $gender . '</td>
-            </tr>
-            <tr>
-              <th>Beneficiary Date of Birth</th>
-              <td>' . $dateOfBirth . '</td>
-            </tr>
-            <tr>
-              <th>Beneficiary Address</th>
-              <td>' . $address . '</td>
-            </tr>
-            <tr>
-              <th>Beneficiary Occupation</th>
-              <td>' . $occupation . '</td>
-            </tr>
-            <tr>
-              <th>Beneficiary Relationship</th>
-              <td>' . $relationship . '</td>
-            </tr>
-            <tr>
-              <th>Beneficiary Phone Number</th>
-              <td>' . $ninInfo . '</td>
-            </tr>
-          </table>
-        </div>
-        <div class="email-text-fullwidth">
-          Regards,<br>
-          <strong>Swap Circle Team</strong>
-        </div>
-
-        ' . ($purchase_id ? '
-        <div style="margin-top:24px;border-top:2px solid #eee;padding-top:20px;text-align:center;">
-          <p style="font-size:14px;font-weight:bold;color:#1a3c6e;margin-bottom:14px;">&#128196; Download Your Documents</p>
-          <table style="width:100%;max-width:500px;margin:0 auto;border-collapse:collapse;">
-            <tr>
-              <td style="padding:0 8px 0 0;width:50%;">
-                  <a href="' . $invoiceUrl . '" style="display:block;text-align:center;padding:12px 10px;background:#28a745;color:#fff;text-decoration:none;border-radius:6px;font-size:13px;font-weight:bold;font-family:Arial,sans-serif;">&#128196; Download Invoice</a>
-
-
-                </td>
-              </td>
-             
-             
-            </tr>
-          </table>
-          <p style="font-size:11px;color:#999;margin-top:10px;">If buttons do not work, copy and paste the links into your browser.</p>
-        </div>
-        ' : '') . '
-
-      </body>
-      </html>';
+    return EmailStyles::wrap(EmailStyles::receipt(
+        $greeting,
+        'Purchase Confirmation',
+        $table,
+        EmailStyles::downloadBlock($invoiceUrl)
+    ));
   }
   /* GENERATE PURCHASE EMAIL HTML FOR PRODUCT TYPES A & B */
 
@@ -299,67 +190,8 @@ public function paymentSuccess(Request $request)
     $deliveriesUsed       = $task->delivery_requests_consumed;
 
     $invoiceUrl = $purchase_id ? url('/api/download-invoice/'.$purchase_id) : '';
-    return '
-      <html>
-      <head>
-        <style>
-          body {
-            font-family: Arial, sans-serif; 
-            color: #333;
-            margin: 0;
-            padding: 20px;
-            background-color: #fff;
-          }
-          .email-text-fullwidth {
-            width: 100%;
-            font-size: 14px;
-            line-height: 1.5;
-            margin-bottom: 20px;
-          }
-          .receipt-container {
-            width: 100%;
-            max-width: 600px;
-            margin: 0 auto 20px auto;
-            background: #f9f9f9;
-            border: 1px solid #ccc;
-            padding: 20px;
-            box-sizing: border-box;
-          }
-          .receipt-container h2 {
-            text-align: center;
-            font-weight: bold;
-            margin-bottom: 20px;
-            font-size: 18px;
-          }
-          .receipt-container table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 14px;
-            color: #333;
-          }
-          .receipt-container th, 
-          .receipt-container td {
-            border: 1px solid #ccc;
-            padding: 8px 12px;
-            vertical-align: top;
-          }
-          .receipt-container th {
-            text-align: left;
-            width: 180px;
-            background-color: #f0f0f0;
-            font-weight: 600;
-          }
-        </style>
-      </head>
-      <body>
-
-        <div class="email-text-fullwidth">
-          Dear ' . trim($customer->first_name . ' ' . ($customer->last_name ?? '')) . ',<br><br>
-          Thank you for your task request with <strong>Swap Circle</strong>. Please find below the details of your requested task:
-        </div>
-        <div class="receipt-container">
-          <h2>Swap Circle - Task Request Confirmation</h2>
-          <table>
+    $greeting = 'Dear ' . htmlspecialchars(trim($customer->first_name . ' ' . ($customer->last_name ?? ''))) . ',<br><br>Thank you for your task request with <strong>Swap Circle</strong>. Please find below the details of your requested task:';
+    $table = '
             <tr><th>Product Name</th><td>' . $productName . '</td></tr>
             <tr><th>Task Type</th><td>' . $taskType . '</td></tr>
             <tr><th>Task Name</th><td>' . $taskName . '</td></tr>
@@ -368,37 +200,14 @@ public function paymentSuccess(Request $request)
             <tr><th>Contact Person</th><td>' . $contactPersonName . '</td></tr>
             <tr><th>Contact Phone</th><td>' . $contactPersonPhone . '</td></tr>
             <tr><th>Delivery Requests Limit</th><td>' . $deliveriesLimit . '</td></tr>
-            <tr><th>Delivery Requests Consumed</th><td>' . $deliveriesUsed . '</td></tr>
-          </table>
-        </div>
-        <div class="email-text-fullwidth">
-          Regards,<br>
-          <strong>Swap Circle Team</strong>
-        </div>
+            <tr><th>Delivery Requests Consumed</th><td>' . $deliveriesUsed . '</td></tr>';
 
-        ' . ($purchase_id ? '
-        <div style="margin-top:24px;border-top:2px solid #eee;padding-top:20px;text-align:center;">
-          <p style="font-size:14px;font-weight:bold;color:#1a3c6e;margin-bottom:14px;">&#128196; Download Your Documents</p>
-          <table style="width:100%;max-width:500px;margin:0 auto;border-collapse:collapse;">
-            <tr>
-             <td style="padding:0 8px 0 0;width:50%;">
-                  <a href="' . $invoiceUrl . '" style="display:block;text-align:center;padding:12px 10px;background:#28a745;color:#fff;text-decoration:none;border-radius:6px;font-size:13px;font-weight:bold;font-family:Arial,sans-serif;">&#128196; Download Invoice</a>
-
-
-                </td>
-                  border-radius:6px;font-size:13px;font-weight:bold;">
-                  Download Invoice
-                </a>
-              </td>
-                         
-            </tr>
-          </table>
-          <p style="font-size:11px;color:#999;margin-top:10px;">If buttons do not work, copy and paste the links into your browser.</p>
-        </div>
-        ' : '') . '
-
-      </body>
-      </html>';
+    return EmailStyles::wrap(EmailStyles::receipt(
+        $greeting,
+        'Task Request Confirmation',
+        $table,
+        EmailStyles::downloadBlock($invoiceUrl)
+    ));
   }
   /* GENERATE PURCHASE EMAIL HTML FOR PRODUCT TYPE C */
 
@@ -444,20 +253,29 @@ public function paymentSuccess(Request $request)
         $id = $data->users_customers_id;
         if (md5($req->password) == $password) {
           if($data->status == 'Active'){
-            if($req->one_signal_id){
-              $update=DB::table('users_customers')->where('email', $req->email)->update(['one_signal_id'=>$req->one_signal_id]);
-            }
+            if (($data->verified_badge ?? 'No') !== 'Yes') {
+              $response["code"] = 403;
+              $response["status"] = "error";
+              $response["message"] = "Please verify your email before signing in. Check your inbox for the verification code or request a new one.";
+              $response["verification_required"] = true;
+              $response["users_customers_id"] = $id;
+              $response["resend_url"] = url('/users/resend_otp/' . $id);
+            } else {
+              if($req->one_signal_id){
+                $update=DB::table('users_customers')->where('email', $req->email)->update(['one_signal_id'=>$req->one_signal_id]);
+              }
               $update_last_activity=DB::table('users_customers')->where('email', $req->email)->update(['last_activity'=>Carbon::now()]);
 
-            $userDetail=DB::table('users_customers')->where('users_customers_id', $id)->get()->first();
-            if (isset($userDetail) && $userDetail != null) {
-              $response["code"] = 200;
-              $response["status"] = "success";
-              $response["data"] = $userDetail;
-            } else{
-              $response["code"] = 404;
-              $response["status"] = "error";
-              $response["message"] = "User do not exist.";
+              $userDetail=DB::table('users_customers')->where('users_customers_id', $id)->get()->first();
+              if (isset($userDetail) && $userDetail != null) {
+                $response["code"] = 200;
+                $response["status"] = "success";
+                $response["data"] = $userDetail;
+              } else{
+                $response["code"] = 404;
+                $response["status"] = "error";
+                $response["message"] = "User do not exist.";
+              }
             }
           } else {
             $response["code"] = 404;
@@ -480,8 +298,21 @@ public function paymentSuccess(Request $request)
       $response["message"] = "All fields are needed.";
     }
 
+    $payload = ['status' => $response['status']];
+    if (isset($response['message'])) {
+      $payload['message'] = $response['message'];
+    }
+    if (isset($response['data'])) {
+      $payload['data'] = $response['data'];
+    }
+    if (!empty($response['verification_required'])) {
+      $payload['verification_required'] = true;
+      $payload['users_customers_id'] = $response['users_customers_id'];
+      $payload['resend_url'] = $response['resend_url'];
+    }
+
     return response()
-    ->json(array( 'status' => $response["status"], isset($response["message"]) ? 'message' : 'data' => isset($response["message"]) ? $response["message"] : $response["data"]))
+    ->json($payload)
     ->header('Content-Type', 'application/json');
   }
   /* LOGIN USERS CUSTOMERS */
@@ -489,6 +320,13 @@ public function paymentSuccess(Request $request)
   /* SIGNUP USERS CUSTOMERS */
   public function users_customers_signup(Request $req){
     if (isset($req->first_name) && isset($req->phone) && isset($req->email) && isset($req->password) && isset($req->location)) {
+      if (!isset($req->gdpr_consent) || !in_array((string) $req->gdpr_consent, ['1', 'true', 'yes', 'on'], true)) {
+        return response()->json([
+          'status' => 'error',
+          'message' => 'Please accept the Terms, Privacy Policy, and GDPR information to continue.',
+        ], 422)->header('Content-Type', 'application/json');
+      }
+
       $email = DB::table('users_customers')->where('email', $req->email)->get()->count();
 
       if($email == 0) {
@@ -597,33 +435,15 @@ public function paymentSuccess(Request $request)
 
           $otp = rand(1000, 9999);
           DB::table('users_customers')->where('users_customers_id', $users_customers_id)->update(['verify_code' => $otp]);
-           $otpMessage = '
-        <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:0;">
-          <div style="background:#1a3c6e;padding:24px 30px;border-radius:6px 6px 0 0;">
-            <h1 style="color:#fff;margin:0;font-size:22px;letter-spacing:1px;">Confirm Your Email Address</h1>
-            <p style="color:rgba(255,255,255,0.8);margin:6px 0 0;font-size:13px;">Swap Circle - Email Verification</p>
-          </div>
-          <div style="background:#fff;border:1px solid #ddd;border-top:none;border-radius:0 0 6px 6px;padding:28px 30px;">
-            <p style="font-size:15px;color:#333;margin-bottom:8px;">Hello,</p>
-            <p style="font-size:14px;color:#555;line-height:1.7;margin-bottom:20px;">
-              Thank you for registering with <strong>Swap Circle</strong>.<br>
-              To complete your registration and verify your email address, please enter the confirmation code below:
-            </p>
-            <div style="text-align:center;margin:28px 0;">
-              <div style="display:inline-block;background:#f0f4fb;border:2px solid #1a3c6e;border-radius:10px;padding:18px 36px;">
-                <span style="font-size:40px;font-weight:bold;letter-spacing:14px;color:#1a3c6e;">' . $otp . '</span>
-              </div>
-              <p style="font-size:12px;color:#999;margin-top:12px;">This code expires in <strong>30 minutes</strong>.</p>
-            </div>
-            <p style="font-size:14px;color:#555;line-height:1.7;">
-              Enter this code on the verification page to confirm your email address and activate your account.
-            </p>
-            <p style="font-size:12px;color:#aaa;border-top:1px solid #eee;padding-top:16px;margin-top:24px;">
-              If you did not create an account with Swap Circle, please ignore this email.<br>
-              For support: <a href="mailto:support@swapcircle.trade" style="color:#1a3c6e;">support@swapcircle.trade</a>
-            </p>
-          </div>
-        </div>';
+           $otpMessage = EmailStyles::wrap(EmailStyles::card(
+            'Confirm Your Email Address',
+            'Swap Circle email verification',
+            '<p class="email-card-greeting">Hello,</p>'
+            . '<p class="email-card-text">Thank you for registering with <strong>Swap Circle</strong>. Enter the confirmation code below to verify your email and activate your account.</p>'
+            . '<div class="email-card-center"><div class="email-otp-box"><span class="email-otp-code">' . $otp . '</span></div>'
+            . '<p class="email-card-meta">This code expires in <strong>30 minutes</strong>.</p></div>'
+            . '<p class="email-card-footer">If you did not create an account with Swap Circle, please ignore this email.<br>For support: <a href="mailto:support@swapcircle.trade">support@swapcircle.trade</a></p>'
+          ));
           $this->send_simple_mail($users_customers->email, 'Verify Your Email - Swap Circle', $otpMessage);
 
 
@@ -661,21 +481,15 @@ public function paymentSuccess(Request $request)
 
         // Send welcome confirmation email
         $name = $users_customer->first_name . ($users_customer->last_name ? ' ' . $users_customer->last_name : ($users_customer->company_name ? ' (' . $users_customer->company_name . ')' : ''));
-        $welcomeMsg = '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
-          <div style="background:#1a3c6e;padding:24px 30px;border-radius:6px 6px 0 0;">
-            <h1 style="color:#fff;margin:0;font-size:22px;">Welcome to Swap Circle!</h1>
-            <p style="color:rgba(255,255,255,0.8);margin:6px 0 0;font-size:13px;">Your email has been successfully verified.</p>
-          </div>
-          <div style="background:#f9f9f9;border:1px solid #ddd;border-top:none;border-radius:0 0 6px 6px;padding:28px 30px;">
-            <p style="font-size:15px;color:#333;">Dear <strong>' . $name . '</strong>,</p>
-            <p style="font-size:14px;color:#555;line-height:1.6;">Thank you for registering with <strong>Swap Circle</strong>. Your email address has been verified and your account is now active.</p>
-            <p style="font-size:14px;color:#555;line-height:1.6;">You can now log in and explore our products.</p>
-            <div style="text-align:center;margin:28px 0;">
-              <a href="' . url('/') . '" style="display:inline-block;padding:12px 32px;background:#1a3c6e;color:#fff;text-decoration:none;border-radius:6px;font-size:14px;font-weight:bold;">Login to Your Account</a>
-            </div>
-            <p style="font-size:12px;color:#999;border-top:1px solid #eee;padding-top:16px;margin-top:16px;">If you did not create this account, please contact us at support@swapcircle.trade</p>
-          </div>
-        </div>';
+        $welcomeMsg = EmailStyles::wrap(EmailStyles::card(
+          'Welcome to Swap Circle!',
+          'Your email has been successfully verified',
+          '<p class="email-card-greeting">Dear <strong>' . htmlspecialchars($name) . '</strong>,</p>'
+          . '<p class="email-card-text email-card-text--compact">Thank you for registering with <strong>Swap Circle</strong>. Your email address has been verified and your account is now active.</p>'
+          . '<p class="email-card-text email-card-text--compact">You can now log in and explore our products.</p>'
+          . '<div class="email-card-center">' . EmailStyles::button('Login to Your Account', url('/login')) . '</div>'
+          . '<p class="email-card-footer">If you did not create this account, please contact <a href="mailto:support@swapcircle.trade">support@swapcircle.trade</a></p>'
+        ));
         $this->send_simple_mail($users_customer->email, 'Welcome to Swap Circle - Email Verified!', $welcomeMsg);
 
        $response["code"] = 200;
@@ -697,6 +511,58 @@ public function paymentSuccess(Request $request)
     ->header('Content-Type', 'application/json');
  }  
  /* VERIFY SIGNUP USERS CUSTOMERS OTP */
+
+  /* RESEND SIGNUP OTP */
+  public function resend_otp(Request $req){
+    if (!isset($req->users_customers_id)) {
+      return response()->json([
+        'status' => 'error',
+        'message' => 'User ID is required.',
+      ], 404)->header('Content-Type', 'application/json');
+    }
+
+    $users_customer = DB::table('users_customers')
+      ->where('users_customers_id', $req->users_customers_id)
+      ->first();
+
+    if (!$users_customer) {
+      return response()->json([
+        'status' => 'error',
+        'message' => 'Account not found.',
+      ], 404)->header('Content-Type', 'application/json');
+    }
+
+    if ($users_customer->verified_badge === 'Yes') {
+      return response()->json([
+        'status' => 'error',
+        'message' => 'This account is already verified.',
+      ], 400)->header('Content-Type', 'application/json');
+    }
+
+    $otp = rand(1000, 9999);
+    DB::table('users_customers')
+      ->where('users_customers_id', $req->users_customers_id)
+      ->update(['verify_code' => $otp]);
+
+    $otpMessage = EmailStyles::wrap(EmailStyles::card(
+            'Confirm Your Email Address',
+            'Your new Swap Circle verification code',
+            '<p class="email-card-greeting">Hello,</p>'
+            . '<p class="email-card-text">Here is your new verification code for <strong>Swap Circle</strong>:</p>'
+            . '<div class="email-card-center"><div class="email-otp-box"><span class="email-otp-code">' . $otp . '</span></div>'
+            . '<p class="email-card-meta">This code expires in <strong>30 minutes</strong>.</p></div>'
+            . '<p class="email-card-footer">If you did not request this code, please ignore this email.</p>'
+          ));
+
+    $this->send_simple_mail($users_customer->email, 'Your New Verification Code - Swap Circle', $otpMessage);
+
+    return response()->json([
+      'status' => 'success',
+      'message' => 'A new verification code has been sent.',
+      'method_used' => $users_customer->email,
+    ])->header('Content-Type', 'application/json');
+  }
+  /* RESEND SIGNUP OTP */
 
   /* UPDATE PROFILE */
   public function update_profile(Request $req){
@@ -774,22 +640,15 @@ public function paymentSuccess(Request $request)
         $name = trim(($data->first_name ?? '') . ' ' . ($data->last_name ?? ''));
         $name = $name !== '' ? $name : ($data->company_name ?? 'Customer');
 
-        $message = '
-          <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
-            <div style="background:#1a3c6e;padding:24px 30px;border-radius:6px 6px 0 0;">
-              <h1 style="color:#fff;margin:0;font-size:22px;">Reset Your Password</h1>
-              <p style="color:rgba(255,255,255,0.8);margin:6px 0 0;font-size:13px;">Swap Circle account recovery</p>
-            </div>
-            <div style="background:#fff;border:1px solid #ddd;border-top:none;border-radius:0 0 6px 6px;padding:28px 30px;">
-              <p style="font-size:15px;color:#333;">Hello <strong>' . htmlspecialchars($name) . '</strong>,</p>
-              <p style="font-size:14px;color:#555;line-height:1.7;">We received a request to reset your Swap Circle password. Click the button below to create a new password.</p>
-              <div style="text-align:center;margin:28px 0;">
-                <a href="' . htmlspecialchars($resetLink) . '" style="display:inline-block;padding:12px 32px;background:#1a3c6e;color:#fff;text-decoration:none;border-radius:6px;font-size:14px;font-weight:bold;">Reset Password</a>
-              </div>
-              <p style="font-size:13px;color:#777;line-height:1.6;">If the button does not work, copy this link into your browser:<br><a href="' . htmlspecialchars($resetLink) . '">' . htmlspecialchars($resetLink) . '</a></p>
-              <p style="font-size:12px;color:#999;border-top:1px solid #eee;padding-top:16px;margin-top:24px;">If you did not request this reset, you can safely ignore this email.</p>
-            </div>
-          </div>';
+        $message = EmailStyles::wrap(EmailStyles::card(
+            'Reset Your Password',
+            'Swap Circle account recovery',
+            '<p class="email-card-greeting">Hello <strong>' . htmlspecialchars($name) . '</strong>,</p>'
+            . '<p class="email-card-text">We received a request to reset your Swap Circle password. Click the button below to create a new password.</p>'
+            . '<div class="email-card-center">' . EmailStyles::button('Reset Password', $resetLink) . '</div>'
+            . '<p class="email-card-text email-card-text--link">If the button does not work, copy this link into your browser:<br><a href="' . htmlspecialchars($resetLink) . '">' . htmlspecialchars($resetLink) . '</a></p>'
+            . '<p class="email-card-footer">If you did not request this reset, you can safely ignore this email.</p>'
+          ));
 
         $this->send_simple_mail($email, 'Reset Your Swap Circle Password', $message);
 
@@ -1127,12 +986,12 @@ public function paymentSuccess(Request $request)
         break;   
         
         case "sendMessage":
-          if(isset($req->users_customers_id) && isset($req->other_users_customers_id) && isset($req->content) && isset($req->messageType)){
+          if(isset($req->users_customers_id) && isset($req->other_users_customers_id) && $req->has('content') && isset($req->messageType)){
             $message_details = array(
               'sender_id'=> $req->users_customers_id,
               'receiver_id'=> $req->other_users_customers_id,
               'sender_type'=> $req->sender_type,
-              'message'=>  $req->content,//json_encode($req->content) ,
+              'message'=>  $req->input('content'),//json_encode($req->input('content')) ,
               'message_type'=> $req->messageType,
               'send_date'=> date('Y-m-d'),
               'send_time'=> date('H:i:s'),
@@ -3018,7 +2877,14 @@ public function paymentSuccess(Request $request)
   
   /* ALL CONNECT CATEGORIES*/
   public function connect_categories(){
-    $connect_categories = DB::table('connect_categories')->where('status','Active')->get();
+    $connect_categories = DB::table('connect_categories')->where('status','Active')->get()->map(function ($category) {
+      $iconPath = ltrim((string) ($category->icon ?? ''), '/');
+      $category->icon_url = ($iconPath !== '' && file_exists(public_path($iconPath)))
+        ? url($iconPath)
+        : null;
+
+      return $category;
+    });
     
     if (count($connect_categories)>0) {
       $response["code"] = 200;
@@ -3885,177 +3751,15 @@ public function paymentSuccess(Request $request)
       $customer   = DB::table('users_customers')->where('users_customers_id', $req->users_customers_id)->first();
       $product    = DB::table('products')->where('products_id', $req->products_id)->first();
 
-      /* send mail */ 
-      $to               = $customer->email;
-    
-      $subject          = 'Purchase Confirmation';
+      /* send mail */
+      $to      = $customer->email;
+      $subject = 'Purchase Confirmation';
 
-      $productName      = htmlspecialchars($product->name);
-      $coverDuration    = htmlspecialchars($req->cover_duration);
-      $coverStartDate   = date('d-m-Y', strtotime($req->cover_start_date));
-      $coverEndDate     = date('d-m-Y', strtotime($req->cover_end_date));
-      $firstName        = htmlspecialchars($req->first_name);
-      $surname          = htmlspecialchars($req->surname);
-      $gender           = htmlspecialchars($req->gender);
-      $dateOfBirth      = date('d-m-Y', strtotime($req->date_of_birth)); 
-      $address          = htmlspecialchars($req->address);
-      $occupation       = htmlspecialchars(DB::table('occupations')->where('occupations_id', $req->occupations_id)->first()->name); 
-      $relationship     = htmlspecialchars(DB::table('relationships')->where('relationships_id', $req->relationships_id)->first()->name); 
-      if (!empty($req->nin)) {
-        // Use the NIN text
-        $ninInfo = htmlspecialchars($req->nin);
-      } elseif (!empty($data2['nin_document'])) {
-        // Use the uploaded NIN document as an image
-        $ninInfo = '<img src="' . asset($data2['nin_document']) . '" alt="NIN Document" style="max-width:200px; max-height:150px; border:1px solid #ccc; border-radius:4px;" />';
-      } else {
-        $ninInfo = 'Not Provided';
-      }
-      $message = '
-        <html>
-        <head>
-          <style>
-            body {
-              font-family: Arial, sans-serif; 
-              color: #333;
-              margin: 0;
-              padding: 20px;
-              background-color: #fff;
-            }
-            .email-text-fullwidth {
-              width: 100%;
-              font-size: 14px;
-              line-height: 1.5;
-              margin-bottom: 20px;
-              box-sizing: border-box;
-            }
-            .receipt-container {
-              width: 100%;
-              max-width: 600px;
-              margin: 0 auto 20px auto;
-              background: #f9f9f9;
-              border: 1px solid #ccc;
-              padding: 20px;
-              box-sizing: border-box;
-            }
-            .receipt-container h2 {
-              text-align: center;
-              font-weight: bold;
-              margin-bottom: 20px;
-              font-size: 18px;
-            }
-            .receipt-container table {
-              width: 100%;
-              border-collapse: collapse;
-              font-size: 14px;
-              color: #333;
-            }
-            .receipt-container th, 
-            .receipt-container td {
-              border: 1px solid #ccc;
-              padding: 8px 12px;
-              vertical-align: top;
-            }
-            .receipt-container th {
-              text-align: left;
-              width: 180px;
-              background-color: #f0f0f0;
-              font-weight: 600;
-            }
-          </style>
-        </head>
-        <body>
-
-          <div class="email-text-fullwidth">
-            Dear ' . trim($customer->first_name . ' ' . ($customer->last_name ?? '')) . ',<br><br>
-            Thank you for your purchase with <strong>Swap Circle</strong>. Your order has been successfully received. Please find below the details of your purchase:
-          </div>
-          <div class="receipt-container">
-            <h2>Swap Circle - Purchase Confirmation</h2>
-            <table>
-              <tr>
-                <th>Product Name</th>
-                <td>' . $productName . '</td>
-              </tr>
-              <tr>
-                <th>Cover Duration</th>
-                <td>' . $coverDuration . '</td>
-              </tr>
-              <tr>
-                <th>Cover Start Date</th>
-                <td>' . $coverStartDate . '</td>
-              </tr>
-              <tr>
-                <th>Cover End Date</th>
-                <td>' . $coverEndDate . '</td>
-              </tr>
-              <tr>
-                <th>Beneficiary First Name</th>
-                <td>' . $firstName . '</td>
-              </tr>
-              <tr>
-                <th>Beneficiary Surname</th>
-                <td>' . ($surname ?? '-') . '</td>
-              </tr>
-              <tr>
-                <th>Beneficiary Gender</th>
-                <td>' . $gender . '</td>
-              </tr>
-              <tr>
-                <th>Beneficiary Date of Birth</th>
-                <td>' . $dateOfBirth . '</td>
-              </tr>
-              <tr>
-                <th>Beneficiary Address</th>
-                <td>' . $address . '</td>
-              </tr>
-              <tr>
-                <th>Beneficiary Occupation</th>
-                <td>' . $occupation . '</td>
-              </tr>
-              <tr>
-                <th>Beneficiary Relationship</th>
-                <td>' . $relationship . '</td>
-              </tr>
-              <tr>
-                <th>Beneficiary Phone Number</th>
-                <td>' . $ninInfo . '</td>
-              </tr>
-            </table>
-          </div>
-          <div class="email-text-fullwidth">
-            Regards,<br>
-            <strong>Swap Circle Team</strong>
-          </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        </body>
-        </html>';
-   
-
-  /* ========= SEND MAIL ========= */
-  $this->send_simple_mail($to, $subject, $this->generatePurchaseEmailHTML_AB($prod_purchased, $customer, $product, $prod_purchased->products_purchases_beneficiaries));
+      $this->send_simple_mail($to, $subject, $this->generatePurchaseEmailHTML_AB($prod_purchased, $customer, $product, $prod_purchased->products_purchases_beneficiaries));
 
     
     }
     /* handle product type A & B */
-
     /* handle product type C */
     if ($type === 'C') {
       $prod_valid = DB::table('products_purchases as pp')
@@ -4115,126 +3819,15 @@ public function paymentSuccess(Request $request)
       $customer   = DB::table('users_customers')->where('users_customers_id', $req->users_customers_id)->first();
       $product    = DB::table('products')->where('products_id', $req->products_id)->first();
      
-      /* send mail */ 
-      $to                   = $customer->email;
-      $subject              = 'Purchase Confirmation';
+      /* send mail */
+      $to      = $customer->email;
+      $subject = 'Purchase Confirmation';
 
-      $productName          = htmlspecialchars($product->name);
-      $taskType             = htmlspecialchars(DB::table('tasks_types')->where('tasks_types_id', $req->tasks_types_id)->first()->name); 
-      $taskName             = htmlspecialchars($req->task);
-      $taskDate             = date('d-m-Y', strtotime($req->task_date));
-      $description          = htmlspecialchars($req->description);
-      $contactPersonName    = htmlspecialchars($req->recipient_name);
-      $contactPersonPhone   = htmlspecialchars($req->recipient_phone);
-      $deliveriesLimit      = $prod_purchased->products_purchases_tasks->delivery_request_limit;
-      $deliveriesUsed       = $prod_purchased->products_purchases_tasks->delivery_requests_consumed;
-      $message = '
-        <html>
-        <head>
-          <style>
-            body {
-              font-family: Arial, sans-serif; 
-              color: #333;
-              margin: 0;
-              padding: 20px;
-              background-color: #fff;
-            }
-            .email-text-fullwidth {
-              width: 100%;
-              font-size: 14px;
-              line-height: 1.5;
-              margin-bottom: 20px;
-            }
-            .receipt-container {
-              width: 100%;
-              max-width: 600px;
-              margin: 0 auto 20px auto;
-              background: #f9f9f9;
-              border: 1px solid #ccc;
-              padding: 20px;
-              box-sizing: border-box;
-            }
-            .receipt-container h2 {
-              text-align: center;
-              font-weight: bold;
-              margin-bottom: 20px;
-              font-size: 18px;
-            }
-            .receipt-container table {
-              width: 100%;
-              border-collapse: collapse;
-              font-size: 14px;
-              color: #333;
-            }
-            .receipt-container th, 
-            .receipt-container td {
-              border: 1px solid #ccc;
-              padding: 8px 12px;
-              vertical-align: top;
-            }
-            .receipt-container th {
-              text-align: left;
-              width: 180px;
-              background-color: #f0f0f0;
-              font-weight: 600;
-            }
-          </style>
-        </head>
-        <body>
-
-          <div class="email-text-fullwidth">
-            Dear ' . trim($customer->first_name . ' ' . ($customer->last_name ?? '')) . ',<br><br>
-            Thank you for your task request with <strong>Swap Circle</strong>. Please find below the details of your requested task:
-          </div>
-          <div class="receipt-container">
-            <h2>Swap Circle - Task Request Confirmation</h2>
-            <table>
-              <tr><th>Product Name</th><td>' . $productName . '</td></tr>
-              <tr><th>Task Type</th><td>' . $taskType . '</td></tr>
-              <tr><th>Task Name</th><td>' . $taskName . '</td></tr>
-              <tr><th>Task Date</th><td>' . $taskDate . '</td></tr>
-              <tr><th>Description</th><td>' . $description . '</td></tr>
-              <tr><th>Contact Person</th><td>' . $contactPersonName . '</td></tr>
-              <tr><th>Contact Phone</th><td>' . $contactPersonPhone . '</td></tr>
-              <tr><th>Delivery Requests Limit</th><td>' . $deliveriesLimit . '</td></tr>
-              <tr><th>Delivery Requests Consumed</th><td>' . $deliveriesUsed . '</td></tr>
-            </table>
-          </div>
-          <div class="email-text-fullwidth">
-            Regards,<br>
-            <strong>Swap Circle Team</strong>
-          </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        </html>';
-
-             
-
-/* ========= SEND MAIL ========= */
-  $this->send_simple_mail($to, $subject, $this->generatePurchaseEmailHTML_C($prod_purchased, $customer, $product, $prod_purchased->products_purchases_tasks));
+      $this->send_simple_mail($to, $subject, $this->generatePurchaseEmailHTML_C($prod_purchased, $customer, $product, $prod_purchased->products_purchases_tasks));
        
       /* send mail */
     }
     /* handle product type C  */
-
     $user_tag_updated   = DB::table('users_customers')->where('users_customers_id', $req->users_customers_id)->update(['users_customers_tag' => 'Community Member']);
 
     return response()->json(['status' => 'success', 'data'   => $prod_purchased], 200);
@@ -4244,9 +3837,55 @@ public function paymentSuccess(Request $request)
   /* CLAIM PURCHASED PRODUCT */
   public function claim_purchased_product(Request $req){
     if(isset($req->products_purchases_id) && isset($req->date) && isset($req->description)) {
-    //   $claim_exist = DB::table('products_purchases_claims')->where('products_purchases_id', $req->products_purchases_id)->count();
+      $purchased_product = DB::table('products_purchases')
+        ->where('products_purchases_id', $req->products_purchases_id)
+        ->first();
 
-    //   if ($claim_exist == 0) {
+      if (!$purchased_product) {
+        return response()->json([
+          'code' => 404,
+          'status' => 'error',
+          'message' => 'Purchase not found.',
+        ], 404);
+      }
+
+      if (!empty($req->users_customers_id) && (int) $purchased_product->users_customers_id !== (int) $req->users_customers_id) {
+        return response()->json([
+          'code' => 403,
+          'status' => 'error',
+          'message' => 'You are not allowed to claim this product.',
+        ], 403);
+      }
+
+      if (($purchased_product->payment_status ?? '') !== 'Successful') {
+        return response()->json([
+          'code' => 422,
+          'status' => 'error',
+          'message' => 'Only successfully purchased products can be claimed.',
+        ], 422);
+      }
+
+      $eligibility = UserPortal::claimEligibility($purchased_product);
+      if (!$eligibility['eligible']) {
+        return response()->json([
+          'code' => 422,
+          'status' => 'error',
+          'message' => $eligibility['reason'] ?? 'This product is not eligible for claims yet.',
+        ], 422);
+      }
+
+      $claim_exist = DB::table('products_purchases_claims')
+        ->where('products_purchases_id', $req->products_purchases_id)
+        ->count();
+
+      if ($claim_exist > 0) {
+        return response()->json([
+          'code' => 422,
+          'status' => 'error',
+          'message' => 'A claim has already been submitted for this product.',
+        ], 422);
+      }
+
         $data = [
           'products_purchases_id'   => $req->products_purchases_id,
           'date'                    => $req->date,
@@ -4298,121 +3937,25 @@ public function paymentSuccess(Request $request)
             $data['image3'] ?? null
           ];
 
-          $imagesHtml = '';
-          foreach ($docs as $doc) {
-            if ($doc) {
-              $imagesHtml .= '<img src="' . asset($doc) . '" style="max-width:100px; max-height:100px; margin-right:10px; vertical-align:middle;" />';
-            }
-          }
-
-          $message = '
-          <html>
-          <head>
-            <style>
-              body {
-                font-family: Arial, sans-serif; 
-                color: #333;
-                margin: 0;
-                padding: 20px;
-                background-color: #fff;
-              }
-              .email-text-fullwidth {
-                width: 100%;
-                font-size: 14px;
-                line-height: 1.5;
-                margin-bottom: 20px;
-                box-sizing: border-box;
-              }
-              .receipt-container {
-                width: 100%;
-                max-width: 600px;
-                margin: 0 auto 20px auto;
-                background: #f9f9f9;
-                border: 1px solid #ccc;
-                padding: 20px;
-                box-sizing: border-box;
-              }
-              .receipt-container h2 {
-                text-align: center;
-                font-weight: bold;
-                margin-bottom: 20px;
-                font-size: 18px;
-              }
-              .receipt-container table {
-                width: 100%;
-                border-collapse: collapse;
-                font-size: 14px;
-                color: #333;
-              }
-              .receipt-container th, 
-              .receipt-container td {
-                border: 1px solid #ccc;
-                padding: 8px 12px;
-                vertical-align: top;
-              }
-              .receipt-container th {
-                text-align: left;
-                width: 180px;
-                background-color: #f0f0f0;
-                font-weight: 600;
-              }
-              /* Flexbox for horizontal images */
-              .images-row {
-                display: flex;
-                gap: 10px; /* spacing between images */
-                flex-wrap: wrap; /* optional: wrap if screen too small */
-              }
-              .images-row img {
-                border: 1px solid #ddd;
-                border-radius: 4px;
-                max-width: 100px;
-                max-height: 100px;
-                object-fit: contain;
-              }
-            </style>
-          </head>
-          <body>
-
-            <div class="email-text-fullwidth">
-              Dear ' . trim($customer->first_name . ' ' . ($customer->last_name ?? '')) . ',<br><br>
-              Thank you for submitting your product claim with <strong>Swap Circle</strong>. Weâ€™ve received your claim and our team will begin processing it shortly.Please find below a summary of your claim details for your reference:
-            </div>
-
-            <div class="receipt-container">
-              <h2>Swap Circle - Claim Receipt</h2>
-              <table>
-                <tr>
-                  <th>Product Name</th>
-                  <td>' . htmlspecialchars($product->name) . '</td>
-                </tr>
-                <tr>
-                  <th>Date of Incident</th>
-                  <td>' . date('d-m-Y', strtotime($req->date)) . '</td>
-                </tr>
-                <tr>
-                  <th>Description</th>
-                  <td>' . nl2br(htmlspecialchars($req->description)) . '</td>
-                </tr>
-                <tr>
-                  <th>Supporting Documents</th>
-                  <td class="images-row">';
+          $docsHtml = '';
                       foreach ($docs as $doc) {
                           if ($doc) {
-                              $message .= '<img src="' . asset($doc) . '" alt="Supporting Document" />';
+                              $docsHtml .= '<img src="' . asset($doc) . '" alt="Supporting Document" />';
                           }
                       }
-          $message .= '</td>
-                </tr>
-              </table>
-            </div>
 
-            <div class="email-text-fullwidth">
-              Regards,<br>
-              <strong>Swap Circle Team</strong>
-            </div>
+          $greeting = 'Dear ' . htmlspecialchars(trim($customer->first_name . ' ' . ($customer->last_name ?? ''))) . ',<br><br>Thank you for submitting your product claim with <strong>Swap Circle</strong>. We have received your claim and our team will begin processing it shortly. Please find below a summary of your claim details:';
+          $table = '
+                <tr><th>Product Name</th><td>' . htmlspecialchars($product->name) . '</td></tr>
+                <tr><th>Date of Incident</th><td>' . date('d-m-Y', strtotime($req->date)) . '</td></tr>
+                <tr><th>Description</th><td>' . nl2br(htmlspecialchars($req->description)) . '</td></tr>
+                <tr><th>Supporting Documents</th><td class="images-row">' . $docsHtml . '</td></tr>';
 
-          </body>
-          </html>';
+          $message = EmailStyles::wrap(EmailStyles::receipt(
+              $greeting,
+              'Claim Submission Confirmation',
+              $table
+          ));
 
 
           $sent = $this->send_simple_mail($to, $subject, $message);
@@ -4426,11 +3969,6 @@ public function paymentSuccess(Request $request)
           $response["status"] = "error";
           $response["message"] = "Something went wrong.";
         }
-    //   } else {
-    //     $response["code"] = 404;
-    //     $response["status"] = "error";
-    //     $response["message"] = "This product is already claimed.";
-    //   }
     } else {
       $response["code"] = 404;
       $response["status"] = "error";

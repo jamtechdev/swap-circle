@@ -9,17 +9,21 @@
     <nav class="navbar navbar-expand-lg navbar-light bg-white px-4 py-3">
         <div class="d-flex align-items-center">
             <!-- <i class="fas fa-align-left me-3 fs-4 primary-text">@</i> -->
-            <img src="{{ asset('users/assets/images/icons/div.png') }}" alt="" class="img-fluid me-3"  id="menu-toggle">
-            <h3 class="fw-bolder m-0">Dashboard</h3>
+            <img src="{{ asset('users/assets/images/icons/div.png') }}" alt="" class="img-fluid me-3" id="menu-toggle">
+            <div>
+                <h3 class="portal-page-title fw-bolder m-0">@yield('page_title', 'Dashboard')</h3>
+                <p class="portal-page-subtitle d-none d-md-block mb-0 mt-1">@yield('page_subtitle', 'Manage your Swap Circle account')</p>
+            </div>
         </div>
-        <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center flex-row">
+        <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center flex-row gap-2">
             <!-- NOTIFICATIONS START -->
-            <li class="nav-item dropdown me-3 me-sm-5">
-                <a href="#" class="nav-link d-flex align-items-center" role="button" id="navbarDropdown1" data-bs-toggle="dropdown" aria-expanded="false">
-                    <img src="{{ asset('users/assets/images/icons/notification.png') }}" class="img-fluid" alt="" srcset="" onclick="get_all_notifications()">
-                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-full bg-primary text-white visually-hidden" id="unread_notification">
-                        <span id="unread_notifications"></span>
-                        <span class="visually-hidden">unread Notification</span>
+            <li class="nav-item dropdown">
+                <a href="#" class="nav-link p-0" role="button" id="navbarDropdown1" data-bs-toggle="dropdown" aria-expanded="false">
+                    <span class="portal-header-icon position-relative" onclick="get_all_notifications()">
+                        <img src="{{ asset('users/assets/images/icons/notification.png') }}" alt="Notifications">
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger text-white visually-hidden" id="unread_notification" style="font-size:10px;">
+                            <span id="unread_notifications"></span>
+                        </span>
                     </span>
                 </a>
 
@@ -84,28 +88,57 @@
             <!-- NOTIFICATIONS END -->
 
             <!-- MESSAGES START -->
-            <li class="nav-item dropdown me-3 me-sm-5">
-                <a href="{{ url('/users/message') }}" class="nav-link d-flex align-items-center" role="button" id="unread_messages">
-                    <img src="{{ asset('users/assets/images/icons/messages-2.png') }}" class="img-fluid" alt="" srcset="">
+            <li class="nav-item">
+                <a href="{{ url('/users/message') }}" class="nav-link p-0" id="unread_messages">
+                    <span class="portal-header-icon">
+                        <img src="{{ asset('users/assets/images/icons/messages-2.png') }}" alt="Messages">
+                    </span>
                 </a>
             </li>
             <!-- MESSAGES END -->
-            
+
             <!-- profile start -->
-            <li class="nav-item dropdown">
-                <a href="#" class="nav-link d-flex align-items-center" role="button" id="navbarDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                    <div class="me-4 d-none d-lg-block">
-                        <h5 class="sub-heading text-black mb-1 fw-bolder">Hi, {{ session('first_name') .' '. session('last_name') }}</h5>
-                        <!-- <span>Hello</span> -->
-                    </div> 
-                    <img src="" id="user_profile" class="img-fluid rounded-circle border border-1" alt="" srcset="" style="width: 45px !important; height: 45px !important;">
+            @php
+                $headerName = trim(session('first_name') . ' ' . session('last_name')) ?: 'User';
+                $headerInitials = collect(preg_split('/\s+/', trim($headerName)) ?: [])
+                    ->filter()
+                    ->take(2)
+                    ->map(fn ($part) => strtoupper(substr($part, 0, 1)))
+                    ->join('') ?: 'U';
+            @endphp
+            <li class="nav-item dropdown ms-1">
+                <a href="#" class="nav-link p-0 portal-user-chip" role="button" id="navbarDropdown" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Account menu">
+                    <span class="portal-user-chip__text d-none d-md-flex">
+                        <span class="portal-user-chip__greeting">Hi,</span>
+                        <span class="portal-user-chip__name" title="{{ $headerName }}">{{ $headerName }}</span>
+                    </span>
+                    <span class="portal-header-avatar">
+                        <img src="" id="user_profile" class="d-none" alt="" onerror="this.classList.add('d-none');document.getElementById('user_profile_initial').classList.add('is-visible');">
+                        <span class="portal-header-avatar__initial is-visible" id="user_profile_initial">{{ $headerInitials }}</span>
+                    </span>
+                    <span class="portal-user-chip__chevron" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25"><path d="M6 9l6 6 6-6"/></svg>
+                    </span>
                 </a>
-                <ul class="dropdown-menu position-absolute dropdown-menu-end" aria-labelledby="navbarDropdown">
-                    <li class="">
-                        <a href="{{ url('/users/logout') }}" class="dropdown-item d-flex  align-items-center">
-                            <?/*xml version="1.0"*/ ?><!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
-                            <svg width="28px" height="28px" viewBox="0 0 1000 1000" data-name="Layer 2" id="Layer_2" xmlns="http://www.w3.org/2000/svg"><defs><style>.cls-1{fill:none;stroke:#020202;stroke-linecap:round;stroke-miterlimit:10;stroke-width:22px;}.cls-2{fill:#020202;}</style></defs><path class="cls-1" d="M591.61,280.48C693.9,317.86,766.91,416,766.91,531.26c0,147.41-119.5,266.91-266.91,266.91S233.09,678.67,233.09,531.26c0-115.22,73-213.4,175.3-250.78"/><rect class="cls-2" height="160.61" rx="35.92" width="71.84" x="464.08" y="201.83"/></svg>
-                            <span class=" d-inline-block">Logout</span>
+                <ul class="dropdown-menu portal-user-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                    <li class="portal-user-menu__head">
+                        <span class="portal-user-menu__avatar">{{ $headerInitials }}</span>
+                        <div class="portal-user-menu__meta">
+                            <strong title="{{ $headerName }}">{{ $headerName }}</strong>
+                            <span>{{ session('email') }}</span>
+                        </div>
+                    </li>
+                    <li><hr class="dropdown-divider my-1"></li>
+                    <li>
+                        <a href="{{ url('/users/profile') }}" class="dropdown-item portal-user-menu__item">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                            My profile
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url('/users/logout') }}" class="dropdown-item portal-user-menu__item portal-user-menu__item--danger">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>
+                            Logout
                         </a>
                     </li>
                 </ul>

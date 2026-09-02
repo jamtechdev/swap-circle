@@ -1,4 +1,6 @@
 @extends('layout.users.master')
+@section('page_title', 'Wallets')
+@section('page_subtitle', 'Manage currencies and fund transfers')
 @section('content') 
     <div class="page-content-wrapper">
         <div class="page-content-tab">

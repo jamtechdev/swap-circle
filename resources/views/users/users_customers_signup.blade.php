@@ -1,77 +1,46 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <?php
-            $system_image_file = 'logo.png';
-            $system_name_text = config('app.name', 'Swap Circle');
-            $auth_image = 'users/assets/images/Rocket_Boy_Flatline.png';
+@extends('layout.auth.master')
 
-            try {
-                $system_image_file = optional(DB::table('system_settings')->select('description')->where('type', 'system_image')->first())->description ?: $system_image_file;
-                $system_name_text = optional(DB::table('system_settings')->select('description')->where('type', 'system_name')->first())->description ?: $system_name_text;
-                $auth_image_setting = optional(DB::table('system_settings')->select('description')->where('type', 'auth_image')->first())->description;
-                if (!empty($auth_image_setting)) {
-                    $auth_image = preg_replace('#^public/#', '', $auth_image_setting);
-                }
-            } catch (\Throwable $e) {
-                // Keep defaults when DB is unavailable.
-            }
-        ?>
-        <meta charset="UTF-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title><?php echo $system_name_text; ?> :: Get Started</title>
+@section('title', ($brandName ?? 'Swap Circle') . ' — Get Started')
 
-        <link rel="icon" type="image" sizes="24x24" href="{{ asset('uploads/system_image/favico.png') }}">
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-        <link href="{{ asset('users/assets/css/bootstrap.min.css') }}" rel="stylesheet" type="text/css" />
-        <link href="{{ asset('users/assets/css/style.css') }}" rel="stylesheet" type="text/css" />
-        <link href="{{ asset('users/assets/css/custom.css') }}" rel="stylesheet" type="text/css" />
-    </head>
-    <body class="login-page-body">
-        <div id="wrapper" class="login-wrapper">
-            <div class="container-fluid p-0">
-                <div class="row login g-0 min-vh-100">
-                    <!-- LEFT SECTION START -->
-                    <div class="col-lg-6 left community-hero d-none d-lg-flex flex-column justify-content-between">
-                        <div class="community-hero-glow"></div>
-                        <div class="community-hero-orb community-hero-orb-1"></div>
-                        <div class="community-hero-orb community-hero-orb-2"></div>
-                        <div class="community-hero-top">
-                            <p class="community-hero-brand">Swap Circle</p>
-                        </div>
-                        <div class="community-hero-mid text-center">
-                            <img src="{{ asset($auth_image) }}" class="img-fluid community-hero-img" alt="Swap Circle community">
-                        </div>
-                        <div class="community-hero-copy text-white">
-                            <p class="community-hero-eyebrow mb-3">Community Exchange Platform</p>
-                            <h2 class="community-hero-title mb-3">Join the circle.<br>Start exchanging.</h2>
-                            <p class="community-hero-text mb-0">Create your account as an individual or organisation and connect with trusted community opportunities.</p>
-                        </div>
-                    </div>
-                    <!-- LEFT SECTION END -->
+@php
+    $heroTitle = 'Join the circle.<br>Start exchanging.';
+    $heroText = 'Create your account as an individual or organisation and connect with trusted community opportunities.';
+@endphp
 
-                    <!-- RIGHT SECTION START -->
-                    <div class="col-lg-6 d-flex flex-column justify-content-center align-items-center py-5 px-3 login-panel">
-                        <div class="login-card w-100 text-center">
-                            <div class="logo">
-                                <p class="signup-kicker mb-2">Get Started with</p>
-                                <img src="{{ asset('uploads/system_image/'.$system_image_file) }}" class="img-fluid img-logo" alt="{{ $system_name_text }}">
-                                <p class="sub-heading community-subheading mt-3 mb-0">Choose how you want to join Swap Circle.</p>
-                            </div>
+@section('content')
+    <div class="text-center lg:text-left">
+        <p class="text-sm font-bold uppercase tracking-widest text-forest/60">Get started with</p>
+        <img src="{{ asset('uploads/system_image/' . $brandLogo) }}" alt="{{ $brandName }}" class="mx-auto mt-4 h-12 w-auto lg:mx-0">
+        <h1 class="mt-5 font-display text-3xl font-bold text-forest">Choose your account type</h1>
+        <p class="mt-2 text-sm text-gray-500">Select how you'd like to join {{ $brandName }}.</p>
+    </div>
 
-                            <div class="signup-choice-actions text-center mt-5 w-100">
-                                <a class="btn btn-login btn-primary mb-3 w-100" href="{{ url('/users/signup_individual') }}" role="button">As an Individual</a>
-                                <a class="btn btn-login btn-outline-primary mb-4 w-100 signup-corporate-btn" href="{{ url('/users/signup_corporate') }}" role="button">As a Corporate</a>
-                                <p class="signup-prompt mb-0">Already a user? <a href="{{ url('/') }}">Sign In</a></p>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- RIGHT SECTION END -->
-                </div>
-            </div>
-        </div>
-    </body>
-</html>
+    <div class="mt-10 space-y-4">
+        <a href="{{ url('/users/signup_individual') }}" class="group flex items-center gap-4 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:border-lime hover:shadow-lg">
+            <span class="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-lime-soft text-2xl">👤</span>
+            <span class="flex-1 text-left">
+                <strong class="block text-base font-bold text-forest group-hover:text-forest-mid">As an Individual</strong>
+                <span class="text-sm text-gray-500">For personal use — wallets, products, and community swaps.</span>
+            </span>
+            <svg class="h-5 w-5 text-gray-300 transition group-hover:translate-x-1 group-hover:text-lime" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </a>
+
+        <a href="{{ url('/users/signup_corporate') }}" class="group flex items-center gap-4 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:border-lime hover:shadow-lg">
+            <span class="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-forest/10 text-2xl">🏢</span>
+            <span class="flex-1 text-left">
+                <strong class="block text-base font-bold text-forest group-hover:text-forest-mid">As a Corporate</strong>
+                <span class="text-sm text-gray-500">For businesses and organisations managing team accounts.</span>
+            </span>
+            <svg class="h-5 w-5 text-gray-300 transition group-hover:translate-x-1 group-hover:text-lime" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </a>
+    </div>
+
+    <p class="mt-8 text-center text-sm text-gray-500 lg:text-left">
+        Already a user?
+        <a href="{{ url('/login') }}" class="font-bold text-forest hover:text-lime-hover">Sign In</a>
+    </p>
+@endsection
+
+@section('content_width')
+    max-w-lg
+@endsection

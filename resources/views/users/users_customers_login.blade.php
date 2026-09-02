@@ -1,384 +1,234 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <?php
-            $system_image_file = 'logo.png';
-            $system_name_text = config('app.name', 'Swap Circle');
-            $auth_bg_image = 'public/users/assets/images/login-bg.jpg';
-            $auth_image = 'public/users/assets/images/Rocket_Boy_Flatline.png';
-            $main_heading_label1 = 'Welcome to';
-            $main_heading_label2 = 'Swap Circle';
-            $subheading_label = 'A community exchange platform for services. Connect, exchange, and grow together.';
-            $forgot_password_link_label = 'Forgot Password?';
-            $btn_login_label = 'Login';
-            $signup_text_lable = "New to the community?";
-            $signup_link_label = 'Get started here!';
+@extends('layout.auth.master')
 
-            try {
-                $system_image_file = optional(DB::table('system_settings')->select('description')->where('type', 'system_image')->first())->description ?: $system_image_file;
-                $system_name_text = optional(DB::table('system_settings')->select('description')->where('type', 'system_name')->first())->description ?: $system_name_text;
-                $auth_bg_image = optional(DB::table('system_settings')->select('description')->where('type', 'auth_bg_image')->first())->description ?: $auth_bg_image;
-                $auth_image = optional(DB::table('system_settings')->select('description')->where('type', 'auth_image')->first())->description ?: $auth_image;
-                $main_heading_label1 = optional(DB::table('system_settings')->select('description')->where('type', 'main_heading_label1')->first())->description ?: $main_heading_label1;
-                $main_heading_label2 = optional(DB::table('system_settings')->select('description')->where('type', 'main_heading_label2')->first())->description ?: $main_heading_label2;
-                $subheading_label = optional(DB::table('system_settings')->select('description')->where('type', 'subheading_label')->first())->description ?: $subheading_label;
-                $forgot_password_link_label = optional(DB::table('system_settings')->select('description')->where('type', 'forgot_password_link_label')->first())->description ?: $forgot_password_link_label;
-                $btn_login_label = optional(DB::table('system_settings')->select('description')->where('type', 'btn_login_label')->first())->description ?: $btn_login_label;
-                $signup_text_lable = optional(DB::table('system_settings')->select('description')->where('type', 'signup_text_lable')->first())->description ?: $signup_text_lable;
-                $signup_link_label = optional(DB::table('system_settings')->select('description')->where('type', 'signup_link_label')->first())->description ?: $signup_link_label;
-            } catch (\Throwable $e) {
-                // Keep defaults when DB is unavailable.
-            }
-        ?>
-        <meta charset="UTF-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title><?php echo $system_name_text; ?> :: Users Customers Portal</title>
-        
-        <link rel="icon" type="image" sizes="24x24" href="{{ asset('uploads/system_image/favico.png') }}">
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-        <link href="{{ asset('users/assets/css/bootstrap.min.css') }}" rel="stylesheet" type="text/css" />
-        <link href="{{ asset('users/assets/css/style.css') }}" rel="stylesheet" type="text/css" />
-        <link href="{{ asset('users/assets/css/custom.css') }}" rel="stylesheet" type="text/css" />
-    </head>
-    <body class="login-page-body">
-        <div id="wrapper" class="login-wrapper">
-            <div class="container-fluid p-0">
-                <div class="row login g-0 min-vh-100">
-                    <!-- LEFT SECTION START -->
-                    <div class="col-lg-6 left community-hero d-none d-lg-flex flex-column justify-content-between">
-                        <div class="community-hero-glow"></div>
-                        <div class="community-hero-orb community-hero-orb-1"></div>
-                        <div class="community-hero-orb community-hero-orb-2"></div>
-                        <div class="community-hero-top">
-                            <p class="community-hero-brand">Swap Circle</p>
-                        </div>
-                        <div class="community-hero-mid text-center">
-                            <img src="{{ asset($auth_image) }}" class="img-fluid community-hero-img" alt="Swap Circle community">
-                        </div>
-                        <div class="community-hero-copy text-white">
-                            <p class="community-hero-eyebrow mb-3">Community Exchange Platform</p>
-                            <h2 class="community-hero-title mb-3">Trade services.<br>Build connections.</h2>
-                            <p class="community-hero-text mb-0">Swap Circle brings people together to exchange skills, services, and opportunities inside one trusted community.</p>
-                        </div>
-                    </div>
-                    <!-- LEFT SECTION END -->
+@section('title', ($brandName ?? 'Swap Circle') . ' — Sign In')
 
-                    <!-- RIGHT SECTION START -->
-                    <div class="col-lg-6 d-flex flex-column justify-content-center align-items-center py-5 px-3 login-panel">
-                        <div class="login-card w-100">
-                            <div class="logo text-center">
-                                <img src="{{ asset('uploads/system_image/'.$system_image_file) }}" class="img-fluid img-logo" alt="{{ $system_name_text }}">
-                                <h1 class="main-heading login-welcome-heading mt-4 mb-0">
-                                    <span class="d-block welcome-line">{{ $main_heading_label1 }}</span>
-                                    <span class="community-brand-heading">{{ $main_heading_label2 }}</span>
-                                </h1>
-                                <p class="sub-heading community-subheading mt-3 mb-0">{{ $subheading_label }}</p>
-                            </div>
-                            <div class="login-tabs text-center mt-4 w-100 d-flex flex-column align-items-center">
-                                <ul class="nav nav-pills mb-4 mx-auto" id="pills-tab" role="tablist">
-                                    <li class="nav-item" role="presentation">
-                                      <button class="nav-link active" id="pills-home-tab" data-bs-toggle="pill" data-bs-target="#pills-home" type="button" role="tab" aria-controls="pills-home" aria-selected="true">Individual</button>
-                                    </li>
-                                    <li class="nav-item" role="presentation">
-                                      <button class="nav-link" id="pills-profile-tab" data-bs-toggle="pill" data-bs-target="#pills-profile" type="button" role="tab" aria-controls="pills-profile" aria-selected="false">Corporate</button>
-                                    </li>
-                                </ul>
-                                <div class="tab-content w-100" id="pills-tabContent">
-                                    <div class="tab-pane fade show active" id="pills-home" role="tabpanel" aria-labelledby="pills-home-tab" tabindex="0">
-                                        <!-- FORM LOGIN INDIVIDUAL START -->
-                                        <form id="frm_login_individual">
-                                            @csrf
-                                            <div class="form-group position-relative mb-3">
-                                                <span class="input-icon"><img src="{{ asset('users/assets/images/icons/email.png') }}" class="img-fluid" alt=""></span>
-                                                <input type="email" class="form-control" placeholder="Email address" aria-label="Email address" name="email" id="email" autocomplete="email">
-                                                <span class="error_msg" id="error_email"></span>
-                                            </div>
-                                            <div class="form-group position-relative w-pass mb-2">
-                                                <span class="input-icon"><img src="{{ asset('users/assets/images/icons/lock.png') }}" class="img-fluid" alt=""></span>
-                                                <input type="password" class="form-control" placeholder="Enter password" aria-label="Enter password" name="password" id="password" autocomplete="current-password">
-                                                <span class="input-icon right"><img src="{{ asset('users/assets/images/icons/Eye-slash 1.png') }}" class="img-fluid" id="icon_password" alt="Show password"></span>
-                                                <span class="error_msg" id="error_password"></span>
-                                                <a href="{{ url('/users/forgot_password') }}" class="forgot-link text-success">{{ $forgot_password_link_label }}</a>
-                                            </div>
-                                            <button type="submit" class="btn btn-login btn-primary w-100 mt-4">{{ $btn_login_label }}</button>
-                                        </form>
-                                        <!-- FORM LOGIN INDIVIDUAL END -->
-                                    </div>
-                                    <div class="tab-pane fade" id="pills-profile" role="tabpanel" aria-labelledby="pills-profile-tab" tabindex="0">
-                                        <!-- FORM LOGIN COMPANY START -->
-                                        <form id="frm_login_company">
-                                            @csrf
-                                            <div class="form-group position-relative mb-3">
-                                                <span class="input-icon"><img src="{{ asset('users/assets/images/icons/email.png') }}" class="img-fluid" alt=""></span>
-                                                <input type="email" class="form-control" placeholder="Email address" aria-label="Email address" name="company_email" id="company_email" autocomplete="email">
-                                                <span class="error_msg" id="error_company_email"></span>
-                                            </div>
-                                            <div class="form-group position-relative w-pass mb-2">
-                                                <span class="input-icon"><img src="{{ asset('users/assets/images/icons/lock.png') }}" class="img-fluid" alt=""></span>
-                                                <input type="password" class="form-control" placeholder="Enter password" aria-label="Enter password" name="company_password" id="company_password" autocomplete="current-password">
-                                                <span class="input-icon right"><img src="{{ asset('users/assets/images/icons/Eye-slash 1.png') }}" class="img-fluid" id="icon_company_password" alt="Show password"></span>
-                                                <span class="error_msg" id="error_company_password"></span>
-                                                <a href="{{ url('/users/forgot_password') }}" class="forgot-link text-success">{{ $forgot_password_link_label }}</a>
-                                            </div>
-                                            <button type="submit" class="btn btn-login btn-primary w-100 mt-4">{{ $btn_login_label }}</button>
-                                        </form>
-                                        <!-- FORM LOGIN COMPANY END -->
-                                    </div>
-                                </div>
-                                <p class="signup-prompt mt-4 mb-0">{{ $signup_text_lable }} <a href="{{ url('/users/signup') }}">{{ $signup_link_label }}</a></p>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- RIGHT SECTION END -->
-                </div>
-            </div>
+@php
+    $heroTitle = 'Welcome back.<br>Pick up where you left off.';
+    $heroText = 'Sign in to manage wallets, products, swap offers, and stay connected with your community.';
+@endphp
+
+@section('content')
+    <div class="text-center lg:text-left">
+        <img src="{{ asset('uploads/system_image/' . $brandLogo) }}" alt="{{ $brandName }}" class="mx-auto h-12 w-auto lg:mx-0">
+        <p class="mt-6 text-sm font-semibold text-lime-hover">Hi, 👋</p>
+        <h1 class="mt-1 font-display text-3xl font-bold text-forest sm:text-4xl">Welcome Back!</h1>
+        <p class="mt-2 text-sm text-gray-500">Sign in to your {{ $brandName }} account.</p>
+    </div>
+
+    <div class="mt-8" data-auth-tabs>
+        <div class="mb-6 flex rounded-full bg-lime-soft p-1" role="tablist">
+            <button type="button" data-auth-tab="individual" class="auth-tab auth-tab-active" aria-selected="true">Individual</button>
+            <button type="button" data-auth-tab="corporate" class="auth-tab auth-tab-inactive" aria-selected="false">Corporate</button>
         </div>
-        
-        <!-- SCRIPTS -->
-        <script src="{{ asset('users/assets/js/bootstrap.bundle.js') }}"></script>
-        <script src="{{ asset('users/assets/js/jquery.min.js') }}"></script>
-        <script src="{{ asset('users/assets/js/jquery.validate.min.js') }}"></script>
-        <script>
-            $(document).ready(function() {
-                // -------------- SHOW / HIDE PASSWORD VALUE ------------- //
-                $("#icon_password").on("click", function() {
-                    var input = $("#password");
-                    if (input.attr("type") === "password") {
-                        input.attr("type", "text");
-                    } else{
-                        input.attr("type", "password");
-                    }
-                });
-                $("#icon_company_password").on("click", function() {
-                    var input = $("#company_password");
-                    if (input.attr("type") === "password") {
-                        input.attr("type", "text");
-                    } else{
-                        input.attr("type", "password");
-                    }
-                });
-                // -------------- SHOW / HIDE PASSWORD VALUE ------------- //
 
-                // -------------- FORM LOGIN INDIVIDUAL VALIDATION ------------- //
-                $("#frm_login_individual").validate({
-                    rules: {
-                        email: {
-                            required: true,
-                            email: true
-                        },
-                        password: {
-                            required: true,
-                        },
-                    },
-                    messages: {
-                        email: {
-                            required: "This field is required.",
-                            email: "Please enter a valid email address."
-                        },
-                        password: {
-                            required: "This field is required."
-                        },
-                    },
-                    errorPlacement: function (error, element) {
-                        //error.insertAfter (element);
-                        if (element.attr("name") == "email") {
-                            $("#error_email").html(error);
-                        } else if (element.attr("name") == "password") {
-                            $("#error_password").html(error);
-                        }
-                    }
-                }); 
-                // -------------- FORM LOGIN INDIVIDUAL VALIDATION ------------- //
+        {{-- Individual login --}}
+        <div data-auth-panel="individual">
+            <form id="frm_login_individual" class="space-y-4" novalidate>
+                @csrf
+                <div>
+                    <label for="email" class="auth-label">Email address</label>
+                    <div class="relative">
+                        <span class="auth-input-icon">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                        </span>
+                        <input type="email" id="email" name="email" class="auth-input" placeholder="you@email.com" autocomplete="email">
+                    </div>
+                    <span class="auth-error" id="error_email"></span>
+                </div>
+                <div>
+                    <div class="mb-1.5 flex items-center justify-between">
+                        <label for="password" class="auth-label mb-0">Password</label>
+                        <a href="{{ url('/users/forgot_password') }}" class="text-xs font-semibold text-forest hover:text-lime-hover">Forgot password?</a>
+                    </div>
+                    <div class="relative">
+                        <span class="auth-input-icon">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                        </span>
+                        <input type="password" id="password" name="password" class="auth-input pr-11" placeholder="Enter password" autocomplete="current-password">
+                        <button type="button" class="auth-input-toggle" data-toggle-password="#password" aria-label="Show password" aria-pressed="false"></button>
+                    </div>
+                    <span class="auth-error" id="error_password"></span>
+                </div>
+                <button type="submit" class="auth-btn-primary mt-2">Sign In</button>
+            </form>
+        </div>
 
-                // -------------- FORM LOGIN INDIVIDUAL SUBMISSION ------------- //
-                $("#frm_login_individual").on("submit", function (event) { //alert('hy'); alert("{{ rtrim(config('app.api_url'), '/') }}/signin");
-                    event.preventDefault();
-                    if ($("#frm_login_individual").valid()) {
-                        var email = $("#email").val();        
-                        var password = $("#password").val(); 
+        {{-- Corporate login --}}
+        <div data-auth-panel="corporate" class="hidden">
+            <form id="frm_login_company" class="space-y-4" novalidate>
+                @csrf
+                <div>
+                    <label for="company_email" class="auth-label">Corporate email</label>
+                    <div class="relative">
+                        <span class="auth-input-icon">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                        </span>
+                        <input type="email" id="company_email" name="company_email" class="auth-input" placeholder="company@email.com" autocomplete="email">
+                    </div>
+                    <span class="auth-error" id="error_company_email"></span>
+                </div>
+                <div>
+                    <div class="mb-1.5 flex items-center justify-between">
+                        <label for="company_password" class="auth-label mb-0">Password</label>
+                        <a href="{{ url('/users/forgot_password') }}" class="text-xs font-semibold text-forest hover:text-lime-hover">Forgot password?</a>
+                    </div>
+                    <div class="relative">
+                        <span class="auth-input-icon">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                        </span>
+                        <input type="password" id="company_password" name="company_password" class="auth-input pr-11" placeholder="Enter password" autocomplete="current-password">
+                        <button type="button" class="auth-input-toggle" data-toggle-password="#company_password" aria-label="Show password" aria-pressed="false"></button>
+                    </div>
+                    <span class="auth-error" id="error_company_password"></span>
+                </div>
+                <button type="submit" class="auth-btn-primary mt-2">Sign In</button>
+            </form>
+        </div>
+    </div>
 
-                        var settings = {
-                            // "url": "{{ env('API_URL') }}" + "signin",
-                            "url": "{{ rtrim(config('app.api_url'), '/') }}/signin",
-                            "method": "POST",
-                            "timeout": 0,
-                            "headers": {
-                                "Content-Type": "application/json"
-                            },
-                    
-                            "data": JSON.stringify({
-                                "email": email,
-                                "password": password,
-                            }),
-                        };
+    <p class="mt-8 text-center text-sm text-gray-500 lg:text-left">
+        New to the community?
+        <a href="{{ url('/users/signup') }}" class="font-bold text-forest hover:text-lime-hover">Get started here</a>
+    </p>
+@endsection
 
-                        $.ajax(settings).done(function (response) { 
-                            if (response.status == "error") { 
-                                Command: toastr["error"](response.message);
-                            } else{
-                                if (response.data.users_customers_type == "Individual") {
-                                    var settings = {
-                                        "url": "/",
-                                        "method": "POST",
-                                        "timeout": 0,
-                                        "headers": {
-                                            "Content-Type": "application/json"
-                                        },
-                    
-                                        "data": JSON.stringify({
-                                            //"data": response.data,
-                                            "_token": "{{ csrf_token() }}",
-                                            "users_customers_type": response.data.users_customers_type,
-                                            "users_customers_id": response.data.users_customers_id,
-                                            "profile_pic": response.data.profile_pic,
-                                            "first_name": response.data.first_name,
-                                            "last_name": response.data.last_name,
-                                            "email": response.data.email,
-                                            "phone": response.data.phone,
-                                        }),
-                                    };
+@push('scripts')
+<script>
+$(function () {
+    $("#frm_login_individual").validate({
+        rules: { email: { required: true, email: true }, password: { required: true } },
+        messages: {
+            email: { required: "Email is required.", email: "Enter a valid email." },
+            password: { required: "Password is required." }
+        },
+        errorPlacement: function (error, element) {
+            $("#error_" + element.attr("name")).html(error);
+        }
+    });
 
-                                    $.ajax(settings).done(function (response) {
-                                        if (response == true) { 
-                                            window.location.href = "/users/products";
-                                        } else{
-                                            Command: toastr["error"]("Oops! Something went wrong. Try again");
-                                        } 
-                                    });
-                                } else{
-                                    Command: toastr["error"]("Please select the correct user type for login.");
-                                }
-                            }
-                        });
-                    }
-                });
-                // -------------- FORM LOGIN INDIVIDUAL SUBMISSION ------------- //
+    $("#frm_login_company").validate({
+        rules: { company_email: { required: true, email: true }, company_password: { required: true } },
+        messages: {
+            company_email: { required: "Email is required.", email: "Enter a valid email." },
+            company_password: { required: "Password is required." }
+        },
+        errorPlacement: function (error, element) {
+            $("#error_" + element.attr("name")).html(error);
+        }
+    });
 
-                // -------------- FORM LOGIN COMPANY VALIDATION ------------- //
-                $("#frm_login_company").validate({
-                    rules: {
-                        company_email: {
-                            required: true,
-                            email: true
-                        },
-                        company_password: {
-                            required: true
-                        },
-                    },
-                    messages: {
-                        company_email: {
-                            required: "This field is required.",
-                            email: "Please enter a valid email address."
-                        },
-                        company_password: {
-                            required: "This field is required."
-                        },
-                    },
-                    errorPlacement: function (error, element) {
-                        //error.insertAfter (element);
-                        if (element.attr("name") == "company_email") {
-                            $("#error_company_email").html(error);
-                        } else if (element.attr("name") == "company_password") {
-                            $("#error_company_password").html(error);
-                        }
-                    }
-                }); 
-                // -------------- FORM LOGIN COMPANY VALIDATION ------------- //
+    function showSignInError(response, fallback) {
+        var message = (response && response.message) ? response.message : (fallback || "Unable to sign in. Please try again.");
 
-                // -------------- FORM LOGIN COMPANY SUBMISSION ------------- //
-                $("#frm_login_company").on("submit", function (event) {
-                    event.preventDefault();
-                    if ($("#frm_login_company").valid()) {
-                        var email = $("#company_email").val();        
-                        var password = $("#company_password").val();  
+        if (response && response.verification_required) {
+            var resendUrl = response.resend_url || (response.users_customers_id
+                ? "{{ url('/users/resend_otp') }}/" + response.users_customers_id
+                : "{{ url('/users/signup') }}");
+            message += '<br><a href="' + resendUrl + '">Resend verification code</a>';
+            toastr.error(message, "", { escapeHtml: false, timeOut: 10000, extendedTimeOut: 5000 });
+            return;
+        }
 
-                        var settings = {
-                            "url": "{{ rtrim(config('app.api_url'), '/') }}/signin",
-                            "method": "POST",
-                            "timeout": 0,
-                            "headers": {
-                                "Content-Type": "application/json"
-                            },
-                    
-                            "data": JSON.stringify({
-                                "email": email,
-                                "password": password,
-                            }),
-                        };
+        toastr.error(message);
+    }
 
-                        $.ajax(settings).done(function (response) {
-                            if (response.status == "error") { 
-                                Command: toastr['error'](response.message);
-                            } else{
-                                if (response.data.users_customers_type == "Company") {
-                                    var settings = {
-                                        "url": "/",
-                                        "method": "POST",
-                                        "timeout": 0,
-                                        "headers": {
-                                            "Content-Type": "application/json"
-                                        },
-                    
-                                        "data": JSON.stringify({
-                                            //"data": response.data,
-                                            "_token": "{{ csrf_token() }}",
-                                            "users_customers_type": response.data.users_customers_type,
-                                            "users_customers_id": response.data.users_customers_id,
-                                            "profile_pic": response.data.profile_pic,
-                                            "company_name": response.data.company_name,
-                                            "first_name": response.data.first_name,
-                                            "email": response.data.email,
-                                            "phone": response.data.phone,
-                                        }),
-                                    };
-
-                                    $.ajax(settings).done(function (response) {
-                                        if (response == true){ 
-                                            window.location.href = "/users/products";
-                                        } else{
-                                            Command: toastr["error"]("Oops! Something went wrong. Try again");
-                                        } 
-                                    });  
-                                } else{
-                                    Command: toastr["error"]("Please select the correct user type for login.");
-                                }
-                            }
-                        });
-                    }
-                });
-                // -------------- FORM LOGIN COMPANY SUBMISSION ------------- //
-            });
-        </script>
-        <!-- SCRIPTS -->
-
-        <!-- TOASTERS -->
-        <link href="{{asset('toasters/toastr.min.css')}}" rel="stylesheet" type="text/css" />   
-        <script src="{{asset('toasters/toastr.min.js')}}" type="text/javascript"></script>
-        <script>
-            toastr.options = {
-                "closeButton": true,
-                "debug": false,
-                "positionClass": "toast-top-right",
-                "onclick": null,
-                "showDuration": "1000",
-                "hideDuration": "1000",
-                "timeOut": "5000",
-                "extendedTimeOut": "1000",
-                "showEasing": "swing",
-                "hideEasing": "linear",
-                "showMethod": "fadeIn",
-                "hideMethod": "fadeOut"
+    function handleSignInAjaxError(xhr, fallback) {
+        var message = fallback || "Unable to sign in. Please check your connection and try again.";
+        if (xhr.responseJSON) {
+            if (xhr.responseJSON.verification_required) {
+                showSignInError(xhr.responseJSON, fallback);
+                return;
             }
-            //Command: toastr['success']("hello");
+            if (xhr.responseJSON.message) {
+                message = xhr.responseJSON.message;
+            }
+        }
+        toastr.error(message);
+    }
 
-            <?php if(Session::has('success')){ ?> Command: toastr['success']("<?php echo Session('success'); ?>"); <?php } ?>
-            <?php if(Session::has('error')){ ?> Command: toastr['error']("<?php echo Session('error'); ?>"); <?php } ?>
-            <?php if(Session::has('warning')){ ?> Command: toastr['warning']("<?php echo Session('warning'); ?>"); <?php } ?>
-            <?php if(Session::has('info')){ ?> Command: toastr['info']("<?php echo Session('info'); ?>"); <?php } ?>
-        </script>
-        <!-- TOASTERS -->
-    </body>
-</html>
+    function sessionLogin(payload, onSuccess) {
+        $.ajax({
+            url: "/login",
+            method: "POST",
+            contentType: "application/json",
+            dataType: "json",
+            data: JSON.stringify(Object.assign({ _token: "{{ csrf_token() }}" }, payload)),
+            success: function (response) {
+                if (response && response.success) {
+                    window.location.href = response.redirect_url || "/users/dashboard";
+                    if (typeof onSuccess === "function") {
+                        onSuccess(response);
+                    }
+                    return;
+                }
+                toastr.error((response && response.message) || "Something went wrong. Please try again.");
+            },
+            error: function (xhr) {
+                var message = "Unable to start your session. Please try again.";
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    message = xhr.responseJSON.message;
+                }
+                toastr.error(message);
+            }
+        });
+    }
+
+    $("#frm_login_individual").on("submit", function (e) {
+        e.preventDefault();
+        if (!$(this).valid()) return;
+        $.ajax({
+            url: "{{ rtrim(config('app.api_url'), '/') }}/signin",
+            method: "POST",
+            contentType: "application/json",
+            dataType: "json",
+            data: JSON.stringify({ email: $("#email").val(), password: $("#password").val() }),
+            success: function (response) {
+                if (response.status === "error") return showSignInError(response);
+                if (response.data.users_customers_type !== "Individual") return toastr.error("Please select Individual account type.");
+                sessionLogin({
+                    users_customers_type: response.data.users_customers_type,
+                    users_customers_id: response.data.users_customers_id,
+                    profile_pic: response.data.profile_pic,
+                    first_name: response.data.first_name,
+                    last_name: response.data.last_name,
+                    email: response.data.email,
+                    phone: response.data.phone,
+                }, function () {});
+            },
+            error: function (xhr) {
+                handleSignInAjaxError(xhr);
+            }
+        });
+    });
+
+    $("#frm_login_company").on("submit", function (e) {
+        e.preventDefault();
+        if (!$(this).valid()) return;
+        $.ajax({
+            url: "{{ rtrim(config('app.api_url'), '/') }}/signin",
+            method: "POST",
+            contentType: "application/json",
+            dataType: "json",
+            data: JSON.stringify({ email: $("#company_email").val(), password: $("#company_password").val() }),
+            success: function (response) {
+                if (response.status === "error") return showSignInError(response);
+                if (response.data.users_customers_type !== "Company") return toastr.error("Please select Corporate account type.");
+                sessionLogin({
+                    users_customers_type: response.data.users_customers_type,
+                    users_customers_id: response.data.users_customers_id,
+                    profile_pic: response.data.profile_pic,
+                    company_name: response.data.company_name,
+                    first_name: response.data.first_name,
+                    email: response.data.email,
+                    phone: response.data.phone,
+                }, function () {});
+            },
+            error: function (xhr) {
+                handleSignInAjaxError(xhr);
+            }
+        });
+    });
+
+});
+</script>
+@endpush

@@ -357,51 +357,64 @@
                                 ans=item.answer;
                             }
 
-                            var statusHtml = '';
-                            if (item.status == "Pending") {
-                                statusHtml = '<span class="btn m-1 btn-info">Pending</span>';
-                            } else if (item.status == "Active") {
-                                statusHtml = '<span class="btn m-1 btn-success">Active</span>';
-                            } else if (item.status == "Inactive") {
-                                statusHtml = '<span class="btn m-1 btn-warning">Inactive</span>';
-                            } else {
-                                statusHtml = '<span class="btn m-1 btn-danger">Deleted</span>';
+                            var statusHtml = window.adminStatusBadge(item.status);
+
+                            var actionButtons = [
+                                window.adminActionButton('view', {
+                                    tag: 'button',
+                                    title: 'View',
+                                    extraClass: 'view_faq',
+                                    attrs: { value: item.faqs_id },
+                                }),
+                                window.adminActionButton('edit', {
+                                    tag: 'button',
+                                    title: 'Edit',
+                                    extraClass: 'edit_faq',
+                                    attrs: { value: item.faqs_id },
+                                }),
+                            ];
+
+                            if (item.status == 'Active') {
+                                actionButtons.push(window.adminActionButton('deactivate', {
+                                    tag: 'button',
+                                    title: 'Deactivate',
+                                    extraClass: 'update_data',
+                                    attrs: { value: item.faqs_id, 'data-info': 'Inactive' },
+                                }));
+                            } else if (item.status == 'Inactive') {
+                                actionButtons.push(window.adminActionButton('activate', {
+                                    tag: 'button',
+                                    title: 'Activate',
+                                    extraClass: 'update_data',
+                                    attrs: { value: item.faqs_id, 'data-info': 'Active' },
+                                }));
                             }
 
-                            var actionHtml = '';
-                            
-                                actionHtml += '<button class="btn m-1 btn-primary view_faq" value="' + item.faqs_id + '">';
-                                actionHtml += '<i class="fa fa-eye"></i>';
-                                actionHtml += '</button>';
-                                
-                                actionHtml += '<button class="btn m-1 btn-info edit_faq"  value="' + item.faqs_id + '">';
-                                actionHtml += '<i class="fa fa-edit"></i>';
-                                actionHtml += '</button>';
-                            if (item.status == "Active") {
-                                actionHtml += '<button class="btn m-1 btn-warning update_data" value="' + item.faqs_id + '" data-info="Inactive">';
-                                actionHtml += '<i class="fa fa-times"></i>';
-                                actionHtml += '</button>';
-                                
-                            } else if (item.status == "Inactive") {
-                                actionHtml += '<button class="btn m-1 btn-success update_data" value="' + item.faqs_id + '" data-info="Active" >';
-                                actionHtml += '<i class="fa fa-check"></i>';
-                                actionHtml += '</button>';
+                            if (item.status == 'Pending' || item.status == 'Deleted') {
+                                actionButtons.push(window.adminActionButton('deactivate', {
+                                    tag: 'button',
+                                    title: 'Deactivate',
+                                    extraClass: 'update_data',
+                                    attrs: { value: item.faqs_id, 'data-info': 'Inactive' },
+                                }));
+                                actionButtons.push(window.adminActionButton('activate', {
+                                    tag: 'button',
+                                    title: 'Activate',
+                                    extraClass: 'update_data',
+                                    attrs: { value: item.faqs_id, 'data-info': 'Active' },
+                                }));
                             }
 
-                            if (item.status == "Pending" || item.status == "Deleted") {
-                                actionHtml += '<button class="btn m-1 btn-warning update_data" value="' + item.faqs_id + '" data-info="Inactive">';
-                                actionHtml += '<i class="fa fa-times"></i>';
-                                actionHtml += '</button>';
-                                actionHtml += '<button class="btn m-1 btn-success update_data" value="' + item.faqs_id + '" data-info="Active">';
-                                actionHtml += '<i class="fa fa-check"></i>';
-                                actionHtml += '</button>';
+                            if (item.status != 'Deleted') {
+                                actionButtons.push(window.adminActionButton('delete', {
+                                    tag: 'button',
+                                    title: 'Delete',
+                                    extraClass: 'delete_data',
+                                    attrs: { value: item.faqs_id, 'data-info': 'Deleted' },
+                                }));
                             }
 
-                            if (item.status != "Deleted") {
-                                actionHtml += '<button class="btn m-1 btn-danger delete_data" value="' + item.faqs_id + '" data-info="Deleted">';
-                                actionHtml += '<i class="fa fa-trash"></i>';
-                                actionHtml += '</button>';
-                            }
+                            var actionHtml = window.adminActionGroup(actionButtons);
 
                             $('tbody').append('\
                                 <tr class="odd gradeX">\

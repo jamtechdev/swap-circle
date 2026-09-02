@@ -1,182 +1,141 @@
 @extends('layout.users.master')
-@section('content') 
-    <style>
-        .image-wrapper {
-            width: 185px;          
-            height: 120px;        
-            overflow: hidden;      /* hide overflow */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 12px;   /* rounded corners */
-            /* box-shadow: 0 2px 8px rgba(0,0,0,0.15); */
-        }
-        .image-wrapper img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;     /* cover container without distortion */
-        }
-        .product-description {
-            min-height: 72px;
-            max-height: 96px;
-            overflow: hidden;
-            width: 100%;
-            text-align: center;
-            line-height: 1.45;
-            display: -webkit-box;
-            -webkit-line-clamp: 4;
-            -webkit-box-orient: vertical;
-            word-break: break-word;
-        }
-        .product-name-btn {
-            max-width: 100%;
-            white-space: normal;
-            word-break: break-word;
-            line-height: 1.35;
-            min-height: 48px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-        }
-        .product-info-btn {
-            background: #e8f8ef;
-            border: 1px solid #38d77c;
-            color: #159352;
-            font-weight: 600;
-            border-radius: 8px;
-            padding: 8px 14px;
-        }
-        .product-info-btn:hover {
-            background: #38d77c;
-            color: #fff;
-        }
-        .product-info-modal-body {
-            max-height: 65vh;
-            overflow-y: auto;
-        }
-        .product-info-modal-body img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 10px;
-        }
-    </style>
+
+@section('page_title', 'Products')
+@section('page_subtitle', 'Browse and purchase community products')
+
+@section('content')
     <div class="page-content-wrapper">
         <div class="page-content-tab">
             <div class="container-fluid px-4 pb-4">
-                <!-- <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
-                    <h3 class="fw-bold sub-heading text-black">Marketplace</h3>
-                </div> -->
+                <div class="portal-marketplace-panel">
+                    <div class="portal-marketplace-head">
+                        <div class="portal-marketplace-head__text">
+                            <span class="portal-marketplace-head__label">Marketplace</span>
+                            <p class="portal-marketplace-head__lead">Health, protection & service products for diaspora families</p>
+                        </div>
+                        <span class="portal-marketplace-head__count">{{ count($products) }} products</span>
+                    </div>
 
                 <div class="offers-wrapper">
-                    <div class="wallet-tabs mt-1">
-                        <div class="tab-content" id="pills-tabContent">
-                            <div class="row">
-                                @foreach($products as $key => $item)
+                    @if(count($products) === 0)
+                        <div class="portal-empty-state">
+                            <p>No products are available right now. Please check back soon.</p>
+                            @if($hasPurchases ?? false)
+                            <a href="{{ $portalHomeUrl ?? url('/users/dashboard') }}" class="btn btn-outline-primary">Back to Home</a>
+                            @endif
+                        </div>
+                    @else
+                        <div class="row g-3 portal-marketplace-grid">
+                            @foreach($products as $item)
                                 @php
                                     $productInfo = trim((string) ($item->product_information ?? ''));
                                     $productInfoModalId = 'productInfoModal' . $item->products_id;
+                                    $defaultProductImage = asset('images/upload.svg');
+                                    $image = trim((string) ($item->image ?? ''));
+                                    $imageHost = $image ? parse_url($image, PHP_URL_HOST) : null;
+                                    $isDeadLocalImage = in_array($imageHost, ['127.0.0.1', 'localhost'], true);
+                                    $productImageUrl = $image && !$isDeadLocalImage
+                                        ? (\Illuminate\Support\Str::startsWith($image, ['http://', 'https://']) ? $image : asset($image))
+                                        : $defaultProductImage;
+                                    $displayPrice = $item->custom_price ?? $item->price ?? null;
+                                    $currencySymbol = $item->currency_symbol ?? '₦';
+                                    $isPlaceholder = ($productImageUrl === $defaultProductImage);
+                                    $productInitial = strtoupper(mb_substr(trim($item->name), 0, 1));
                                 @endphp
-                                <div class="col-md-4 col-xl-4">
-                                    <div class="card border-0 mb-3">
-                                        <div class="card-body">
-                                            <div class="d-flex align-items-center justify-content-center pb-0 mb-3 flex-wrap">
-                                                <button class="btn btn-primary product-name-btn" style="cursor:default;">{{ $item->name }}</button>    
-                                            </div>
-                                            @php
-                                                $defaultProductImage = asset('images/upload.svg');
-                                                $image = trim((string) ($item->image ?? ''));
-                                                $imageHost = $image ? parse_url($image, PHP_URL_HOST) : null;
-                                                $isDeadLocalImage = in_array($imageHost, ['127.0.0.1', 'localhost'], true);
-                                                $productImageUrl = $image && !$isDeadLocalImage
-                                                    ? (\Illuminate\Support\Str::startsWith($image, ['http://', 'https://']) ? $image : asset($image))
-                                                    : $defaultProductImage;
-                                            @endphp
-                                            @if($productImageUrl)
-                                            <div class="d-flex align-items-center justify-content-center pb-0 mb-3 flex-wrap">
-                                                <div class="image-wrapper">
-                                                    <img src="{{ $productImageUrl }}" alt="Product" onerror="this.onerror=null;this.src='{{ $defaultProductImage }}';">
-                                                </div>
-                                            </div>
+                                <div class="col-sm-6 col-lg-4 col-xxl-3">
+                                    <article class="portal-marketplace-card">
+                                        <div class="portal-marketplace-card__media{{ $isPlaceholder ? ' portal-marketplace-card__media--placeholder' : '' }}">
+                                            @if(!$isPlaceholder)
+                                                <img
+                                                    src="{{ $productImageUrl }}"
+                                                    alt="{{ $item->name }}"
+                                                    class="portal-marketplace-card__image"
+                                                    loading="lazy"
+                                                    onerror="this.classList.add('d-none');this.nextElementSibling.classList.remove('d-none');this.closest('.portal-marketplace-card__media').classList.add('portal-marketplace-card__media--placeholder');"
+                                                >
                                             @endif
+                                            <span class="portal-marketplace-card__initial{{ $isPlaceholder ? '' : ' d-none' }}" aria-hidden="true">{{ $productInitial }}</span>
+                                            <span class="portal-marketplace-card__type">Type {{ $item->type }}</span>
+                                        </div>
+
+                                        <div class="portal-marketplace-card__body">
+                                            <a href="{{ url('users/product/view/' . $item->products_id) }}" class="portal-marketplace-card__title">{{ $item->name }}</a>
+
                                             @if($item->description)
-                                            <div class="d-flex align-items-center justify-content-center pb-0 mb-0 flex-wrap">
-                                                <p class="product-description">{{ \Illuminate\Support\Str::limit($item->description, 220) }}</p>
-                                            </div>
+                                                <p class="portal-marketplace-card__desc">{{ \Illuminate\Support\Str::limit(strip_tags($item->description), 85) }}</p>
                                             @endif
-                                            <div class="text-center mt-2">
-                                                @php
-                                                    $displayPrice = $item->custom_price ?? $item->price ?? null;
-                                                    $currencySymbol = $item->currency_symbol ?? '₦';
-                                                @endphp
-                                                @if($displayPrice !== null && $displayPrice !== '')
-                                                    <strong class="text-success fs-5">{{ $currencySymbol }}{{ number_format((float) $displayPrice, 2) }}</strong>
-                                                @else
-                                                    <span class="text-muted">Price not set</span>
-                                                @endif
+
+                                            <div class="portal-marketplace-card__footer">
+                                                <div class="portal-marketplace-card__meta">
+                                                    @if($displayPrice !== null && $displayPrice !== '')
+                                                        <span class="portal-marketplace-card__price"><span class="portal-marketplace-card__currency">{{ $currencySymbol }}</span>{{ number_format((float) $displayPrice, 2) }}</span>
+                                                    @else
+                                                        <span class="portal-marketplace-card__price portal-marketplace-card__price--muted">Price on request</span>
+                                                    @endif
+                                                    <span class="portal-marketplace-card__status{{ ($item->status ?? 'Active') !== 'Active' ? ' portal-marketplace-card__status--inactive' : '' }}">
+                                                        <span class="portal-marketplace-card__status-dot"></span>{{ $item->status ?? 'Active' }}
+                                                    </span>
+                                                </div>
+                                                <div class="portal-marketplace-card__actions">
+                                                    <a href="{{ url('users/product/' . $item->type . '/' . $item->products_id) }}" class="portal-marketplace-btn portal-marketplace-btn--primary">
+                                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                                                        Buy now
+                                                    </a>
+                                                    <button type="button" class="portal-marketplace-btn portal-marketplace-btn--secondary" data-bs-toggle="modal" data-bs-target="#{{ $productInfoModalId }}">
+                                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                                                        Details
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>    
-                                    <div class="d-flex align-items-center justify-content-center pb-0 mb-3 flex-wrap gap-2">
-                                        <a href="{{ url('users/product/' . $item->type . '/' . $item->products_id) }}" class="btn btn-primary">Buy now</a>
-                                        <button type="button" class="product-info-btn" data-bs-toggle="modal" data-bs-target="#{{ $productInfoModalId }}">
-                                            Product Information
-                                        </button>
-                                        <!-- @if($item->type == 'A')
-                                            <button class="btn btn-primary" onclick="openProductModal('A', {{ $item->products_id }})">Buy now</button>  
-                                        @endif 
-                                        @if($item->type == 'B')
-                                            <button class="btn btn-primary" onclick="openProductModal('B', {{ $item->products_id }})">Buy now</button>  
-                                        @endif 
-                                        @if($item->type == 'C')
-                                            <button class="btn btn-primary" onclick="openProductModal('C', {{ $item->products_id }})">Buy now</button> 
-                                        @endif   -->
-                                    </div> 
-                                </div>
-                                <div class="modal fade" id="{{ $productInfoModalId }}" tabindex="-1" aria-labelledby="{{ $productInfoModalId }}Label" aria-hidden="true">
-                                    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h5 class="modal-title" id="{{ $productInfoModalId }}Label">{{ $item->name }}</h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                            </div>
-                                            <div class="modal-body product-info-modal-body">
-                                                <div class="text-center mb-3">
-                                                    <img src="{{ $productImageUrl }}" alt="{{ $item->name }}" style="max-height:180px;" onerror="this.onerror=null;this.src='{{ $defaultProductImage }}';">
+                                    </article>
+
+                                    <div class="modal fade portal-product-modal" id="{{ $productInfoModalId }}" tabindex="-1" aria-labelledby="{{ $productInfoModalId }}Label" aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+                                            <div class="modal-content">
+                                                <div class="modal-header portal-product-modal__header">
+                                                    <div>
+                                                        <h5 class="modal-title" id="{{ $productInfoModalId }}Label">{{ $item->name }}</h5>
+                                                        <p class="portal-product-modal__subtitle mb-0">Product information & details</p>
+                                                    </div>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                 </div>
-                                                @if($productInfo !== '')
-                                                    {!! $productInfo !!}
-                                                @elseif($item->description)
-                                                    <p>{{ $item->description }}</p>
-                                                @else
-                                                    <p class="text-muted mb-0">No product information available.</p>
-                                                @endif
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                                <a href="{{ url('users/product/' . $item->type . '/' . $item->products_id) }}" class="btn btn-primary">Buy now</a>
+                                                <div class="modal-body portal-product-modal__body">
+                                                    <div class="portal-product-modal__image-wrap">
+                                                        <img src="{{ $productImageUrl }}" alt="{{ $item->name }}" onerror="this.onerror=null;this.src='{{ $defaultProductImage }}';">
+                                                    </div>
+                                                    @if($productInfo !== '')
+                                                        <div class="portal-product-modal__content">{!! $productInfo !!}</div>
+                                                    @elseif($item->description)
+                                                        <p class="mb-0">{{ $item->description }}</p>
+                                                    @else
+                                                        <p class="text-muted mb-0">No product information available.</p>
+                                                    @endif
+                                                </div>
+                                                <div class="modal-footer portal-product-modal__footer">
+                                                    <button type="button" class="btn btn-outline-primary" data-bs-dismiss="modal">Close</button>
+                                                    <a href="{{ url('users/product/' . $item->type . '/' . $item->products_id) }}" class="btn btn-primary">Buy now</a>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                @endforeach
-                            </div>
+                            @endforeach
                         </div>
-                    </div> 
+                    @endif
+                </div>
                 </div>
             </div>
-        </div> 
+        </div>
     </div>
 @endsection
-@section('script') 
+
+@section('script')
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-ui-timepicker-addon/1.6.3/jquery-ui-timepicker-addon.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-ui-timepicker-addon/1.6.3/jquery-ui-timepicker-addon.min.js"></script>
-    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script> -->
-    
+
     <script>
         $(document).ready(function() {
-            // DOB fields (can’t select future dates)
             $('.dob').datepicker({
                 dateFormat: "yy-mm-dd",
                 maxDate: 0,
@@ -187,17 +146,17 @@
 
             $('.cover_start_date').datepicker({
                 dateFormat: "yy-mm-dd",
-                minDate: 0, // cannot select past dates
+                minDate: 0,
                 changeMonth: true,
                 changeYear: true,
                 onSelect: function(dateText, inst) {
-                    var product = $(this).data('product'); // e.g. "A" or "B"
+                    var product = $(this).data('product');
                     var startDate = $(this).datepicker('getDate');
 
                     if (startDate) {
                         var endDate = new Date(startDate);
                         endDate.setFullYear(endDate.getFullYear() + 1);
-                        endDate.setDate(endDate.getDate() - 1); // ✅ subtract 1 day
+                        endDate.setDate(endDate.getDate() - 1);
 
                         var yyyy = endDate.getFullYear();
                         var mm = ("0" + (endDate.getMonth() + 1)).slice(-2);
@@ -217,32 +176,26 @@
             flatpickr("#prodC_task_time", {
                 enableTime: true,
                 noCalendar: true,
-                dateFormat: "H:i",   // 24-hour format
+                dateFormat: "H:i",
                 time_24hr: true,
                 onOpen: function(selectedDates, dateStr, instance) {
-                    // Get the task date
-                    let taskDateStr = $("#prodC_task_date").val(); // assuming you have a date field
+                    let taskDateStr = $("#prodC_task_date").val();
                     if (!taskDateStr) return;
 
                     let today = new Date();
                     let selectedDate = new Date(taskDateStr);
 
-                    // If selected date is today, disable past times
                     if (selectedDate.toDateString() === today.toDateString()) {
                         let hours = today.getHours();
                         let minutes = today.getMinutes();
-
-                        // Set minimum time to current time
                         instance.set("minTime", `${hours}:${minutes}`);
                     } else {
-                        // For future dates, allow any time
                         instance.set("minTime", "00:00");
                     }
                 }
             });
         });
         $(document).ready(function () {
-            // Handle file selection for Product A or B dynamically
             $(document).on("change", "input[type='file'][id^='prod'][id$='_identity_document']", function (event) {
                 const input = event.target;
                 const file = input.files[0];
@@ -250,27 +203,19 @@
                 if (!file) return;
 
                 const reader = new FileReader();
-
-                // Extract product type dynamically (A or B)
-                const inputId = $(input).attr('id'); // e.g. "prodA_identity_document"
-                const productType = inputId.match(/prod([A-Z])_/i)[1].toUpperCase(); // => A or B
-
-                // Get corresponding elements
+                const inputId = $(input).attr('id');
+                const productType = inputId.match(/prod([A-Z])_/i)[1].toUpperCase();
                 const previewImg = $(`#prod${productType}_identity_document_preview`);
                 const textArea = $(`#prod${productType}_identity_document_string`);
 
                 reader.onload = function (e) {
                     const fullBase64 = e.target.result;
-
-                    // ✅ Remove "data:image/...;base64," part
                     const cleanBase64 = fullBase64.replace(/^data:image\/(png|jpg|jpeg);base64,/, "");
 
-                    // Show preview image (full Base64 still needed for preview)
                     if (previewImg.length) {
                         previewImg.attr("src", fullBase64);
                     }
 
-                    // Store clean Base64 in textarea
                     if (textArea.length) {
                         textArea.val(cleanBase64);
                     }
@@ -280,7 +225,6 @@
             });
         });
         $(document).ready(function () {
-            // Function to format date as YYYY-MM-DD
             function formatDate(date) {
                 const yyyy = date.getFullYear();
                 const mm = ('0' + (date.getMonth() + 1)).slice(-2);
@@ -288,15 +232,11 @@
                 return `${yyyy}-${mm}-${dd}`;
             }
 
-            // Get today's date
             const startDate = new Date();
-
-            // Calculate end date = +1 year - 1 day
             const endDate = new Date(startDate);
             endDate.setFullYear(endDate.getFullYear() + 1);
             endDate.setDate(endDate.getDate() - 1);
 
-            // Fill inputs
             $('#prodC_cover_start_date').val(formatDate(startDate));
             $('#prodC_cover_end_date').val(formatDate(endDate));
         });

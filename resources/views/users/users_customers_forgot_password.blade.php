@@ -1,156 +1,99 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <?php 
-            $system_image=DB::table('system_settings')->select('description')->where('type', 'system_image')->get(); 
-            $system_name=DB::table('system_settings')->select('description')->where('type', 'system_name')->get(); 
-            $auth_bg_image=DB::table('system_settings')->select('description')->where('type', 'auth_bg_image')->first()->description; 
-            $auth_image=DB::table('system_settings')->select('description')->where('type', 'auth_image')->first()->description; 
-        ?>
-        <meta charset="UTF-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title><?php echo $system_name[0]->description; ?> :: Users Customers Portal</title>
+@extends('layout.auth.master')
 
-        <link href="{{ asset('users/assets/css/bootstrap.min.css') }}" rel="stylesheet" type="text/css" />
-        <link href="{{ asset('users/assets/css/style.css') }}" rel="stylesheet" type="text/css" />
-        <link href="{{ asset('users/assets/css/custom.css') }}" rel="stylesheet" type="text/css" />
-    </head>
-    <body>
-        <div id="wrapper">
-            <div class="container-fluid">
-                <div class="row login min-vh-100">
-                    <!-- LEFT SECTION START -->
-                    <!-- <div class="col-lg-6 left d-lg-flex align-items-center justify-content-center justify-content-md-start py-5 d-none">
-                        <img src="{{ asset('users/assets/images/Rocket_Boy_Flatline.png') }}" class="img-fluid w-75 mx-auto" alt="image">
-                    </div> -->
-                    <div class="col-lg-6 left d-lg-flex align-items-center justify-content-center justify-content-md-start py-5 d-none" style="background-image: url('{{ asset($auth_bg_image) }}'); background-size: cover; background-position: center right;">
-                        <img src="{{ asset($auth_image) }}" class="img-fluid w-75 mx-auto" alt="image">    
-                    </div>
-                    <!-- LEFT SECTION END -->
+@section('title', ($brandName ?? 'Swap Circle') . ' — Forgot Password')
 
-                    <!-- RIGHT SECTION START -->
-                    <div class="col-lg-6 d-flex flex-column justify-content-sm-around justify-content-center align-items-center flex-wrap  py-5">
-                        <div class="logo text-center">
-                            <img src="{{ asset('uploads/system_image/'.$system_image[0]->description) }}" class="img-fluid img-logo" alt="image">
-                            <h3 class="main-heading mt-5">Forget Password?</h3>
-                            <p class="sub-heading mt-2">Enter your registered email and we will send <br/> a secure reset password link.</p>
-                            <!-- FORM FORGOT PASSWORD START -->
-                            <form id="frm_forgot_password" class="mt-5">
-                                @csrf
-                                <!-- EMAIL -->
-                                <div class="form-group position-relative mb-3">
-                                    <span class="input-icon"><img src="{{ asset('users/assets/images/icons/email.png') }}" class="img-fluid" ></span>
-                                    <input type="email" class="form-control" placeholder="Email address" aria-label="Email" name="email" id="email">
-                                    <span class="error_msg" id="error_email"></span>
-                                </div>
-                                <div class="pt-4">
-                                        <button type="submit" id="btnForgotPassword" class="btn btn-login btn-primary w-100 mt-4">Send Reset Link</button>
-                                        <a href="{{ url('/') }}" class="d-inline-block mt-3">Back to login</a>
-                                </div>
-                            </form>
-                            <!-- FORM FORGOT PASSWORD END -->
-                        </div>
-                    </div>
-                    <!-- RIGHT SECTION END -->
-                </div>
+@php
+    $heroTitle = 'Forgot your password?<br>We\'ve got you.';
+    $heroText = 'Enter the email linked to your account and we\'ll send you a secure link to reset your password.';
+@endphp
+
+@section('back_url', url('/login'))
+@section('back_label', 'Back to login')
+
+@section('content')
+    <div class="text-center lg:text-left">
+        <img src="{{ asset('uploads/system_image/' . $brandLogo) }}" alt="{{ $brandName }}" class="mx-auto h-12 w-auto lg:mx-0">
+        <div class="mx-auto mt-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-lime-soft lg:mx-0">
+            <svg class="h-7 w-7 text-forest" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+        </div>
+        <h1 class="mt-5 font-display text-3xl font-bold text-forest">Forgot Password?</h1>
+        <p class="mt-2 text-sm text-gray-500">Enter your registered email and we'll send a secure reset link.</p>
+    </div>
+
+    <form id="frm_forgot_password" class="mt-8 space-y-4" novalidate>
+        @csrf
+        <div>
+            <label for="email" class="auth-label">Email address</label>
+            <div class="relative">
+                <span class="auth-input-icon">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                </span>
+                <input type="email" id="email" name="email" class="auth-input" placeholder="you@email.com" autocomplete="email">
             </div>
+            <span class="auth-error" id="error_email"></span>
         </div>
 
-        <!-- SCRIPTS -->
-        <script src="{{ asset('users/assets/js/bootstrap.bundle.js') }}"></script>
-        <script src="{{ asset('users/assets/js/jquery.min.js') }}"></script>
-        <script src="{{ asset('users/assets/js/jquery.validate.min.js') }}"></script>
-        <script>
-            $(document).ready(function() {
-                // -------------- FORM FORGOT PASSWORD VALIDATION ------------- //
-                $("#frm_forgot_password").validate({
-                    rules: {
-                        email: {
-                            required: true,
-                            email: true
-                        },
-                    },
-                    messages: {
-                        email: {
-                            required: "This field is required.",
-                            email: "Please enter a valid email address."
-                        },
-                    },
-                    errorPlacement: function (error, element) {
-                        //error.insertAfter (element);
-                        if (element.attr("name") == "email") {
-                            $("#error_email").html(error);
-                        }
-                    }
-                });
-                // -------------- FORM FORGOT PASSWORD VALIDATION ------------- //
+        <button type="submit" id="btnForgotPassword" class="auth-btn-primary mt-2">
+            <span id="btn_forgot_text">Send Reset Link</span>
+            <span id="btn_forgot_loader" class="hidden items-center gap-2">
+                <svg class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                Sending...
+            </span>
+        </button>
+    </form>
 
-                // -------------- FORM FORGOT PASSWORD SUBMISSION ------------- //
-                $("#frm_forgot_password").on("submit", function (event) {
-                    event.preventDefault();
-                    if ($("#frm_forgot_password").valid()) {
-                        var email = $("#email").val();  
+    <p class="mt-6 text-center text-sm text-gray-500 lg:text-left">
+        Remember your password?
+        <a href="{{ url('/login') }}" class="font-bold text-forest hover:text-lime-hover">Sign In</a>
+    </p>
+@endsection
 
-                        var settings = {
-                            "url": "{{ rtrim(config('app.api_url'), '/') }}/forgot_password",
-                            "method": "POST",
-                            "timeout": 0,
-                            "headers": {
-                                "Content-Type": "application/json"
-                            },
-                    
-                            "data": JSON.stringify({
-                                "email": email,
-                            }),
-                        };
+@push('scripts')
+<script>
+$(function () {
+    $("#frm_forgot_password").validate({
+        rules: {
+            email: { required: true, email: true },
+        },
+        messages: {
+            email: {
+                required: "This field is required.",
+                email: "Please enter a valid email address.",
+            },
+        },
+        errorPlacement: function (error, element) {
+            if (element.attr("name") === "email") $("#error_email").html(error);
+        }
+    });
 
-                        $("#btnForgotPassword").prop("disabled", true).text("Sending...");
+    $("#frm_forgot_password").on("submit", function (event) {
+        event.preventDefault();
+        if (!$("#frm_forgot_password").valid()) return;
 
-                        $.ajax(settings).done(function (response) {
-                            if (response.status == "error") { 
-                                Command: toastr["error"](response.message);
-                            } else{                      
-                                Command: toastr["success"](response.data.message || "Password reset link has been sent to your email.");
-                                $("#frm_forgot_password")[0].reset();
-                            }
-                        }).fail(function () {
-                            Command: toastr["error"]("Unable to send reset link. Please try again.");
-                        }).always(function () {
-                            $("#btnForgotPassword").prop("disabled", false).text("Send Reset Link");
-                        });  
-                    }
-                });
-                // -------------- FORM FORGOT PASSWORD SUBMISSION ------------- //
-            });
-        </script>
-        <!-- SCRIPTS -->
+        $("#btnForgotPassword").prop("disabled", true);
+        $("#btn_forgot_text").addClass("hidden");
+        $("#btn_forgot_loader").removeClass("hidden").addClass("inline-flex");
 
-        <!-- TOASTERS -->
-        <link href="{{asset('toasters/toastr.min.css')}}" rel="stylesheet" type="text/css" />   
-        <script src="{{asset('toasters/toastr.min.js')}}" type="text/javascript"></script>
-        <script>
-            toastr.options = {
-                "closeButton": true,
-                "debug": false,
-                "positionClass": "toast-top-right",
-                "onclick": null,
-                "showDuration": "1000",
-                "hideDuration": "1000",
-                "timeOut": "5000",
-                "extendedTimeOut": "1000",
-                "showEasing": "swing",
-                "hideEasing": "linear",
-                "showMethod": "fadeIn",
-                "hideMethod": "fadeOut"
+        $.ajax({
+            url: "{{ rtrim(config('app.api_url'), '/') }}/forgot_password",
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            data: JSON.stringify({ email: $("#email").val() }),
+        }).done(function (response) {
+            if (response.status === "error") {
+                toastr.error(response.message);
+            } else {
+                toastr.success(response.data.message || "Password reset link has been sent to your email.");
+                $("#frm_forgot_password")[0].reset();
             }
-            //Command: toastr['success']("hello");
-
-            <?php if(Session::has('success')){ ?> Command: toastr['success']("<?php echo Session('success'); ?>"); <?php } ?>
-            <?php if(Session::has('error')){ ?> Command: toastr['error']("<?php echo Session('error'); ?>"); <?php } ?>
-            <?php if(Session::has('warning')){ ?> Command: toastr['warning']("<?php echo Session('warning'); ?>"); <?php } ?>
-            <?php if(Session::has('info')){ ?> Command: toastr['info']("<?php echo Session('info'); ?>"); <?php } ?>
-        </script>
-        <!-- TOASTERS -->
-    </body>
-</html>
+        }).fail(function () {
+            toastr.error("Unable to send reset link. Please try again.");
+        }).always(function () {
+            $("#btnForgotPassword").prop("disabled", false);
+            $("#btn_forgot_text").removeClass("hidden");
+            $("#btn_forgot_loader").addClass("hidden").removeClass("inline-flex");
+        });
+    });
+});
+</script>
+@endpush

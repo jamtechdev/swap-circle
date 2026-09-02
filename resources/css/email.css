@@ -1,0 +1,294 @@
+/* Swap Circle transactional email — forest / lime theme */
+
+body {
+    margin: 0;
+    padding: 24px 12px;
+    background: #eef6c8;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #1e293b;
+}
+
+.email-shell {
+    max-width: 620px;
+    margin: 0 auto;
+}
+
+.email-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.email-brand-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: #1a472a;
+    color: #c8e635;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+}
+
+.email-brand-name {
+    font-size: 18px;
+    font-weight: 800;
+    color: #1a472a;
+    letter-spacing: -0.02em;
+}
+
+.email-card {
+    overflow: hidden;
+    border-radius: 18px;
+    background: #ffffff;
+    box-shadow: 0 12px 40px rgba(26, 71, 42, 0.12);
+}
+
+.email-card-header {
+    background: linear-gradient(135deg, #1a472a 0%, #0f2e1c 100%);
+    padding: 26px 30px;
+}
+
+.email-card-header h1 {
+    margin: 0;
+    color: #ffffff;
+    font-size: 24px;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+}
+
+.email-card-header p {
+    margin: 8px 0 0;
+    color: rgba(255, 255, 255, 0.78);
+    font-size: 13px;
+}
+
+.email-card-body {
+    padding: 28px 30px 30px;
+}
+
+.email-card-greeting {
+    margin: 0 0 10px;
+    font-size: 15px;
+    color: #1a472a;
+    font-weight: 600;
+}
+
+.email-card-text {
+    margin: 0 0 18px;
+    font-size: 14px;
+    line-height: 1.7;
+    color: #475569;
+}
+
+.email-card-text--compact {
+    margin-bottom: 12px;
+}
+
+.email-card-text--link {
+    font-size: 13px;
+    color: #64748b;
+    word-break: break-all;
+}
+
+.email-card-center {
+    text-align: center;
+    margin: 24px 0;
+}
+
+.email-otp-box {
+    display: inline-block;
+    background: #eef6c8;
+    border: 2px solid #1a472a;
+    border-radius: 14px;
+    padding: 18px 34px;
+}
+
+.email-otp-code {
+    font-size: 38px;
+    font-weight: 800;
+    letter-spacing: 12px;
+    color: #1a472a;
+}
+
+.email-card-meta {
+    margin: 12px 0 0;
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+.email-card-footer {
+    margin-top: 22px;
+    padding-top: 16px;
+    border-top: 1px solid #e2e8f0;
+    font-size: 12px;
+    line-height: 1.6;
+    color: #94a3b8;
+}
+
+.email-btn {
+    display: inline-block;
+    padding: 13px 28px;
+    background: #1a472a;
+    color: #ffffff !important;
+    text-decoration: none;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.email-btn:hover {
+    background: #245c38;
+}
+
+.email-text-fullwidth {
+    margin-bottom: 18px;
+    font-size: 14px;
+    line-height: 1.7;
+    color: #475569;
+}
+
+.receipt-container {
+    margin-bottom: 18px;
+    background: #ffffff;
+    border: 1px solid #dbe7c8;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(26, 71, 42, 0.08);
+}
+
+.receipt-container h2 {
+    margin: 0;
+    padding: 18px 20px;
+    background: linear-gradient(135deg, #1a472a 0%, #0f2e1c 100%);
+    color: #ffffff;
+    font-size: 17px;
+    text-align: center;
+}
+
+.receipt-container table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.receipt-container th,
+.receipt-container td {
+    border-top: 1px solid #e2e8f0;
+    padding: 10px 14px;
+    vertical-align: top;
+}
+
+.receipt-container th {
+    width: 38%;
+    background: #f8faf5;
+    color: #1a472a;
+    font-weight: 700;
+    text-align: left;
+}
+
+.receipt-container td {
+    color: #334155;
+}
+
+.images-row img {
+    display: inline-block;
+    margin: 0 6px 6px 0;
+    border: 1px solid #dbe7c8;
+    border-radius: 8px;
+    max-width: 96px;
+    max-height: 96px;
+    object-fit: cover;
+}
+
+.email-nin-document {
+    max-width: 180px;
+    max-height: 140px;
+    border: 1px solid #dbe7c8;
+    border-radius: 8px;
+}
+
+.email-signoff {
+    margin-top: 8px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #475569;
+}
+
+.email-download {
+    margin: 22px 0 8px;
+    padding: 18px;
+    border-radius: 14px;
+    background: #f8faf5;
+    border: 1px solid #dbe7c8;
+    text-align: center;
+}
+
+.email-download-title {
+    margin: 0 0 12px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #1a472a;
+}
+
+.email-download-btn {
+    display: inline-block;
+    padding: 12px 22px;
+    background: #c8e635;
+    color: #0f2e1c !important;
+    text-decoration: none;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.email-download-note {
+    margin: 10px 0 0;
+    font-size: 11px;
+    color: #94a3b8;
+}
+
+.email-legal-footer {
+    margin-top: 18px;
+    padding: 16px 8px 8px;
+    text-align: center;
+}
+
+.email-legal-links {
+    margin: 0 0 8px;
+    font-size: 12px;
+}
+
+.email-legal-links a,
+.email-card-text a,
+.email-card-footer a,
+.email-signoff a {
+    color: #1a472a;
+    font-weight: 600;
+    text-decoration: underline;
+}
+
+.email-legal-copy {
+    margin: 0 0 6px;
+    font-size: 11px;
+    line-height: 1.5;
+    color: #94a3b8;
+}
+
+.email-legal-copy a {
+    color: #1a472a;
+}
+
+.email-highlight {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: #eef6c8;
+    color: #1a472a;
+    font-weight: 700;
+}

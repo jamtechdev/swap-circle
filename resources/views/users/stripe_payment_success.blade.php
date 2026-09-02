@@ -22,8 +22,8 @@
                             @endif
 
                             <div class="d-flex justify-content-center flex-wrap gap-3 mb-4">
-                                <a href="{{ url('/users/dashboard') }}" class="btn btn-primary px-4">
-                                    <i class="fas fa-tachometer-alt me-2"></i>Go to Dashboard
+                                <a href="{{ $portalHomeUrl ?? url('/users/dashboard') }}" class="btn btn-primary px-4">
+                                    <i class="fas fa-tachometer-alt me-2"></i>Go to Home
                                 </a>
                                 <a href="{{ url('/users/products') }}" class="btn btn-outline-primary px-4">
                                     <i class="fas fa-shopping-cart me-2"></i>Continue Shopping

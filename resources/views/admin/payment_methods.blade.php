@@ -46,15 +46,16 @@
                                             <td>{{ $data->type }}</td>
                                             <td>
                                                 @if ($data->status=='Active')
-                                                <span class="btn btn-success">Active</span>
+                                                <span class="admin-status-badge admin-status-badge--active">Active</span>
                                                 @elseif ($data->status=='Inactive')
-                                                <span class="btn btn-warning">Inactive</span>
+                                                <span class="admin-status-badge admin-status-badge--inactive">Inactive</span>
                                                 @else 
-                                                <span class="btn btn-danger">Deleted</span>
+                                                <span class="admin-status-badge admin-status-badge--deleted">Deleted</span>
                                                 @endif
                                             </td>
 
                                             <td>
+                                                <div class="admin-action-group">
                                                 <a class="btn btn-secondary" href="{{route('payment_methods_edit',[$data->payment_method_id])}}"> 
                                                     <i class="fa fa-edit"></i> 
                                                 </a>
@@ -83,6 +84,7 @@
                                                     <i class="fa fa-trash"></i> 
                                                 </a>
                                                 @endif
+                                                </div>
                                             </td>
                                         </tr>
                                         @endforeach

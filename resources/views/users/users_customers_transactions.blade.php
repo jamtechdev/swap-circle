@@ -1,4 +1,6 @@
 @extends('layout.users.master')
+@section('page_title', 'Transactions')
+@section('page_subtitle', 'View your payment history')
 @section('content')
     <div class="page-content-wrapper">
         <div class="page-content-tab">

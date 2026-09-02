@@ -1,0 +1,147 @@
+/* Swap Circle cookie consent banner */
+
+.sc-cookie-consent {
+    position: fixed;
+    inset: auto 0 0 0;
+    z-index: 9999;
+    padding: 1rem;
+    pointer-events: none;
+}
+
+.sc-cookie-consent:not(.hidden) {
+    pointer-events: auto;
+}
+
+.sc-cookie-consent.hidden {
+    display: none;
+}
+
+.sc-cookie-consent__panel {
+    max-width: 960px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1.25rem 1.35rem;
+    border-radius: 1.25rem;
+    border: 1px solid rgba(200, 230, 53, 0.35);
+    background: rgba(15, 46, 28, 0.96);
+    color: #fff;
+    box-shadow: 0 20px 50px rgba(15, 46, 28, 0.35);
+    backdrop-filter: blur(12px);
+}
+
+@media (min-width: 768px) {
+    .sc-cookie-consent__panel {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1.35rem 1.5rem;
+    }
+}
+
+.sc-cookie-consent__title {
+    margin: 0 0 0.35rem;
+    font-family: Fraunces, Georgia, serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #c8e635;
+}
+
+.sc-cookie-consent__text {
+    margin: 0;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.82);
+}
+
+.sc-cookie-consent__links {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.45rem;
+    margin-top: 0.65rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.sc-cookie-consent__links a {
+    color: #c8e635;
+    text-decoration: none;
+}
+
+.sc-cookie-consent__links a:hover {
+    text-decoration: underline;
+}
+
+.sc-cookie-consent__links span {
+    color: rgba(255, 255, 255, 0.35);
+}
+
+.sc-cookie-consent__actions {
+    display: flex;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+}
+
+.sc-cookie-consent__btn {
+    border: none;
+    border-radius: 999px;
+    padding: 0.65rem 1.1rem;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.sc-cookie-consent__btn:hover {
+    transform: translateY(-1px);
+}
+
+.sc-cookie-consent__btn--primary {
+    background: #c8e635;
+    color: #0f2e1c;
+}
+
+.sc-cookie-consent__btn--primary:hover {
+    background: #d4ec55;
+}
+
+.sc-cookie-consent__btn--ghost {
+    background: transparent;
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.sc-cookie-consent__btn--ghost:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.auth-consent {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+.auth-consent input {
+    margin-top: 0.2rem;
+    accent-color: #1a472a;
+}
+
+.auth-consent label {
+    font-size: 0.8125rem;
+    line-height: 1.55;
+    color: #64748b;
+}
+
+.auth-consent label a {
+    color: #1a472a;
+    font-weight: 600;
+    text-decoration: underline;
+}
+
+.auth-consent label a:hover {
+    color: #5a7a12;
+}

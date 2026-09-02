@@ -1,5 +1,9 @@
 @extends('layout.users.master')
-@section('content') 
+
+@section('page_title', 'Checkout')
+@section('page_subtitle', $product->name ?? 'Complete your purchase')
+
+@section('content')
     @php
         $requiresAgeLimit = (int) ($product->products_id ?? 0) === 1 || \Illuminate\Support\Str::contains(
             \Illuminate\Support\Str::lower((string) ($product->name ?? '')),
@@ -60,7 +64,7 @@
 }
 
 .select2-container--default .select2-selection--single {
-    height: 52px;
+    height: 40px;
     border-radius: 999px;
     border: 1px solid #ced4da;
     background-color: #fff;
@@ -74,14 +78,14 @@
 .select2-selection__rendered {
     color: #212529;
     font-size: 15px;
-    line-height: 52px;
+    line-height: 38px;
     padding-left: 0;
 }
 
 /* Arrow fix */
 .select2-container--default .select2-selection--single
 .select2-selection__arrow {
-    height: 52px;
+    height: 38px;
     right: 14px;
 }
 
@@ -151,47 +155,54 @@
 
 
     </style>
+    @php
+        $checkoutPrice = $product->custom_price ?? $product->price ?? null;
+        $checkoutCurrency = $product->currency_symbol ?? '₦';
+        $checkoutFormTitle = $product->type === 'C' ? 'Task Details' : 'Beneficiary Details';
+    @endphp
     <div class="page-content-wrapper">
         <div class="page-content-tab">
-            <div class="container-fluid px-4 pb-4">
-                <!-- <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
-                    <h3 class="fw-bold sub-heading text-black">Marketplace</h3>
-                </div> -->
+            <div class="container-fluid px-4 pb-4 portal-purchase-wrap">
+                <div class="portal-checkout-page">
+                    <div class="portal-checkout-toolbar">
+                        <a href="{{ url('/users/products') }}" class="portal-checkout-back">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+                            Back to marketplace
+                        </a>
+                        <div class="portal-checkout-steps" aria-label="Checkout progress">
+                            <span class="portal-checkout-steps__item is-active">1. Details</span>
+                            <span class="portal-checkout-steps__line"></span>
+                            <span class="portal-checkout-steps__item">2. Payment</span>
+                        </div>
+                    </div>
 
-                <div class="offers-wrapper">
-                    <div class="wallet-tabs mt-1">
-                        <div class="tab-content" id="pills-tabContent">
-                            <div class="row">
-                                <div class="col-md-12 col-xl-12">
+                    <div class="row g-4 align-items-start portal-checkout-grid">
+                        <div class="col-xl-8 col-lg-7">
                                     @if($product->type == 'A')
-                                        <form id="frm_prodA_details">
+                                        <form id="frm_prodA_details" class="portal-purchase-form">
                                             @csrf
-                                            <div class="card border-0 mb-3">
-                                                <div class="card-body p-4">
-                                                    <div class="d-flex align-items-center justify-content-left pb-0 mb-4 flex-wrap">
-                                                        <span class="btn btn-success px-3 py-2 ">
-                                                            Provide Beneficiary Details
-                                                        </span>
-                                                    </div>
+                                            <div class="portal-purchase-panel">
+                                                <div class="portal-purchase-form__body">
+                                                    <h3 class="portal-form-block-title">Personal information</h3>
                                                     <div class="row mt-0">
                                                         <input type="hidden" id="prodA_products_id" value="{{ $product->products_id }}" readonly disabled>
                                                         <div class="col-lg-4 col-md-4">
-                                                            <div class="form-group mb-4">
-                                                                <label class="form-label mb-3">First Name</label>
+                                                            <div class="form-group mb-3">
+                                                                <label class="form-label mb-2">First Name</label>
                                                                 <input type="text" name="prodA_first_name" id="prodA_first_name" placeholder="Enter First Name" class="form-control letters-only" maxlength="80" autocomplete="given-name">
                                                                 <span class="error_msg" id="error_prodA_first_name"></span>
                                                             </div>
                                                         </div>
                                                         <div class="col-lg-4 col-md-6">
-                                                            <div class="form-group mb-4">
-                                                                <label class="form-label mb-3">Surname</label>
+                                                            <div class="form-group mb-3">
+                                                                <label class="form-label mb-2">Surname</label>
                                                                 <input type="text" name="prodA_surname" id="prodA_surname" placeholder="Enter Surname" class="form-control letters-only" maxlength="80" autocomplete="family-name">
                                                                 <span class="error_msg" id="error_prodA_surname"></span>
                                                             </div>
                                                         </div>
                                                         <div class="col-lg-4 col-md-6">
-                                                            <div class="form-group mb-4">
-                                                                <label class="form-label mb-3">Gender</label>
+                                                            <div class="form-group mb-3">
+                                                                <label class="form-label mb-2">Gender</label>
                                                                 <select class="form-select form-select-lg" aria-label=".form-select-lg example" name="prodA_gender" id="prodA_gender">  
                                                                     <option value="" disabled selected hidden>--Select--</option> 
                                                                     <option value="Male">Male</option>
@@ -201,22 +212,22 @@
                                                             </div>
                                                         </div>
                                                         <div class="col-lg-4 col-md-4">
-                                                            <div class="form-group mb-4">
-                                                                <label class="form-label mb-3">Date of Birth</label>
+                                                            <div class="form-group mb-3">
+                                                                <label class="form-label mb-2">Date of Birth</label>
                                                                 <input type="text" class="form-control dob" placeholder="DD-MM-YYYY" name="prodA_dob" id="prodA_dob">
                                                                 <span class="error_msg" id="error_prodA_dob"></span>
                                                             </div>
                                                         </div>
                                                         <div class="col-lg-8 col-md-8">
-                                                            <div class="form-group mb-4">
-                                                                <label class="form-label mb-3">Address</label>
+                                                            <div class="form-group mb-3">
+                                                                <label class="form-label mb-2">Address</label>
                                                                 <input type="text" class="form-control" placeholder="Enter Address" name="prodA_address" id="prodA_address">
                                                                 <span class="error_msg" id="error_prodA_address"></span>
                                                             </div>
                                                         </div>
                                                         <div class="col-lg-4 col-md-4">
-                                                            <div class="form-group mb-4">
-                                                                <label class="form-label mb-3">Occupation</label>
+                                                            <div class="form-group mb-3">
+                                                                <label class="form-label mb-2">Occupation</label>
                                                                 <select class="form-select form-select-lg" aria-label=".form-select-lg example" name="prodA_occupations_id" id="prodA_occupations_id">  
                                                                     <option value="" disabled selected hidden>--Select--</option> 
                                                                     @foreach($occupations as $occupation)
@@ -227,8 +238,8 @@
                                                             </div>
                                                         </div>
                                                         <div class="col-lg-4 col-md-4">
-                                                            <div class="form-group mb-4">
-                                                                <label class="form-label mb-3">Relationship</label>
+                                                            <div class="form-group mb-3">
+                                                                <label class="form-label mb-2">Relationship</label>
                                                                 <select class="form-select form-select-lg" aria-label=".form-select-lg example" name="prodA_relationships_id" id="prodA_relationships_id">  
                                                                     <option value="" disabled selected hidden>--Select--</option> 
                                                                     @foreach($relationships as $relationship)
@@ -239,17 +250,19 @@
                                                             </div>
                                                         </div>
                                                         <div class="col-lg-4 col-md-4">
-                                                            <div class="form-group mb-4">
-                                                                <label class="form-label mb-3">Phone Number</label>
+                                                            <div class="form-group mb-3">
+                                                                <label class="form-label mb-2">Phone Number</label>
                                                                 <input type="text" class="form-control digits-only" placeholder="Enter Phone Number" name="prodA_nin" id="prodA_nin" maxlength="11" inputmode="numeric" pattern="\d*" autocomplete="tel">
                                                                 <span class="error_msg" id="error_prodA_nin"></span>
                                                             </div>
                                                         </div>
+                                                        <div class="col-12 portal-form-section">
+                                                            <p class="portal-form-section__title">Cover &amp; documents</p>
+                                                        </div>
                                                         <div class="row">
-                                                            <!-- Left side: cover duration -->
                                                             <div class="col-lg-4 col-md-6">
-                                                                <div class="form-group mb-4">
-                                                                    <label class="form-label mb-3">Cover Duration</label>
+                                                                <div class="form-group mb-3">
+                                                                    <label class="form-label mb-2">Cover Duration</label>
                                                                     <select class="form-select form-select-lg cover_duration" aria-label=".form-select-lg example" name="prodA_cover_duration" id="prodA_cover_duration" data-product="A">  
                                                                         <option value="Monthly">Monthly</option>
                                                                         <option value="Yearly">Annual</option>
@@ -263,7 +276,7 @@
                                                             <div class="col-lg-8 col-md-6">
                                                                 <div class="row doc-upload-grid">
                                                                     <div class="col-lg-6 col-md-6">
-                                                                        <div class="form-group mb-4">
+                                                                        <div class="form-group mb-3">
                                                                             <label class="form-label mb-2">1. Identity Information (Passport/ID)</label>
                                                                             <div class="control-group file-upload" id="file-upload-prodA-identity">
                                                                                 <div class="image-box text-center mx-auto">
@@ -279,7 +292,7 @@
                                                                         </div>
                                                                     </div>
                                                                     <div class="col-lg-6 col-md-6">
-                                                                        <div class="form-group mb-4">
+                                                                        <div class="form-group mb-3">
                                                                             <label class="form-label mb-2">2. Proof of Address</label>
                                                                             <div class="control-group file-upload" id="file-upload-prodA-address">
                                                                                 <div class="image-box text-center mx-auto">
@@ -298,13 +311,12 @@
                                                             </div>
                                                         </div>                                                   
                                                     </div>
-                                                </div>  
-                                            </div>
-                                            <div class="row">
-                                                <div class="col-lg-3 ms-auto text-end" style="margin-right: -25px !important;">
-                                                    <div class="mt-10">
-                                                       <!--  <button type="submit" class="btn btn-login btn-primary w-auto">Buy Now</button> -->
-                                                       <button type="submit" id="btnBuyNowA" class="btn btn-login btn-primary w-auto"> Buy Now </button>
+                                                </div>
+                                                <div class="portal-form-footer">
+                                                    <p class="portal-form-footer__hint">Review your details before continuing to payment.</p>
+                                                    <div class="portal-form-actions">
+                                                        <a href="{{ url('/users/products') }}" class="btn btn-outline-primary">Cancel</a>
+                                                        <button type="submit" id="btnBuyNowA" class="btn btn-primary">Continue to payment</button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -312,34 +324,30 @@
                                     @endif
 
                                     @if($product->type == 'B')
-                                        <form id="frm_prodB_details">
+                                        <form id="frm_prodB_details" class="portal-purchase-form">
                                             @csrf
-                                            <div class="card border-0 mb-3">
-                                                <div class="card-body p-4">
-                                                    <div class="d-flex align-items-center justify-content-left pb-0 mb-4 flex-wrap">
-                                                        <span class="btn btn-success px-3 py-2 ">
-                                                            Provide Beneficiary Details
-                                                        </span>
-                                                    </div>
+                                            <div class="portal-purchase-panel">
+                                                <div class="portal-purchase-form__body">
+                                                    <h3 class="portal-form-block-title">Personal information</h3>
                                                     <div class="row mt-0">
                                                         <input type="hidden" id="prodB_products_id" value="{{ $product->products_id }}" readonly disabled>
                                                         <div class="col-lg-4 col-md-6">
-                                                            <div class="form-group mb-4">
-                                                                <label class="form-label mb-3">First Name</label>
+                                                            <div class="form-group mb-3">
+                                                                <label class="form-label mb-2">First Name</label>
                                                                 <input type="text" name="prodB_first_name" id="prodB_first_name" placeholder="Enter First Name" class="form-control letters-only" maxlength="80" autocomplete="given-name">
                                                                 <span class="error_msg" id="error_prodB_first_name"></span>
                                                             </div>
                                                         </div>
                                                         <div class="col-lg-4 col-md-6">
-                                                            <div class="form-group mb-4">
-                                                                <label class="form-label mb-3">Surname</label>
+                                                            <div class="form-group mb-3">
+                                                                <label class="form-label mb-2">Surname</label>
                                                                 <input type="text" name="prodB_surname" id="prodB_surname" placeholder="Enter Surname" class="form-control letters-only" maxlength="80" autocomplete="family-name">
                                                                 <span class="error_msg" id="error_prodB_surname"></span>
                                                             </div>
                                                         </div>
                                                         <div class="col-lg-4 col-md-6">
-                                                            <div class="form-group mb-4">
-                                                                <label class="form-label mb-3">Gender</label>
+                                                            <div class="form-group mb-3">
+                                                                <label class="form-label mb-2">Gender</label>
                                                                 <select class="form-select form-select-lg" aria-label=".form-select-lg example" name="prodB_gender" id="prodB_gender">  
                                                                     <option value="" disabled selected hidden>--Select--</option> 
                                                                     <option value="Male">Male</option>
@@ -349,22 +357,22 @@
                                                             </div>
                                                         </div>
                                                         <div class="col-lg-4 col-md-4">
-                                                            <div class="form-group mb-4">
-                                                                <label class="form-label mb-3">Date of Birth</label>
+                                                            <div class="form-group mb-3">
+                                                                <label class="form-label mb-2">Date of Birth</label>
                                                                 <input type="text" class="form-control dob" placeholder="DD-MM-YYYY" name="prodB_dob" id="prodB_dob">
                                                                 <span class="error_msg" id="error_prodB_dob"></span>
                                                             </div>
                                                         </div>
                                                         <div class="col-lg-8 col-md-8">
-                                                            <div class="form-group mb-4">
-                                                                <label class="form-label mb-3">Address</label>
+                                                            <div class="form-group mb-3">
+                                                                <label class="form-label mb-2">Address</label>
                                                                 <input type="text" class="form-control" placeholder="Enter Address" name="prodB_address" id="prodB_address">
                                                                 <span class="error_msg" id="error_prodB_address"></span>
                                                             </div>
                                                         </div>
                                                         <div class="col-lg-4 col-md-4">
-                                                            <div class="form-group mb-4">
-                                                                <label class="form-label mb-3">Occupation</label>
+                                                            <div class="form-group mb-3">
+                                                                <label class="form-label mb-2">Occupation</label>
                                                                 <select class="form-select form-select-lg" aria-label=".form-select-lg example" name="prodB_occupations_id" id="prodB_occupations_id">  
                                                                     <option value="" disabled selected hidden>--Select--</option> 
                                                                     @foreach($occupations as $occupation)
@@ -375,8 +383,8 @@
                                                             </div>
                                                         </div>
                                                         <div class="col-lg-4 col-md-4">
-                                                            <div class="form-group mb-4">
-                                                                <label class="form-label mb-3">Relationship</label>
+                                                            <div class="form-group mb-3">
+                                                                <label class="form-label mb-2">Relationship</label>
                                                                 <select class="form-select form-select-lg" aria-label=".form-select-lg example" name="prodB_relationships_id" id="prodB_relationships_id">  
                                                                     <option value="" disabled selected hidden>--Select--</option> 
                                                                     @foreach($relationships as $relationship)
@@ -387,17 +395,19 @@
                                                             </div>
                                                         </div>
                                                         <div class="col-lg-4 col-md-4">
-                                                            <div class="form-group mb-4">
-                                                                <label class="form-label mb-3">Phone Number</label>
+                                                            <div class="form-group mb-3">
+                                                                <label class="form-label mb-2">Phone Number</label>
                                                                 <input type="text" class="form-control digits-only" placeholder="Enter Phone Number" name="prodB_nin" id="prodB_nin" maxlength="11" inputmode="numeric" pattern="\d*" autocomplete="tel">
                                                                 <span class="error_msg" id="error_prodB_nin"></span>
                                                             </div>
                                                         </div>
+                                                        <div class="col-12 portal-form-section">
+                                                            <p class="portal-form-section__title">Cover &amp; documents</p>
+                                                        </div>
                                                         <div class="row">
-                                                            <!-- Left side: cover duration -->
                                                             <div class="col-lg-4 col-md-6">
-                                                                <div class="form-group mb-4">
-                                                                    <label class="form-label mb-3">Cover Duration</label>
+                                                                <div class="form-group mb-3">
+                                                                    <label class="form-label mb-2">Cover Duration</label>
                                                                     <select class="form-select form-select-lg cover_duration" aria-label=".form-select-lg example" name="prodB_cover_duration" id="prodB_cover_duration" data-product="B">  
                                                                         <option value="Monthly">Monthly</option>
                                                                         <option value="Yearly">Annual</option>
@@ -411,7 +421,7 @@
                                                             <div class="col-lg-8 col-md-6">
                                                                 <div class="row doc-upload-grid">
                                                                     <div class="col-lg-6 col-md-6">
-                                                                        <div class="form-group mb-4">
+                                                                        <div class="form-group mb-3">
                                                                             <label class="form-label mb-2">1. Identity Information (Passport/ID)</label>
                                                                             <div class="control-group file-upload" id="file-upload-prodB-identity">
                                                                                 <div class="image-box text-center mx-auto">
@@ -427,7 +437,7 @@
                                                                         </div>
                                                                     </div>
                                                                     <div class="col-lg-6 col-md-6">
-                                                                        <div class="form-group mb-4">
+                                                                        <div class="form-group mb-3">
                                                                             <label class="form-label mb-2">2. Proof of Address</label>
                                                                             <div class="control-group file-upload" id="file-upload-prodB-address">
                                                                                 <div class="image-box text-center mx-auto">
@@ -446,13 +456,12 @@
                                                             </div>
                                                         </div>                                                   
                                                     </div>
-                                                </div>  
-                                            </div>
-                                            <div class="row">
-                                                <div class="col-lg-3 ms-auto text-end" style="margin-right: -25px !important;">
-                                                    <div class="mt-10">
-                                                        <!-- <button type="submit" class="btn btn-login btn-primary w-auto">Buy Now</button> -->
-                                                         <button type="submit" id="btnBuyNowB" class="btn btn-login btn-primary w-auto"> Buy Now </button>
+                                                </div>
+                                                <div class="portal-form-footer">
+                                                    <p class="portal-form-footer__hint">Review your details before continuing to payment.</p>
+                                                    <div class="portal-form-actions">
+                                                        <a href="{{ url('/users/products') }}" class="btn btn-outline-primary">Cancel</a>
+                                                        <button type="submit" id="btnBuyNowB" class="btn btn-primary">Continue to payment</button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -460,55 +469,40 @@
                                     @endif
 
                                     @if($product->type == 'C')
-                                        <form id="frm_prodC_details">
+                                        <form id="frm_prodC_details" class="portal-purchase-form">
                                             @csrf
-                                            <div class="card border-0 mb-3">
-                                                <div class="card-body p-4">
-                                                    <div class="d-flex align-items-between justify-content-between pb-0 mb-4 flex-wrap" style="padding-right: 40px;">
-                                                        <div class="d-flex align-items-center justify-content-left pb-0 mb-4 flex-wrap">
-                                                            <span class="btn btn-success px-3 py-2 ">
-                                                                Provide Beneficiary Details
-                                                            </span>
-                                                        </div>  
-                                                        @php
-                                                            $prod_valid = DB::table('products_purchases as pp')
-                                                                ->join('products_purchases_tasks as ppt', 'pp.products_purchases_id', '=', 'ppt.products_purchases_id')
-                                                                ->where('pp.users_customers_id', session('id'))
-                                                                ->where('pp.product_type', $product->type)
-                                                                ->whereColumn('ppt.delivery_requests_consumed', '<', 'ppt.delivery_request_limit')
-                                                                ->select('pp.*', 'ppt.*')
-                                                                ->first();
+                                            <div class="portal-purchase-panel">
+                                                <div class="portal-purchase-form__body">
+                                                    @php
+                                                        $prod_valid = DB::table('products_purchases as pp')
+                                                            ->join('products_purchases_tasks as ppt', 'pp.products_purchases_id', '=', 'ppt.products_purchases_id')
+                                                            ->where('pp.users_customers_id', session('id'))
+                                                            ->where('pp.product_type', $product->type)
+                                                            ->whereColumn('ppt.delivery_requests_consumed', '<', 'ppt.delivery_request_limit')
+                                                            ->select('pp.*', 'ppt.*')
+                                                            ->first();
 
-                                                            $limit = $prod_valid ? $prod_valid->delivery_request_limit : $product->delivery_request_limit;
-                                                            $consumed = $prod_valid ? $prod_valid->delivery_requests_consumed : 0;
-                                                        @endphp
-                                                         <div class="d-flex flex-column align-items-end">
-    <!-- Text above boxes -->
-    <p class="mb-1 fw-bold text-muted w-100 text-start" style="font-size: 14px;">
-        {{ $product->name }}'s Remaining
-    </p>
-
-    <!-- Boxes below -->
-    <div class="box-container d-flex justify-content-end gap-1">
-        @for ($i = 0; $i < $limit; $i++)
-            <div class="box {{ $i < $consumed ? 'filled' : '' }}"></div>
-        @endfor
-    </div>
-</div>
-
-                                                        <!-- <div class="box-container">
-                                                            @for ($i = 0; $i < $limit; $i++)
-                                                                <div class="box {{ $i < $consumed ? 'filled' : '' }}"></div>
-                                                            @endfor
-                                                        </div> -->
+                                                        $limit = $prod_valid ? $prod_valid->delivery_request_limit : $product->delivery_request_limit;
+                                                        $consumed = $prod_valid ? $prod_valid->delivery_requests_consumed : 0;
+                                                    @endphp
+                                                    <div class="portal-form-block-head">
+                                                        <h3 class="portal-form-block-title mb-0">Task information</h3>
+                                                        <div class="portal-usage-meter portal-usage-meter--inline">
+                                                            <p class="portal-usage-meter__label">{{ $product->name }} remaining</p>
+                                                            <div class="box-container">
+                                                                @for ($i = 0; $i < $limit; $i++)
+                                                                    <div class="box {{ $i < $consumed ? 'filled' : '' }}"></div>
+                                                                @endfor
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                     <div class="row mt-0">
                                                         <input type="hidden" id="prodC_products_id" value="{{ $product->products_id }}" readonly disabled>
                                                         <input type="hidden" data-product="C" id="prodC_cover_start_date" value="" readonly disabled>
                                                         <input type="hidden" data-product="C" id="prodC_cover_end_date" value="" readonly disabled>
                                                         <div class="col-lg-4 col-md-4">
-                                                            <div class="form-group mb-4">
-                                                                <label class="form-label mb-3">Task Type</label>
+                                                            <div class="form-group mb-3">
+                                                                <label class="form-label mb-2">Task Type</label>
                                                                 <select class="form-select form-select-lg" aria-label=".form-select-lg example" name="prodC_tasks_types_id" id="prodC_tasks_types_id">  
                                                                     <option value="" disabled selected hidden>--Select--</option> 
                                                                     @foreach($tasks_types as $task_type)
@@ -519,43 +513,43 @@
                                                             </div>
                                                         </div>
                                                         <div class="col-lg-4 col-md-4">
-                                                            <div class="form-group mb-4">
-                                                                <label class="form-label mb-3">Task Name</label>
+                                                            <div class="form-group mb-3">
+                                                                <label class="form-label mb-2">Task Name</label>
                                                                 <input type="text" class="form-control" placeholder="Enter Task Name" name="prodC_task" id="prodC_task">
                                                                 <span class="error_msg" id="error_prodC_task"></span>
                                                             </div>
                                                         </div>
                                                         <div class="col-lg-4 col-md-4">
-                                                            <div class="form-group mb-4">
-                                                                <label class="form-label mb-3">Task Date</label>
+                                                            <div class="form-group mb-3">
+                                                                <label class="form-label mb-2">Task Date</label>
                                                                 <input type="text" class="form-control task_date" placeholder="DD-MM-YYYY" name="prodC_task_date" id="prodC_task_date">
                                                                 <span class="error_msg" id="error_prodC_task_date"></span>
                                                             </div>
                                                         </div>
                                                         <!-- <div class="col-lg-6 col-md-6">
-                                                            <div class="form-group mb-4">
-                                                                <label class="form-label mb-3">Select Task Time</label>
+                                                            <div class="form-group mb-3">
+                                                                <label class="form-label mb-2">Select Task Time</label>
                                                                 <input type="text" class="form-control" placeholder="Select Task Time" name="prodC_task_time" id="prodC_task_time">
                                                                 <span class="error_msg" id="error_prodC_task_time"></span>
                                                             </div>
                                                         </div> -->
                                                         <div class="col-lg-12 col-md-12">
-                                                            <div class="form-group mb-4">
-                                                                <label class="form-label mb-3">Description</label>
+                                                            <div class="form-group mb-3">
+                                                                <label class="form-label mb-2">Description</label>
                                                                 <textarea class="form-control" rows="2" placeholder="Type Description..." name="prodC_description" id="prodC_description" style="height:auto;"></textarea>
                                                                 <span class="error_msg" id="error_prodC_description"></span>
                                                             </div>
                                                         </div>
                                                         <div class="col-lg-4 col-md-4">
-                                                            <div class="form-group mb-4">
-                                                                <label class="form-label mb-3">Contact Person Name</label>
+                                                            <div class="form-group mb-3">
+                                                                <label class="form-label mb-2">Contact Person Name</label>
                                                                 <input type="text" class="form-control letters-only" placeholder="Enter Person Name" name="prodC_contact_person_name" id="prodC_contact_person_name" maxlength="80">
                                                                 <span class="error_msg" id="error_prodC_contact_person_name"></span>
                                                             </div>
                                                         </div>
                                                         <div class="col-lg-4 col-md-4">
-                                                            <div class="form-group mb-4">
-                                                                <label class="form-label mb-3">Contact Person Phone No.</label>
+                                                            <div class="form-group mb-3">
+                                                                <label class="form-label mb-2">Contact Person Phone No.</label>
                                                                 <input type="text" class="form-control digits-only" placeholder="Enter Person Phone No." name="prodC_person_phone" id="prodC_person_phone" maxlength="15" inputmode="numeric" pattern="\d*">
                                                                 <span class="error_msg" id="error_prodC_person_phone"></span>
                                                             </div>
@@ -573,26 +567,55 @@
                                                             </div>
                                                         </div>
 
-                                                    </div>  
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div class="row">
-                                                <div class="col-lg-3 ms-auto text-end" style="margin-right: -25px !important;">
-                                                    <div class="mt-10">
-                                                      <!--<button type="submit" class="btn btn-login btn-primary w-auto">Submit</button> -->
-                                                        <button type="submit" id="btnBuyNowC" class="btn btn-login btn-primary w-auto"> Buy Now </button>
+                                                <div class="portal-form-footer">
+                                                    <p class="portal-form-footer__hint">Confirm task details to proceed with your request.</p>
+                                                    <div class="portal-form-actions">
+                                                        <a href="{{ url('/users/products') }}" class="btn btn-outline-primary">Cancel</a>
+                                                        <button type="submit" id="btnBuyNowC" class="btn btn-primary">Submit task</button>
                                                     </div>
                                                 </div>
                                             </div>
                                         </form>
                                     @endif
-                                </div>
-                            </div>
                         </div>
-                    </div> 
+
+                        <div class="col-xl-4 col-lg-5">
+                            <aside class="portal-checkout-summary">
+                                <div class="portal-checkout-summary__head">
+                                    <span class="portal-checkout-summary__label">Order summary</span>
+                                    <h3 class="portal-checkout-summary__product">{{ $product->name }}</h3>
+                                </div>
+                                <ul class="portal-checkout-summary__list">
+                                    <li>
+                                        <span>Product type</span>
+                                        <strong>Type {{ $product->type }}</strong>
+                                    </li>
+                                    <li>
+                                        <span>Form step</span>
+                                        <strong>{{ $checkoutFormTitle }}</strong>
+                                    </li>
+                                    <li>
+                                        <span>Status</span>
+                                        <strong>{{ $product->status ?? 'Active' }}</strong>
+                                    </li>
+                                </ul>
+                                <div class="portal-checkout-summary__total">
+                                    <span>Total</span>
+                                    @if($checkoutPrice !== null && $checkoutPrice !== '')
+                                        <strong>{{ $checkoutCurrency }}{{ number_format((float) $checkoutPrice, 2) }}</strong>
+                                    @else
+                                        <strong>—</strong>
+                                    @endif
+                                </div>
+                                <p class="portal-checkout-summary__note">Complete the form on the left, then continue to payment.</p>
+                            </aside>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div> 
+        </div>
     </div>
 @endsection
 @section('script') 

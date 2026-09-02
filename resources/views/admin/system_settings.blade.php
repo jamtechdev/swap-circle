@@ -174,6 +174,13 @@
                                             </div>
                                         </div>
 
+                                        <div class="col-xl-3 form-group">
+                                            <label class="col-sm-12 control-label">Claim Waiting Period (days)</label>
+                                            <div class="col-sm-12">
+                                                <input type="number" min="0" class="input-mask form-control" name="claim_waiting_days" value="{{ optional($system_settings->firstWhere('type', 'claim_waiting_days'))->description ?? 30 }}" required>
+                                            </div>
+                                        </div>
+
                                         <div class="col-xl-6 form-group">
                                             <label class="col-sm-12 control-label">Login Main Heading Label 1</label>
                                             <div class="col-sm-12">

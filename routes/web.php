@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\ApiController;
+use App\Http\Controllers\LandingController;
+use App\Http\Controllers\LegalController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\UsersController;
 
@@ -21,10 +23,18 @@ use App\Helpers\Helper;
 |
 */
 
+/* ----------------------------------- LANDING PAGE --------------------------------------------- */
+Route::get('/', [LandingController::class, 'index']);
+Route::get('/privacy', [LegalController::class, 'privacy']);
+Route::get('/terms', [LegalController::class, 'terms']);
+Route::get('/cookies', [LegalController::class, 'cookies']);
+Route::get('/gdpr', [LegalController::class, 'gdpr']);
+/* ----------------------------------- LANDING PAGE --------------------------------------------- */
+
 /* ----------------------------------- WEB PANEL --------------------------------------------- */
 // SIGNIN USERS_CUTOMERS
-Route::get('/', [UsersController::class, 'users_customers_login']);
-Route::post('/', [UsersController::class, 'users_customers_login_process']);
+Route::get('/login', [UsersController::class, 'users_customers_login']);
+Route::post('/login', [UsersController::class, 'users_customers_login_process']);
 // SIGNIN USERS_CUTOMERS
 
 // SIGNUP USERS_CUTOMERS
@@ -41,6 +51,7 @@ Route::get('/users/forgot_password', [UsersController::class, 'users_customers_f
 
 // VERIFICATION CODE USERS_CUSTOMERS
 Route::get('/users/verification_code/{id}', [UsersController::class, 'users_customers_verification_code']);
+Route::get('/users/resend_otp/{id}', [UsersController::class, 'users_customers_resend_otp']);
 // VERIFICATION CODE USERS_CUSTOMERS
 
 // RESET PASSWORD USERS_CUSTOMERS
@@ -157,9 +168,14 @@ Route::post('/admin/account_settings_update/{id}', [AdminController::class, 'acc
 Route::get('/admin/system_settings', [AdminController::class, 'system_settings']);
 Route::post('/admin/system_settings_edit', [AdminController::class, 'system_settings_edit']);
 
+Route::get('/admin/landing_page', [AdminController::class, 'landing_page']);
+Route::post('/admin/landing_page', [AdminController::class, 'landing_page_update']);
+
 Route::get('/admin/system_about_us', [AdminController::class, 'system_about_us']);
 Route::get('/admin/system_terms', [AdminController::class, 'system_terms']);
 Route::get('/admin/system_privacy', [AdminController::class, 'system_privacy']);
+Route::get('/admin/system_cookies', [AdminController::class, 'system_cookies']);
+Route::get('/admin/system_gdpr', [AdminController::class, 'system_gdpr']);
 //End GENERAl Settings
 
 

@@ -18,14 +18,46 @@
     }
 </script>
 <script>
-$(document).ready(function () {
-    $('select.form-select').select2({
+function portalInitSelect2($select) {
+    if (!$select || !$select.length) {
+        return;
+    }
+
+    var placeholder = $select.attr('data-placeholder')
+        || $select.find('option[disabled][hidden]').first().text()
+        || 'Select an option';
+    var $modal = $select.closest('.modal');
+
+    if ($select.data('select2')) {
+        $select.select2('destroy');
+    }
+
+    $select.select2({
         width: '100%',
-        placeholder: '--Select--',
-        minimumResultsForSearch: Infinity // hide search box
+        placeholder: placeholder,
+        allowClear: false,
+        minimumResultsForSearch: $select.hasClass('portal-select-search') ? 0 : Infinity,
+        dropdownParent: $modal.length ? $modal : $(document.body)
+    });
+}
+
+function portalRefreshSelect2($select) {
+    if (!$select || !$select.length) {
+        return;
+    }
+
+    if ($select.data('select2')) {
+        $select.trigger('change.select2');
+    } else {
+        portalInitSelect2($select);
+    }
+}
+
+$(document).ready(function () {
+    $('select.form-select').each(function () {
+        portalInitSelect2($(this));
     });
 });
-
 </script>
 
 <script>
@@ -46,40 +78,32 @@ function enableBuyNow(btn) {
     document.addEventListener( 'DOMContentLoaded', function() {
         var slider1 = document.querySelector('#slider-1');
         if (slider1) {
-            var splide1 = new Splide('#slider-1' , {
+            window.connectSplidePopular = new Splide('#slider-1' , {
                 arrows:true,
                 pagination:false,
-                perPage:5,
-                gap:"20px",
+                perPage:4,
+                gap:"1rem",
                 breakpoints: {
-                    992: {
-                            perPage: 3,
-                        },    
-                    640: {
-                            perPage: 2,
-                        },
+                    1200: { perPage: 3 },
+                    992: { perPage: 2 },
+                    640: { perPage: 1 },
                 }
             });
-            splide1.mount();
+            window.connectSplidePopular.mount();
         }
 
         var slider2 = document.querySelector('#slider-2');
         if (slider2) {
-            var splide2 = new Splide('#slider-2' , {
+            window.connectSplideOthers = new Splide('#slider-2' , {
                 arrows:true,
                 pagination:false,
-                perPage:3,
-                gap:"20px",
+                perPage:2,
+                gap:"1rem",
                 breakpoints:{
-                    992: {
-                            perPage: 2,
-                        },    
-                    640: {
-                            perPage: 1,
-                        },
+                    992: { perPage: 1 },
                 }
             });
-            splide2.mount();
+            window.connectSplideOthers.mount();
         }
     });
 </script>
@@ -486,6 +510,7 @@ function enableBuyNow(btn) {
                         </option>\
                     ');
                 });
+                portalInitSelect2($('#cw_base_currency'));
             }
         });
         /* AJAX API CALL */
@@ -589,6 +614,7 @@ function enableBuyNow(btn) {
                         </option>\
                     ');
                 });
+                portalInitSelect2($('#sc_from_currency'));
             }
         });    
         /* AJAX API CALL */
@@ -618,6 +644,7 @@ function enableBuyNow(btn) {
                         </option>\
                     ');
                 });
+                portalInitSelect2($('#sc_exchange_currency'));
             }
         });
         /* AJAX API CALL */
@@ -922,6 +949,8 @@ function enableBuyNow(btn) {
                 });
                 $('#cs_from_account').html(displayData);
                 $('#cs_to_account').html(displayData);
+                portalInitSelect2($('#cs_from_account'));
+                portalInitSelect2($('#cs_to_account'));
             }
         });
         /* AJAX API CALL */
@@ -1483,6 +1512,7 @@ function enableBuyNow(btn) {
                         </option>\
                     ');
                 });
+                portalInitSelect2($('#co_from_account'));
             }
         });
         /* AJAX API CALL */
@@ -1509,6 +1539,7 @@ function enableBuyNow(btn) {
                         </option>\
                     ');
                 });
+                portalInitSelect2($('#co_exchange_currency'));
             }
         });
         /* AJAX API CALL */
@@ -1829,6 +1860,46 @@ function enableBuyNow(btn) {
 
 
     /* --------------- GET CONNECT CATEGORIES --------------- */
+    window.connectActiveCategory = null;
+
+    function portalConnectCategoryImageError(img, initial) {
+        var $wrap = $(img).closest('.portal-connect-category__icon');
+        $(img).remove();
+        if (!$wrap.find('.portal-connect-category__initial').length) {
+            $wrap.addClass('portal-connect-category__icon--placeholder')
+                .append('<span class="portal-connect-category__initial">' + initial + '</span>');
+        }
+    }
+
+    function filterConnectCategory(categoryId) {
+        window.connectActiveCategory = categoryId || null;
+        $('.portal-connect-category').removeClass('is-active');
+        $('.portal-connect-category[data-id="' + (categoryId || 'all') + '"]').addClass('is-active');
+        get_popular_articles(categoryId);
+        get_other_articles(categoryId);
+    }
+
+    function buildConnectCategoryMarkup(item) {
+        var initial = (item.name || '?').charAt(0).toUpperCase();
+        var safeName = $('<div>').text(item.name || '').html();
+        var iconMarkup = '';
+
+        if (item.icon_url) {
+            iconMarkup = '<img src="' + item.icon_url + '" class="portal-connect-category__image" alt="' + safeName + '" loading="lazy" onerror="portalConnectCategoryImageError(this, \'' + initial + '\')">';
+        } else {
+            iconMarkup = '<span class="portal-connect-category__initial">' + initial + '</span>';
+        }
+
+        return '\
+            <button type="button" class="portal-connect-category" role="listitem" data-id="' + item.connect_categories_id + '" onclick="filterConnectCategory(' + item.connect_categories_id + ')">\
+                <span class="portal-connect-category__icon' + (item.icon_url ? '' : ' portal-connect-category__icon--placeholder') + '">\
+                    ' + iconMarkup + '\
+                </span>\
+                <span class="portal-connect-category__name">' + safeName + '</span>\
+            </button>\
+        ';
+    }
+
     function get_connect_categories() {
         /* AJAX API CALL */
         var settings = {
@@ -1841,35 +1912,42 @@ function enableBuyNow(btn) {
         };
         $.ajax(settings).done(function (response) {
             if (response.status == 'success') {
-                var categories = response.data; 
+                var categories = response.data;
+
+                $('#connect_categories').html('\
+                    <button type="button" class="portal-connect-category is-active" role="listitem" data-id="all" onclick="filterConnectCategory()">\
+                        <span class="portal-connect-category__icon portal-connect-category__icon--all">\
+                            <svg class="portal-connect-category__svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>\
+                        </span>\
+                        <span class="portal-connect-category__name">All</span>\
+                    </button>\
+                ');
 
                 $.each(categories, function (key, item) {
-                    var category_image = "{{ url('/') }}" + "/" + item.icon; 
-
-                    $('#connect_categories').append('\
-                        <div class="connects-category">\
-                            <div class="connects-item"><img src="'+ category_image +'" class="img-fluid" alt=""></div>\
-                            <div class="connects-item-name text-center mt-1"><small>'+ item.name +'</small></div>\
-                        </div>\
-                    ');
+                    $('#connect_categories').append(buildConnectCategoryMarkup(item));
                 });
-            } 
+            }
         });
         /* AJAX API CALL */
     }
     /* --------------- GET CONNECT CATEGORIES --------------- */
 
     /* --------------- GET POPULAR ARTICLES --------------- */
-    function get_popular_articles() {
-        /* AJAX API CALL */
+    function get_popular_articles(categoryId) {
+        var useCategory = categoryId || window.connectActiveCategory;
         var settings = {
-            "url": "{{ rtrim(config('app.api_url'), '/') }}/popular_connect_articles",
+            "url": useCategory
+                ? "{{ rtrim(config('app.api_url'), '/') }}/popular_connect_articles_by_category"
+                : "{{ rtrim(config('app.api_url'), '/') }}/popular_connect_articles",
             "method": "POST",
             "timeout": 0,
             "headers": {
                 "Content-Type": "application/json"
             },
-            "data": JSON.stringify({
+            "data": JSON.stringify(useCategory ? {
+                "users_customers_id": users_customers_id,
+                "connect_categories_id": useCategory,
+            } : {
                 "users_customers_id": users_customers_id,
             }),
         };
@@ -1878,39 +1956,62 @@ function enableBuyNow(btn) {
                 $('#popular_articles').html('');
                 var articles = response.data;
 
+                if (!articles || articles.length === 0) {
+                    $('#popular_articles_empty').removeClass('d-none');
+                    if (window.connectSplidePopular) {
+                        window.connectSplidePopular.refresh();
+                    }
+                    return;
+                }
+
+                $('#popular_articles_empty').addClass('d-none');
+
                 $.each(articles, function (key, item) {
                     var liked_article = '';
                     if (item.liked == 'Yes') {
-                        liked_article = '<img src="{{ asset('users/assets/images/icons/heart1-fav.png') }}" alt="" onclick="unlike_popular_article('+ item.connect_articles_id +'); event.stopPropagation();" id="liked_popular_article_'+ item.connect_articles_id +'">';
+                        liked_article = '<button type="button" class="portal-connect-action portal-connect-action--liked" onclick="unlike_popular_article('+ item.connect_articles_id +'); event.stopPropagation();" id="liked_popular_article_'+ item.connect_articles_id +'" aria-label="Remove from favorites"><svg width="18" height="16" viewBox="0 0 20 18" fill="none" aria-hidden="true"><path d="M10.62 17.71C10.28 17.83 9.72 17.83 9.38 17.71C6.48 16.72 0 12.59 0 5.59C0 2.5 2.49 0 5.56 0C7.38 0 8.99 0.88 10 2.24C11.01 0.88 12.63 0 14.44 0C17.51 0 20 2.5 20 5.59C20 12.59 13.52 16.72 10.62 17.71Z" fill="currentColor"/></svg></button>';
                     } else {
-                        liked_article = '<img src="{{ asset('users/assets/images/icons/heart1.png') }}" alt="" onclick="like_popular_article('+ item.connect_articles_id +'); event.stopPropagation();" id="unliked_popular_article_'+ item.connect_articles_id +'">';
+                        liked_article = '<button type="button" class="portal-connect-action" onclick="like_popular_article('+ item.connect_articles_id +'); event.stopPropagation();" id="unliked_popular_article_'+ item.connect_articles_id +'" aria-label="Add to favorites"><svg width="18" height="16" viewBox="0 0 20 18" fill="none" aria-hidden="true"><path d="M10.62 17.71C10.28 17.83 9.72 17.83 9.38 17.71C6.48 16.72 0 12.59 0 5.59C0 2.5 2.49 0 5.56 0C7.38 0 8.99 0.88 10 2.24C11.01 0.88 12.63 0 14.44 0C17.51 0 20 2.5 20 5.59C20 12.59 13.52 16.72 10.62 17.71Z" stroke="currentColor" stroke-width="1.5"/></svg></button>';
                     }
-                    var article_image       = "{{ url('/') }}" + "/" + item.image;
-                    var article_blog_link   = "https://portal.swapcircle.trade/" + "users/connect/blog/";
-    
+
+                    var imagePath = (item.image || '').replace(/^\/+/, '');
+                    var article_image = imagePath.indexOf('http') === 0
+                        ? imagePath
+                        : "{{ url('/') }}/" + imagePath;
+                    var article_blog_link = "{{ url('/users/connect/blog') }}/";
+                    var safeTitle = $('<div>').text(item.title || '').html();
+                    var safeDescription = $('<div>').text(item.description || '').html();
+
                     $('#popular_articles').append('\
-                        <li class="splide__slide cursor_pointer" onclick="view_connect_article_blog('+ item.connect_articles_id +')">\
-                            <div class="card text-start border-0 rounded-4 overflow-hidden h-100">\
-                                <div class="card-body p-2">\
-                                    <img class="card-img-top img-fluid" src="'+ article_image  +'" alt="Title">\
-                                    <h4 class="card-title mt-1">'+ item.title +'</h4>\
-                                    <p class="card-text w-30">'+ item.description +'</p>\
+                        <li class="splide__slide">\
+                            <article class="portal-connect-card portal-connect-card--popular cursor_pointer" onclick="view_connect_article_blog('+ item.connect_articles_id +')">\
+                                <div class="portal-connect-card__media">\
+                                    <img class="portal-connect-card__image" src="'+ article_image +'" alt="'+ safeTitle +'" loading="lazy" onerror="this.onerror=null;this.src=\'{{ asset('images/upload.svg') }}\';">\
                                 </div>\
-                                <div class="card-footer border-top bg-white text-center py-2 d-flex justify-content-center gap-2">\
+                                <div class="portal-connect-card__body">\
+                                    <h3 class="portal-connect-card__title">'+ safeTitle +'</h3>\
+                                    <p class="portal-connect-card__desc">'+ safeDescription +'</p>\
+                                    <span class="portal-connect-card__cta">Read article</span>\
+                                </div>\
+                                <div class="portal-connect-card__actions">\
                                     '+ liked_article +'\
-                                    <div class="card-icon" onclick="event.stopPropagation();" id="popular_article_link" data-clipboard-text="'+ article_blog_link + item. connect_articles_id +'">\
-                                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">\
-                                            <path d="M2.75293 1.875V10.8525C2.75293 11.5875 3.09793 12.285 3.69043 12.7275L7.59792 15.6525C8.43042 16.275 9.57792 16.275 10.4104 15.6525L14.3179 12.7275C14.9104 12.285 15.2554 11.5875 15.2554 10.8525V1.875H2.75293Z" stroke="#4BD16F" stroke-width="1.5" stroke-miterlimit="10"/>\
-                                            <path d="M1.5 1.875H16.5" stroke="#4BD16F" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round"/>\
-                                            <path d="M6 6H12" stroke="#4BD16F" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>\
-                                            <path d="M6 9.75H12" stroke="#4BD16F" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>\
-                                        </svg>\
-                                    </div>\
+                                    <button type="button" class="portal-connect-action portal-connect-action--share" onclick="event.stopPropagation();" data-clipboard-text="'+ article_blog_link + item.connect_articles_id +'" aria-label="Copy article link">\
+                                        <svg width="16" height="16" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M2.75 1.875v8.978c0 .735.345 1.432.938 1.875l3.907 2.925c.833.623 1.98.623 2.813 0l3.907-2.925c.593-.443.938-1.14.938-1.875V1.875H2.75Z" stroke="currentColor" stroke-width="1.5"/><path d="M1.5 1.875h15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M6 6h6M6 9.75h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>\
+                                    </button>\
                                 </div>\
-                            </div>\
+                            </article>\
                         </li>\
                     ');
                 });
+
+                if (window.connectSplidePopular) {
+                    window.connectSplidePopular.refresh();
+                }
+            } else {
+                $('#popular_articles_empty').removeClass('d-none');
+                if (window.connectSplidePopular) {
+                    window.connectSplidePopular.refresh();
+                }
             }
         });
         /* AJAX API CALL */
@@ -1918,16 +2019,21 @@ function enableBuyNow(btn) {
     /* --------------- GET POPULAR ARTICLES --------------- */
 
     /* --------------- GET OTHER ARTICLES --------------- */
-    function get_other_articles() {
-        /* AJAX API CALL */
+    function get_other_articles(categoryId) {
+        var useCategory = categoryId || window.connectActiveCategory;
         var settings = {
-            "url": "{{ rtrim(config('app.api_url'), '/') }}/connect_articles",
+            "url": useCategory
+                ? "{{ rtrim(config('app.api_url'), '/') }}/connect_articles_by_category"
+                : "{{ rtrim(config('app.api_url'), '/') }}/connect_articles",
             "method": "POST",
             "timeout": 0,
             "headers": {
                 "Content-Type": "application/json"
             },
-            "data": JSON.stringify({
+            "data": JSON.stringify(useCategory ? {
+                "users_customers_id": users_customers_id,
+                "connect_categories_id": useCategory,
+            } : {
                 "users_customers_id": users_customers_id,
             }),
         };
@@ -1936,43 +2042,62 @@ function enableBuyNow(btn) {
                 $('#other_articles').html('');
                 var articles = response.data;
 
+                if (!articles || articles.length === 0) {
+                    $('#other_articles_empty').removeClass('d-none');
+                    if (window.connectSplideOthers) {
+                        window.connectSplideOthers.refresh();
+                    }
+                    return;
+                }
+
+                $('#other_articles_empty').addClass('d-none');
+
                 $.each(articles, function (key, item) {
                     var liked_article = '';
                     if (item.liked == 'Yes') {
-                        liked_article = '<img src="{{ asset('users/assets/images/icons/heart1-fav.png') }}" alt="" onclick="unlike_other_article('+ item.connect_articles_id +'); event.stopPropagation();" id="liked_other_article_'+ item.connect_articles_id +'">';
-                    } else{
-                        liked_article = '<img src="{{ asset('users/assets/images/icons/heart1.png') }}" alt="" onclick="like_other_article('+ item.connect_articles_id +'); event.stopPropagation();" id="unliked_other_article_'+ item.connect_articles_id +'">';
+                        liked_article = '<button type="button" class="portal-connect-action portal-connect-action--liked" onclick="unlike_other_article('+ item.connect_articles_id +'); event.stopPropagation();" id="liked_other_article_'+ item.connect_articles_id +'" aria-label="Remove from favorites"><svg width="18" height="16" viewBox="0 0 20 18" fill="none" aria-hidden="true"><path d="M10.62 17.71C10.28 17.83 9.72 17.83 9.38 17.71C6.48 16.72 0 12.59 0 5.59C0 2.5 2.49 0 5.56 0C7.38 0 8.99 0.88 10 2.24C11.01 0.88 12.63 0 14.44 0C17.51 0 20 2.5 20 5.59C20 12.59 13.52 16.72 10.62 17.71Z" fill="currentColor"/></svg></button>';
+                    } else {
+                        liked_article = '<button type="button" class="portal-connect-action" onclick="like_other_article('+ item.connect_articles_id +'); event.stopPropagation();" id="unliked_other_article_'+ item.connect_articles_id +'" aria-label="Add to favorites"><svg width="18" height="16" viewBox="0 0 20 18" fill="none" aria-hidden="true"><path d="M10.62 17.71C10.28 17.83 9.72 17.83 9.38 17.71C6.48 16.72 0 12.59 0 5.59C0 2.5 2.49 0 5.56 0C7.38 0 8.99 0.88 10 2.24C11.01 0.88 12.63 0 14.44 0C17.51 0 20 2.5 20 5.59C20 12.59 13.52 16.72 10.62 17.71Z" stroke="currentColor" stroke-width="1.5"/></svg></button>';
                     }
-                    var article_image       = "{{ url('/') }}" + "/" + item.image;
-                    var article_blog_link   = "https://portal.swapcircle.trade/" + "users/connect/blog/";
-    
+
+                    var imagePath = (item.image || '').replace(/^\/+/, '');
+                    var article_image = imagePath.indexOf('http') === 0
+                        ? imagePath
+                        : "{{ url('/') }}/" + imagePath;
+                    var article_blog_link = "{{ url('/users/connect/blog') }}/";
+                    var safeTitle = $('<div>').text(item.title || '').html();
+                    var safeDescription = $('<div>').text(item.description || '').html();
+
                     $('#other_articles').append('\
-                        <li class="splide__slide cursor_pointer" onclick="view_connect_article_blog('+ item.connect_articles_id +')">\
-                            <div class="card text-start border-0 rounded-4 overflow-hidden p-2 h-100">\
-                                <div class="card-image position-relative">\
-                                    <img class="card-img-top img-fluid" src="'+ article_image +'" alt="Title">\
-                                    <div class="position-absolute top-0 end-0 text-end p-2">\
-                                        <div class="d-flex justify-content-end gap-2 mb-2">\
-                                            '+ liked_article +'\
-                                            <span class="card-icon" onclick="event.stopPropagation();" id="other_article_link" data-clipboard-text="'+ article_blog_link + item.connect_articles_id +'">\
-                                                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">\
-                                                    <path d="M2.75293 1.875V10.8525C2.75293 11.5875 3.09793 12.285 3.69043 12.7275L7.59792 15.6525C8.43042 16.275 9.57792 16.275 10.4104 15.6525L14.3179 12.7275C14.9104 12.285 15.2554 11.5875 15.2554 10.8525V1.875H2.75293Z" stroke="#4BD16F" stroke-width="1.5" stroke-miterlimit="10"/>\
-                                                    <path d="M1.5 1.875H16.5" stroke="#4BD16F" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round"/>\
-                                                    <path d="M6 6H12" stroke="#4BD16F" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>\
-                                                    <path d="M6 9.75H12" stroke="#4BD16F" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>\
-                                                </svg>\
-                                            </span>\
-                                        </div>\
+                        <li class="splide__slide">\
+                            <article class="portal-connect-card portal-connect-card--wide cursor_pointer" onclick="view_connect_article_blog('+ item.connect_articles_id +')">\
+                                <div class="portal-connect-card__media portal-connect-card__media--wide">\
+                                    <img class="portal-connect-card__image" src="'+ article_image +'" alt="'+ safeTitle +'" loading="lazy" onerror="this.onerror=null;this.src=\'{{ asset('images/upload.svg') }}\';">\
+                                    <div class="portal-connect-card__overlay-actions">\
+                                        '+ liked_article +'\
+                                        <button type="button" class="portal-connect-action portal-connect-action--share" onclick="event.stopPropagation();" data-clipboard-text="'+ article_blog_link + item.connect_articles_id +'" aria-label="Copy article link">\
+                                            <svg width="16" height="16" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M2.75 1.875v8.978c0 .735.345 1.432.938 1.875l3.907 2.925c.833.623 1.98.623 2.813 0l3.907-2.925c.593-.443.938-1.14.938-1.875V1.875H2.75Z" stroke="currentColor" stroke-width="1.5"/><path d="M1.5 1.875h15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M6 6h6M6 9.75h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>\
+                                        </button>\
                                     </div>\
                                 </div>\
-                                <div class="card-body px-0 py-2">\
-                                    <h4 class="card-title fw-bold">'+ item.title +'</h4>\
-                                    <p class="card-text">'+ item.description +'</p>\
+                                <div class="portal-connect-card__body">\
+                                    <h3 class="portal-connect-card__title">'+ safeTitle +'</h3>\
+                                    <p class="portal-connect-card__desc">'+ safeDescription +'</p>\
+                                    <span class="portal-connect-card__cta">Read article</span>\
                                 </div>\
-                            </div>\
+                            </article>\
                         </li>\
                     ');
                 });
+
+                if (window.connectSplideOthers) {
+                    window.connectSplideOthers.refresh();
+                }
+            } else {
+                $('#other_articles_empty').removeClass('d-none');
+                if (window.connectSplideOthers) {
+                    window.connectSplideOthers.refresh();
+                }
             }
         });
         /* AJAX API CALL */
@@ -1996,10 +2121,6 @@ function enableBuyNow(btn) {
         };
         $.ajax(settings).done(function (response) {
             if (response.status == 'success') {
-                // replace image
-                var source = '{{ asset('users/assets/images/icons/heart1-fav.png') }}';
-                $('#unliked_popular_article_' + id).attr('src', source);
-
                 get_popular_articles();
                 get_other_articles();
                 toastr.success('Article added to favorite.');
@@ -2028,10 +2149,6 @@ function enableBuyNow(btn) {
         };
         $.ajax(settings).done(function (response) {
             if (response.status == 'success') {
-                // replace image
-                var source = '{{ asset('users/assets/images/icons/heart1.png') }}';
-                $('#liked_popular_article_' + id).attr('src', source);
-
                 get_popular_articles();
                 get_other_articles();
                 toastr.success('Article removed from favorite.');
@@ -2060,10 +2177,6 @@ function enableBuyNow(btn) {
         };
         $.ajax(settings).done(function (response) {
             if (response.status == 'success') {
-                // replace image
-                var source = '{{ asset('users/assets/images/icons/heart1-fav.png') }}';
-                $("#unliked_other_article_" + id).attr('src', source);
-
                 get_popular_articles();
                 get_other_articles();
                 toastr.success('Article added to favorite.');
@@ -2092,10 +2205,6 @@ function enableBuyNow(btn) {
         };
         $.ajax(settings).done(function (response) {
             if (response.status == 'success') {
-                // replace image
-                var source = '{{ asset('users/assets/images/icons/heart1.png') }}';
-                $('#liked_other_article_' + id).attr("src", source);
-
                 get_popular_articles();
                 get_other_articles();
                 toastr.success('Article removed from favorite.');
@@ -2114,50 +2223,94 @@ function enableBuyNow(btn) {
     /* --------------- VIEW CONNECT ARTICLE BLOG --------------- */
 
     /* --------------- GET CONNECT ARTICLE BLOG --------------- */
+    function renderConnectArticleDetail(item) {
+        if (!item) {
+            $('#connect_article_blog').html('\
+                <div class="portal-connect-empty">\
+                    <p>This article could not be found or is no longer available.</p>\
+                    <a href="{{ url('/users/connect') }}" class="btn btn-login btn-primary mt-3">Back to Connect</a>\
+                </div>\
+            ');
+            return;
+        }
+
+        var likedMarkup = '';
+        if (item.liked === 'Yes') {
+            likedMarkup = '<button type="button" class="portal-connect-action portal-connect-action--liked" onclick="unlike_other_article(' + item.connect_articles_id + '); setTimeout(get_connect_article_blog, 400);" aria-label="Remove from favorites"><svg width="18" height="16" viewBox="0 0 20 18" fill="none" aria-hidden="true"><path d="M10.62 17.71C10.28 17.83 9.72 17.83 9.38 17.71C6.48 16.72 0 12.59 0 5.59C0 2.5 2.49 0 5.56 0C7.38 0 8.99 0.88 10 2.24C11.01 0.88 12.63 0 14.44 0C17.51 0 20 2.5 20 5.59C20 12.59 13.52 16.72 10.62 17.71Z" fill="currentColor"/></svg></button>';
+        } else {
+            likedMarkup = '<button type="button" class="portal-connect-action" onclick="like_other_article(' + item.connect_articles_id + '); setTimeout(get_connect_article_blog, 400);" aria-label="Add to favorites"><svg width="18" height="16" viewBox="0 0 20 18" fill="none" aria-hidden="true"><path d="M10.62 17.71C10.28 17.83 9.72 17.83 9.38 17.71C6.48 16.72 0 12.59 0 5.59C0 2.5 2.49 0 5.56 0C7.38 0 8.99 0.88 10 2.24C11.01 0.88 12.63 0 14.44 0C17.51 0 20 2.5 20 5.59C20 12.59 13.52 16.72 10.62 17.71Z" stroke="currentColor" stroke-width="1.5"/></svg></button>';
+        }
+
+        var imagePath = (item.image || '').replace(/^\/+/, '');
+        var article_image = imagePath.indexOf('http') === 0
+            ? imagePath
+            : "{{ url('/') }}/" + imagePath;
+        var article_blog_link = "{{ url('/users/connect/blog') }}/" + item.connect_articles_id;
+        var safeTitle = $('<div>').text(item.title || '').html();
+        var safeDescription = $('<div>').text(item.description || '').html();
+        var addedDate = item.added_date ? new Date(item.added_date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }) : '';
+
+        document.title = safeTitle.replace(/<[^>]*>/g, '') + ' :: Connect';
+
+        $('#connect_article_blog').html('\
+            <article class="portal-connect-article-panel">\
+                <div class="portal-connect-article__hero">\
+                    <img class="portal-connect-article__image" src="' + article_image + '" alt="' + safeTitle + '" onerror="this.onerror=null;this.src=\'{{ asset('images/upload.svg') }}\';this.classList.add(\'portal-connect-article__image--fallback\');">\
+                    <div class="portal-connect-article__hero-actions">\
+                        ' + likedMarkup + '\
+                        <button type="button" class="portal-connect-action portal-connect-action--share" data-clipboard-text="' + article_blog_link + '" aria-label="Copy article link">\
+                            <svg width="16" height="16" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M2.75 1.875v8.978c0 .735.345 1.432.938 1.875l3.907 2.925c.833.623 1.98.623 2.813 0l3.907-2.925c.593-.443.938-1.14.938-1.875V1.875H2.75Z" stroke="currentColor" stroke-width="1.5"/><path d="M1.5 1.875h15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M6 6h6M6 9.75h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>\
+                        </button>\
+                    </div>\
+                </div>\
+                <div class="portal-connect-article__content">\
+                    ' + (addedDate ? '<span class="portal-connect-article__date">' + addedDate + '</span>' : '') + '\
+                    <h1 class="portal-connect-article__title">' + safeTitle + '</h1>\
+                    <div class="portal-connect-article__body">' + safeDescription + '</div>\
+                </div>\
+            </article>\
+        ');
+    }
+
     function get_connect_article_blog() {
         var connect_articles_id = Number($('#connect_articles_id').val());
 
-        if (connect_articles_id !== '') {
-            /* AJAX API CALL */
-            var settings = {
-                "url": "{{ rtrim(config('app.api_url'), '/') }}/popular_connect_articles",
-                "method": "POST",
-                "timeout": 0,
-                "headers": {
-                    "Content-Type": "application/json"
-                },
-                "data": JSON.stringify({
-                    "users_customers_id": users_customers_id,
-                }),
-            };
-            $.ajax(settings).done(function (response) { 
-                if (response.status == 'success') {
-                    $('#connect_article_blog').empty();
-                    var article = Object.values(response.data).filter(obj => obj.connect_articles_id === connect_articles_id);
-                  
-                    $.each(article, function (key, item) {
-                        var article_image = "{{ url('/') }}" + "/" + item.image;
-    
-                        $('#connect_article_blog').append('\
-                            <div class="row mt-0 d-flex justify-content-center">\
-                                <div class="col-lg-5 col-md-7">\
-                                    <div class="card text-start border-0 rounded-4 overflow-hidden p-3">\
-                                        <div class="card-image position-relative">\
-                                            <img class="card-img-top img-fluid" src="'+ article_image +'" alt="Title">\
-                                        </div>\
-                                        <div class="card-body px-0 py-2">\
-                                            <h4 class="fw-bold">'+ item.title +'</h4>\
-                                            <p>'+ item.description +'</p>\
-                                        </div>\
-                                    </div>\
-                                </div>\
-                            </div>\
-                        ');
-                    });
-                }
-            });
-           /* AJAX API CALL */
+        if (!connect_articles_id) {
+            renderConnectArticleDetail(null);
+            return;
         }
+
+        $.ajax({
+            url: "{{ rtrim(config('app.api_url'), '/') }}/connect_article_view",
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            data: JSON.stringify({
+                users_customers_id: users_customers_id,
+                connect_articles_id: connect_articles_id,
+            }),
+        });
+
+        $.ajax({
+            url: "{{ rtrim(config('app.api_url'), '/') }}/connect_articles",
+            method: "POST",
+            timeout: 0,
+            headers: { "Content-Type": "application/json" },
+            data: JSON.stringify({
+                users_customers_id: users_customers_id,
+            }),
+        }).done(function (response) {
+            if (response.status === 'success') {
+                var article = (response.data || []).find(function (item) {
+                    return Number(item.connect_articles_id) === connect_articles_id;
+                });
+
+                renderConnectArticleDetail(article);
+            } else {
+                renderConnectArticleDetail(null);
+            }
+        }).fail(function () {
+            renderConnectArticleDetail(null);
+        });
     }
     /* --------------- GET CONNECT ARTICLE BLOG --------------- */
 
@@ -2175,35 +2328,63 @@ function enableBuyNow(btn) {
             if (response.status == 'success') {
                 var currencies = response.data;
 
-                $.each(currencies, function (key, item) { 
+                var trackSelects = '#buy_from_currency, #buy_to_currency, #sell_from_currency, #sell_to_currency';
+                $(trackSelects).empty();
+
+                $.each(currencies, function (key, item) {
                     // buy from currency
                     $('#buy_from_currency').append('\
-                        <option code="'+ item.code +'" symbol="'+ item.symbol +'" value="'+ item.system_currencies_id +'">\
+                        <option code="'+ item.code +'" symbol="'+ item.symbol +'" data-name="'+ item.name +'" value="'+ item.system_currencies_id +'">\
                             '+ item.code +' ('+ item.symbol +')\
                         </option>\
                     ');
 
                     // buy to currency
                     $('#buy_to_currency').append('\
-                        <option code="'+ item.code +'" symbol="'+ item.symbol +'" value="'+ item.system_currencies_id +'">\
+                        <option code="'+ item.code +'" symbol="'+ item.symbol +'" data-name="'+ item.name +'" value="'+ item.system_currencies_id +'">\
                             '+ item.code +' ('+ item.symbol +')\
                         </option>\
                     ');
 
                     // sell from currency
                     $('#sell_from_currency').append('\
-                        <option code="'+ item.code +'" symbol="'+ item.symbol +'" value="'+ item.system_currencies_id +'">\
+                        <option code="'+ item.code +'" symbol="'+ item.symbol +'" data-name="'+ item.name +'" value="'+ item.system_currencies_id +'">\
                             '+ item.code +' ('+ item.symbol +')\
                         </option>\
                     ');
 
                     // sell to currency
                     $('#sell_to_currency').append('\
-                        <option code="'+ item.code +'" symbol="'+ item.symbol +'" value="'+ item.system_currencies_id +'">\
+                        <option code="'+ item.code +'" symbol="'+ item.symbol +'" data-name="'+ item.name +'" value="'+ item.system_currencies_id +'">\
                             '+ item.code +' ('+ item.symbol +')\
                         </option>\
                     ');
                 });
+
+                var trackSelects = '#buy_from_currency, #buy_to_currency, #sell_from_currency, #sell_to_currency';
+
+                var defaultFrom = $('#buy_from_currency option[code="USD"]').first().val()
+                    || $('#buy_from_currency option:first').val();
+                var defaultTo = $('#buy_to_currency option[code="EUR"]').first().val()
+                    || $('#buy_to_currency option:first').val();
+
+                if (defaultFrom) {
+                    $('#buy_from_currency, #sell_from_currency').val(defaultFrom);
+                }
+
+                if (defaultTo) {
+                    $('#buy_to_currency, #sell_to_currency').val(defaultTo);
+                }
+
+                $(document).trigger('track:currencies-loaded');
+            } else {
+                if (typeof toastr !== 'undefined') {
+                    toastr.error(response.message || 'Unable to load currencies.');
+                }
+            }
+        }).fail(function () {
+            if (typeof toastr !== 'undefined') {
+                toastr.error('Unable to load currencies. Please refresh the page.');
             }
         });
         /* AJAX API CALL */
@@ -2334,112 +2515,147 @@ function enableBuyNow(btn) {
     /* --------------- GET BUY CONVERTED AMOUNT --------------- */ 
 
     /* --------------- CONVERT BUY CURRENCY --------------- */
-    function convert_buy_currency() { 
-        var from_currency    = $('#buy_from_currency option:selected').val();
-        var to_currency      = $('#buy_to_currency option:selected').val();
-        var entered_amount   = $('#buy_entered_amount').val();
-       
-        if (entered_amount !== '') {
-            /* AJAX API CALL */
-            var settings = {
-                "url": "{{ rtrim(config('app.api_url'), '/') }}/buy_currency_rate",
-                "method": "POST",
-                "timeout": 0,
-                "headers": {
-                    "Content-Type": "application/json"
-                },
-                "data": JSON.stringify({
-                    "from_system_currencies_id": from_currency,
-                    "to_system_currencies_id": to_currency,
-                    "from_amount":entered_amount,
-                }),
-            };
-            $.ajax(settings).done(function (response) {
-                if (response.status == 'success') {
-                    var buy = response.data; 
+    function formatTrackMoney(amount, symbol) {
+        var parts = parseFloat(amount).toFixed(2).split('.');
+        var prefix = symbol ? symbol + ' ' : '';
+        return prefix + parts[0] + '.<span class="portal-track-decimals">' + parts[1] + '</span>';
+    }
 
-                    // buy converted amount
-                    var converted_amount = buy.converted_amount.toFixed(2).split('.');
-                    $('#buy_converted_amount').html('\
-                        '+ converted_amount[0] +'.\
-                        <span class="text-primary">'+ converted_amount[1] +'</span>\
-                    ');
-                   
-                    // buy live rate
-                    $('#buy_live_rate').html('\
-                        '+ converted_amount[0] +'.\
-                        <span class="text-primary">'+ converted_amount[1] +'</span>\
-                    ');
+    function formatTrackRateLabel(fromCode, toCode, rate) {
+        return '1 ' + fromCode + ' = ' + parseFloat(rate).toFixed(4) + ' ' + toCode;
+    }
 
-                    // buy admin rate
-                    var admin_rate = buy.admin_rate_amount.toFixed(2).split('.');
-                    $('#buy_admin_rate').html('\
-                        '+ admin_rate[0] +'.\
-                        <span class="text-primary">'+ admin_rate[1] +'</span>\
-                    ');
-
-                    $('#buy_rates').removeClass('d-none');
-                } else {
-                    toastr.error(response.message);
-                }
-            });
-            /* AJAX API CALL */
+    function setTrackButtonLoading($btn, isLoading) {
+        if (isLoading) {
+            $btn.prop('disabled', true).addClass('is-loading').data('label', $btn.text()).text('Converting…');
+            return;
         }
+
+        $btn.prop('disabled', false).removeClass('is-loading').text($btn.data('label') || 'Convert currency');
+    }
+
+    function convert_buy_currency() {
+        var $btn = $('#buy_convert_btn');
+        var from_currency = $('#buy_from_currency').val();
+        var to_currency = $('#buy_to_currency').val();
+        var entered_amount = ($('#buy_entered_amount').val() || '').trim();
+        var fromCode = $('#buy_from_currency option:selected').attr('code') || '';
+        var toCode = $('#buy_to_currency option:selected').attr('code') || '';
+        var toSymbol = $('#buy_to_currency option:selected').attr('symbol') || '';
+
+        if (!window.trackCurrenciesReady) {
+            toastr.error('Currencies are still loading. Please wait a moment.');
+            return;
+        }
+
+        if (!from_currency || !to_currency) {
+            toastr.error('Please select a currency from the dropdown.');
+            return;
+        }
+
+        if (from_currency === to_currency) {
+            toastr.error('Please select different currencies.');
+            return;
+        }
+
+        if (entered_amount === '' || isNaN(parseFloat(entered_amount)) || parseFloat(entered_amount) <= 0) {
+            toastr.error('Please enter a valid amount.');
+            return;
+        }
+
+        setTrackButtonLoading($btn, true);
+
+        $.ajax({
+            url: "{{ rtrim(config('app.api_url'), '/') }}/buy_currency_rate",
+            method: 'POST',
+            timeout: 30000,
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            data: JSON.stringify({
+                from_system_currencies_id: from_currency,
+                to_system_currencies_id: to_currency,
+                from_amount: entered_amount
+            })
+        }).done(function (response) {
+            if (response.status === 'success') {
+                var buy = response.data;
+
+                $('#buy_converted_amount').html(formatTrackMoney(buy.converted_amount, toSymbol)).closest('.portal-track-input-shell').addClass('has-value');
+                $('#buy_live_rate').text(formatTrackRateLabel(fromCode, toCode, buy.converte_rate));
+                $('#buy_admin_rate').html(formatTrackMoney(buy.admin_rate_amount, toSymbol));
+                $('#buy_rates').removeClass('d-none');
+            } else {
+                toastr.error(response.message || 'Conversion failed.');
+            }
+        }).fail(function () {
+            toastr.error('Unable to reach the server. Please try again.');
+        }).always(function () {
+            setTrackButtonLoading($btn, false);
+        });
     }
     /* --------------- CONVERT BUY CURRENCY --------------- */
 
     /* --------------- CONVERT SELL CURRENCY --------------- */
     function convert_sell_currency() {
-        var from_currency    = $('#sell_from_currency option:selected').val();
-        var to_currency      = $('#sell_to_currency option:selected').val();
-        var entered_amount   = $('#sell_entered_amount').val();
+        var $btn = $('#sell_convert_btn');
+        var from_currency = $('#sell_from_currency').val();
+        var to_currency = $('#sell_to_currency').val();
+        var entered_amount = ($('#sell_entered_amount').val() || '').trim();
+        var fromCode = $('#sell_from_currency option:selected').attr('code') || '';
+        var toCode = $('#sell_to_currency option:selected').attr('code') || '';
+        var toSymbol = $('#sell_to_currency option:selected').attr('symbol') || '';
 
-        if (entered_amount !== '') {
-            /* AJAX API CALL */
-            var settings = {
-                "url": "{{ rtrim(config('app.api_url'), '/') }}/sell_currency_rate",
-                "method": "POST",
-                "timeout": 0,
-                "headers": {
-                    "Content-Type": "application/json"
-                },
-                "data": JSON.stringify({
-                    "from_system_currencies_id": from_currency,
-                    "to_system_currencies_id": to_currency,
-                    "from_amount":entered_amount,
-                }),
-            };
-            $.ajax(settings).done(function (response) {
-                if (response.status == 'success') { 
-                    var sell = response.data; 
-
-                    // sell converted amount
-                    var converted_amount = sell.converted_amount.toFixed(2).split('.');
-                    $('#sell_converted_amount').html('\
-                        '+ converted_amount[0] +'.\
-                        <span class="text-primary">'+ converted_amount[1] +'</span>\
-                    ');
-                   
-                    // sell live rate
-                    $('#sell_live_rate').html('\
-                        '+ converted_amount[0] +'.\
-                        <span class="text-primary">'+ converted_amount[1] +'</span>\
-                    ');
-
-                    // sell admin rate
-                    var admin_rate = sell.admin_rate_amount.toFixed(2).split('.');
-                    $('#sell_admin_rate').html('\
-                        '+ admin_rate[0] +'.\
-                        <span class="text-primary">'+ admin_rate[1] +'</span>\
-                    ');
-
-                    $('#sell_rates').removeClass('d-none');
-                } else {
-                    toastr.error(response.message);
-                }
-            });
-            /* AJAX API CALL */
+        if (!window.trackCurrenciesReady) {
+            toastr.error('Currencies are still loading. Please wait a moment.');
+            return;
         }
+
+        if (!from_currency || !to_currency) {
+            toastr.error('Please select a currency from the dropdown.');
+            return;
+        }
+
+        if (from_currency === to_currency) {
+            toastr.error('Please select different currencies.');
+            return;
+        }
+
+        if (entered_amount === '' || isNaN(parseFloat(entered_amount)) || parseFloat(entered_amount) <= 0) {
+            toastr.error('Please enter a valid amount.');
+            return;
+        }
+
+        setTrackButtonLoading($btn, true);
+
+        $.ajax({
+            url: "{{ rtrim(config('app.api_url'), '/') }}/sell_currency_rate",
+            method: 'POST',
+            timeout: 30000,
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            data: JSON.stringify({
+                from_system_currencies_id: from_currency,
+                to_system_currencies_id: to_currency,
+                from_amount: entered_amount
+            })
+        }).done(function (response) {
+            if (response.status === 'success') {
+                var sell = response.data;
+
+                $('#sell_converted_amount').html(formatTrackMoney(sell.converted_amount, toSymbol)).closest('.portal-track-input-shell').addClass('has-value');
+                $('#sell_live_rate').text(formatTrackRateLabel(fromCode, toCode, sell.converte_rate));
+                $('#sell_admin_rate').html(formatTrackMoney(sell.admin_rate_amount, toSymbol));
+                $('#sell_rates').removeClass('d-none');
+            } else {
+                toastr.error(response.message || 'Conversion failed.');
+            }
+        }).fail(function () {
+            toastr.error('Unable to reach the server. Please try again.');
+        }).always(function () {
+            setTrackButtonLoading($btn, false);
+        });
     }
     /* --------------- CONVERT SELL CURRENCY --------------- */
 
@@ -2553,14 +2769,29 @@ function enableBuyNow(btn) {
             }),
         };
         $.ajax(settings).done(function (response) {
-            if (response.status == 'success') {
-                var profile_image = "{{ url('') }}" + "/" + response.data.profile_pic;
+            if (response.status == 'success' && response.data && response.data.profile_pic) {
+                var profilePic = String(response.data.profile_pic).replace(/^\/+/, '');
+                var profile_image = "{{ url('') }}/" + profilePic;
 
-                $('#user_profile').attr('src', profile_image); 
-                $('#profile_pic').attr('src', profile_image); 
-                $('#edit_profile_pic').attr('src', profile_image); 
-            } else {
+                $('#user_profile, #profile_pic, #edit_profile_pic').each(function () {
+                    var $img = $(this);
+                    $img.off('error.portalAvatar').on('error.portalAvatar', function () {
+                        $img.addClass('d-none');
+                        if ($img.attr('id') === 'user_profile') {
+                            $('#user_profile_initial').addClass('is-visible');
+                        } else {
+                            $img.next('.portal-profile-avatar__initial').removeClass('d-none');
+                        }
+                    }).removeClass('d-none').attr('src', profile_image);
 
+                    if ($img.attr('id') === 'user_profile') {
+                        $('#user_profile_initial').removeClass('is-visible');
+                    }
+
+                    if ($img.attr('id') === 'profile_pic' || $img.attr('id') === 'edit_profile_pic') {
+                        $img.next('.portal-profile-avatar__initial').addClass('d-none');
+                    }
+                });
             }
         });
         /* AJAX API CALL */
@@ -2614,10 +2845,12 @@ function enableBuyNow(btn) {
                         };
                         $.ajax(settings).done(function (response) {
                             if (response.status == 'success') {
-                                var new_dp = "{{ url('') }}" + "/" + response.data[0].profile_pic;
-                                $('#user_profile').attr('src', new_dp); 
-                                $('#profile_pic').attr('src', new_dp); 
-                                $('#edit_profile_pic').attr('src', new_dp); 
+                                var new_dp = "{{ url('') }}/" + response.data[0].profile_pic;
+                                $('#user_profile').removeClass('d-none').attr('src', new_dp);
+                                $('#user_profile_initial').removeClass('is-visible');
+                                $('#profile_pic').removeClass('d-none').attr('src', new_dp);
+                                $('#edit_profile_pic').removeClass('d-none').attr('src', new_dp);
+                                $('.portal-profile-avatar__initial').addClass('d-none'); 
                                 toastr.success('Profile Image is updated successfully.');
                             } else {
                                 toastr.error(response.message);
@@ -2648,10 +2881,12 @@ function enableBuyNow(btn) {
                         };
                         $.ajax(settings).done(function (response) { 
                             if (response.status == 'success') {
-                                var new_dp = "{{ url('') }}" + '/' + response.data[0].profile_pic;
-                                $('#user_profile').attr('src', new_dp); 
-                                $('#profile_pic').attr('src', new_dp); 
-                                $('#edit_profile_pic').attr('src', new_dp); 
+                                var new_dp = "{{ url('') }}/" + response.data[0].profile_pic;
+                                $('#user_profile').removeClass('d-none').attr('src', new_dp);
+                                $('#user_profile_initial').removeClass('is-visible');
+                                $('#profile_pic').removeClass('d-none').attr('src', new_dp);
+                                $('#edit_profile_pic').removeClass('d-none').attr('src', new_dp);
+                                $('.portal-profile-avatar__initial').addClass('d-none');
                                 toastr.success('Profile Image is updated successfully.');
                             } else {
                                 toastr.error(response.message);
@@ -2895,41 +3130,92 @@ function enableBuyNow(btn) {
 
     /* --------------- GET ADD ACCOUNT PARAMS --------------- */
     function get_add_account_params() {
-        $('#mdl_add_account').modal('show');
-
+        $('#frm_add_account')[0].reset();
+        $('#error_account_currency, #error_account_holder_name, #error_account_bank_name, #error_account_branch_code, #error_account_number, #error_account_iban').html('');
         get_account_currencies();
+        $('#mdl_add_account').modal('show');
     }
     /* --------------- GET ADD ACCOUNT PARAMS --------------- */
 
     /* --------------- GET ACCOUNT CURRENCIES --------------- */
     function get_account_currencies() {
-        /* AJAX API CALL */
+        var $select = $('#account_currency');
+
+        $select.prop('disabled', true).empty().append(
+            '<option value="" disabled selected hidden>Loading currencies...</option>'
+        );
+        portalRefreshSelect2($select);
+
+        function populateAccountCurrencyOptions(items, labelBuilder) {
+            $select.empty().append(
+                '<option value="" disabled selected hidden>Select currency</option>'
+            );
+
+            $.each(items, function (key, item) {
+                $select.append(
+                    '<option value="' + item.system_currencies_id + '">' + labelBuilder(item) + '</option>'
+                );
+            });
+
+            $select.prop('disabled', false);
+            portalInitSelect2($select);
+        }
+
+        function loadAllAccountCurrencies() {
+            $.ajax({
+                url: "{{ rtrim(config('app.api_url'), '/') }}/all_currencies",
+                method: "GET",
+                timeout: 0,
+            }).done(function (response) {
+                if (response.status === 'success' && response.data && response.data.length) {
+                    populateAccountCurrencyOptions(response.data, function (item) {
+                        var countryName = item.country && item.country.name ? item.country.name + ' ' : '';
+                        return countryName + '(' + item.code + ')';
+                    });
+                } else {
+                    $select.empty().append(
+                        '<option value="" disabled selected hidden>No currencies available</option>'
+                    );
+                    $select.prop('disabled', true);
+                    portalInitSelect2($select);
+                    toastr.error(response.message || 'Unable to load currencies.');
+                }
+            }).fail(function () {
+                $select.empty().append(
+                    '<option value="" disabled selected hidden>Unable to load currencies</option>'
+                );
+                $select.prop('disabled', true);
+                portalInitSelect2($select);
+                toastr.error('Unable to load currencies. Please try again.');
+            });
+        }
+
         var settings = {
-            "url": "{{ rtrim(config('app.api_url'), '/') }}/get_wallet",
-            "method": "POST",
-            "timeout": 0,
-            "headers": {
+            url: "{{ rtrim(config('app.api_url'), '/') }}/get_wallet",
+            method: "POST",
+            timeout: 0,
+            headers: {
                 "Content-Type": "application/json"
             },
-            "data": JSON.stringify({
-                "users_customers_id": users_customers_id,
+            data: JSON.stringify({
+                users_customers_id: users_customers_id,
             }),
         };
-        $.ajax(settings).done(function (response) {
-           if (response.status == 'success') {
-                var currencies = response.data;
 
-                $.each(currencies, function (key, item) {
-                    var flag_image = "{{ url('') }}" + item.currency.country.image;
-                    $('#account_currency').append('\
-                        <option value="'+item.system_currencies_id+'">\
-                            '+item.currency.name+' ('+item.currency.code+')\
-                        </option>\
-                    ');
+        $.ajax(settings).done(function (response) {
+            if (response.status === 'success' && response.data && response.data.length) {
+                populateAccountCurrencyOptions(response.data, function (item) {
+                    var currency = item.currency || {};
+                    var name = currency.name || 'Currency';
+                    var code = currency.code || '';
+                    return name + (code ? ' (' + code + ')' : '');
                 });
-           }
+            } else {
+                loadAllAccountCurrencies();
+            }
+        }).fail(function () {
+            loadAllAccountCurrencies();
         });
-        /* AJAX API CALL */
     }
     /* --------------- GET ACCOUNT CURRENCIES --------------- */
 
@@ -3157,49 +3443,89 @@ function enableBuyNow(btn) {
     /* --------------- SUBMIT WITHDRAW AMOUNT --------------- */
 
     /* --------------- GET FAQS --------------- */
-    function get_faqs() {
-        /* AJAX API CALL */
-        var settings = {
-            "url": "{{ rtrim(config('app.api_url'), '/') }}/all_faqs",
-            "method": "GET",
-            "timeout": 0,
-        };
-        $.ajax(settings).done(function (response) {
-            if (response.status == 'success') {
-                var faqs = response.data;
+    function initPortalFaqAccordion($root) {
+        if (!$root || !$root.length || $root.data('portalFaqBound')) {
+            return;
+        }
 
-                $.each(faqs, function (key, item) { 
-                    if (key == 0) {
-                        $('#accordionExample').append('\
-                            <div class="accordion-item">\
-                                <h2 class="accordion-header" id="headingOne">\
-                                    <button class="accordion-button bg-white" type="button" data-bs-toggle="collapse" data-bs-target="#'+ item.faqs_id +'" aria-expanded="true" aria-controls="'+ item.faqs_id +'">\
-                                        '+ item.question +'\
-                                    </button>\
-                                </h2>\
-                                <div id="'+ item.faqs_id +'" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#accordionExample">\
-                                    <div class="accordion-body pt-0">'+ item.answer +'\</div>\
-                                </div>\
-                            </div> \
-                        ');
-                    } else {
-                        $('#accordionExample').append('\
-                            <div class="accordion-item">\
-                                <h2 class="accordion-header" id="heading">\
-                                    <button class="accordion-button bg-white collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#'+ item.faqs_id +'" aria-expanded="false" aria-controls="'+ item.faqs_id +'">\
-                                        '+ item.question +'\
-                                    </button>\
-                                </h2>\
-                                <div id="'+ item.faqs_id +'" class="accordion-collapse collapse" aria-labelledby="heading" data-bs-parent="#accordionExample">\
-                                    <div class="accordion-body pt-0">'+ item.answer +'</div>\
-                                </div>\
-                            </div>\
-                        ');
-                    }
-                });
+        $root.data('portalFaqBound', true);
+
+        $root.on('click', '.portal-faq-trigger', function (event) {
+            event.preventDefault();
+
+            var $trigger = $(this);
+            var $item = $trigger.closest('.portal-faq-item');
+            var shouldOpen = !$item.hasClass('is-open');
+
+            $root.find('.portal-faq-item.is-open').removeClass('is-open')
+                .find('.portal-faq-trigger')
+                .attr('aria-expanded', 'false');
+
+            if (shouldOpen) {
+                $item.addClass('is-open');
+                $trigger.attr('aria-expanded', 'true');
             }
         });
-        /* AJAX API CALL */
+    }
+
+    function get_faqs() {
+        var $accordion = $('#accordionExample');
+        $accordion.empty().append(
+            '<div class="portal-faq-loading">Loading questions...</div>'
+        );
+
+        $.ajax({
+            url: "{{ rtrim(config('app.api_url'), '/') }}/all_faqs",
+            method: "GET",
+            timeout: 0,
+        }).done(function (response) {
+            $accordion.empty();
+
+            if (response.status !== 'success' || !response.data || !response.data.length) {
+                $accordion.html(
+                    '<div class="portal-faq-empty">' +
+                        '<div class="portal-faq-empty__icon" aria-hidden="true">?</div>' +
+                        '<p>No FAQs available yet. Check back soon.</p>' +
+                    '</div>'
+                );
+                return;
+            }
+
+            $.each(response.data, function (key, item) {
+                var isOpen = key === 0;
+                var bodyId = 'faq-body-' + item.faqs_id;
+                var headingId = 'faq-heading-' + item.faqs_id;
+                var question = $('<div>').text(item.question || 'Question').html();
+                var rawAnswer = item.answer && String(item.answer).trim() ? String(item.answer).trim() : '';
+                var answer = rawAnswer
+                    ? (/<[a-z][\s\S]*>/i.test(rawAnswer)
+                        ? rawAnswer
+                        : '<p>' + $('<div>').text(rawAnswer).html() + '</p>')
+                    : '<p class="portal-faq-answer__empty">No answer provided yet.</p>';
+
+                $accordion.append(
+                    '<article class="portal-faq-item' + (isOpen ? ' is-open' : '') + '" id="faq-item-' + item.faqs_id + '">' +
+                        '<h2 class="portal-faq-heading" id="' + headingId + '">' +
+                            '<button class="portal-faq-trigger" type="button" ' +
+                                'aria-expanded="' + (isOpen ? 'true' : 'false') + '" aria-controls="' + bodyId + '">' +
+                                '<span class="portal-faq-trigger__text">' + question + '</span>' +
+                            '</button>' +
+                        '</h2>' +
+                        '<div class="portal-faq-body" id="' + bodyId + '" role="region" aria-labelledby="' + headingId + '">' +
+                            '<div class="portal-faq-answer">' + answer + '</div>' +
+                        '</div>' +
+                    '</article>'
+                );
+            });
+
+            initPortalFaqAccordion($accordion);
+        }).fail(function () {
+            $accordion.html(
+                '<div class="portal-faq-empty">' +
+                    '<p>Unable to load FAQs. Please refresh the page.</p>' +
+                '</div>'
+            );
+        });
     }
     /* --------------- GET FAQS --------------- */
 
@@ -3294,6 +3620,50 @@ function enableBuyNow(btn) {
     }
     /* --------------- START CHAT --------------- */
 
+    var portalMessagesPollId = null;
+
+    function portalEscapeHtml(value) {
+        return $('<div>').text(value == null ? '' : String(value)).html();
+    }
+
+    function portalChatInitials(userData) {
+        var first = (userData && userData.first_name ? String(userData.first_name).trim() : '').charAt(0);
+        var last = (userData && userData.last_name ? String(userData.last_name).trim() : '').charAt(0);
+        return (first + last).toUpperCase() || 'U';
+    }
+
+    function portalChatAvatarHtml(userData, className) {
+        var avatarClass = className || 'portal-messages-item__avatar';
+        var initials = portalChatInitials(userData);
+        var profilePic = userData && userData.profile_pic ? String(userData.profile_pic).replace(/^\/+/, '') : '';
+
+        if (profilePic) {
+            var imageUrl = "{{ url('') }}/" + profilePic;
+            return '<div class="' + avatarClass + '">' +
+                '<img src="' + imageUrl + '" alt="" onerror="this.style.display=\'none\'; this.parentElement.classList.add(\'is-initial\'); this.parentElement.textContent=\'' + initials + '\';">' +
+            '</div>';
+        }
+
+        return '<div class="' + avatarClass + ' is-initial">' + initials + '</div>';
+    }
+
+    function portalSetActiveChat(userId) {
+        $('#all_chats .portal-messages-item').removeClass('is-active');
+        $('#all_chats .portal-messages-item[data-user-id="' + userId + '"]').addClass('is-active');
+    }
+
+    function portalShowChatComposer(show) {
+        if (show) {
+            $('#no_message').addClass('d-none');
+            $('#send_message').removeClass('d-none');
+            $('#messages').addClass('is-visible');
+        } else {
+            $('#no_message').removeClass('d-none');
+            $('#send_message').addClass('d-none');
+            $('#messages').removeClass('is-visible').empty();
+        }
+    }
+
     /* --------------- GET ALL CHATS --------------- */
     function get_all_chats() {
         /* AJAX API CALL */
@@ -3309,46 +3679,50 @@ function enableBuyNow(btn) {
             }),
         };
         $.ajax(settings).done(function (response) {
-            if (response.status == 'success') {
+            if (response.status == 'success' && response.data && response.data.length) {
                 $('#all_chats').empty();
                 var chats = response.data;
 
                 $.each(chats, function (key, item) {
-                    var user_id = '';
-                        user_id += item.user_data.users_customers_id;
+                    var userId = item.user_data.users_customers_id;
+                    var userName = portalEscapeHtml(
+                        $.trim((item.user_data.first_name || '') + ' ' + (item.user_data.last_name || ''))
+                    );
+                    var lastMessage = portalEscapeHtml(item.last_message || 'No messages yet');
+                    var chatDate = portalEscapeHtml(item.date || '');
 
-                    var user_name = '';
-                        user_name += item.user_data.first_name;
-                        user_name += ' ';
-                        user_name += item.user_data.last_name;
-
-                    var user_image = '';
-                        user_image += "{{ url('/') }}" + "/" + item.user_data.profile_pic;
-
-                    $('#all_chats').append('\
-                        <li class="px-3 py-0 d-flex gap-0 msg-tab" onclick="get_messages('+ user_id +')">\
-                            <div class="me-2 d-flex align-items-center flex-grow-1">\
-                                <div class="position-relative me-2">\
-                                    <img src="'+ user_image +'" class="img-fluid border border-1 alt="image">\
-                                </div>\
-                                <div class="flex-grow-1 cursor_pointer">\
-                                    <p class="mb-0 text-black">'+ user_name +'</p>\
-                                    <small class="text-black">'+ item.last_message +'</small>\
-                                </div>\
-                            </div>\
-                            <div class="text-end msg-show">\
-                                <small class="mb-1" style="font-size: 9.5px;">'+ item.date +'</small>\
-                            </div>\
-                        </li>\
-                        <hr>\
-                    ');
+                    $('#all_chats').append(
+                        '<li>' +
+                            '<button type="button" class="portal-messages-item" data-user-id="' + userId + '" onclick="get_messages(' + userId + ')">' +
+                                portalChatAvatarHtml(item.user_data) +
+                                '<div class="portal-messages-item__body">' +
+                                    '<div class="portal-messages-item__top">' +
+                                        '<p class="portal-messages-item__name">' + userName + '</p>' +
+                                        '<span class="portal-messages-item__time">' + chatDate + '</span>' +
+                                    '</div>' +
+                                    '<p class="portal-messages-item__preview">' + lastMessage + '</p>' +
+                                '</div>' +
+                            '</button>' +
+                        '</li>'
+                    );
                 });
+
                 $('#chat').removeClass('d-none');
                 $('#no_chat').addClass('d-none');
+
+                var selectedUserId = $('#selected_user_id').val();
+                if (selectedUserId) {
+                    portalSetActiveChat(selectedUserId);
+                }
             } else {
                 $('#no_chat').removeClass('d-none');
                 $('#chat').addClass('d-none');
+                portalShowChatComposer(false);
             }
+        }).fail(function () {
+            $('#no_chat').removeClass('d-none');
+            $('#chat').addClass('d-none');
+            portalShowChatComposer(false);
         });
         /* AJAX API CALL */
     }   
@@ -3357,6 +3731,8 @@ function enableBuyNow(btn) {
     /* --------------- GET MESSAGES --------------- */
     function get_messages(id) { 
         $('#msg_receiver_id').val(id);
+        $('#selected_user_id').val(id);
+        portalSetActiveChat(id);
 
        /* AJAX API CALL */
         var settings = {
@@ -3375,54 +3751,49 @@ function enableBuyNow(btn) {
         $.ajax(settings).done(function (response) {
             if (response.status == 'success') {
                 $('#messages').empty();
-                var messages = response.data;
+                var messages = response.data || [];
 
                 $.each(messages, function (key, item) {
-                    var date = '';
+                    var dateHtml = '';
                     if (item.date !== "") {
-                        date += '<span class="bg-secondary rounded-pill text-white px-2 py-1">';
-                        date += item.date;
-                        date += '</span>';
+                        dateHtml = '<li class="portal-messages-day"><span>' + portalEscapeHtml(item.date) + '</span></li>';
                     }
-                
-                    var my_msg = '';
-                    var other_user_msg = '';
-                    var other_user_image = '';
-                    var other_user_name = '';
+
                     if (item.user_data.users_customers_id == users_customers_id) {
-                        my_msg += '<p class="msg  ms-auto text-start">'+ item.message +'</p>';
-                        my_msg += '<small class="sm-auto">'+ item.time +'</small>';
-                    } else { 
-                        other_user_image += "{{ url('/')}}" +"/" + item.user_data.profile_pic;
-                        other_user_msg += '<div class="position-relative me-4">';
-                        other_user_msg += '<img src="'+ other_user_image +'" class="img-fluid" alt="image">';
-                        other_user_msg += '</div>';
-                        other_user_msg += '<div class="flex-grow-1">';
-                        other_user_msg += '<div>';
-                        other_user_msg += '<span class="text-success fw-normal">'+ item.user_data.first_name +'</span>';
-                        other_user_msg += '<p class="msg">'+ item.message +'</p>';
-                        other_user_msg += '</div>';
-                        other_user_msg += '<small>'+ item.time +'</small>';
-                        other_user_msg += '</div>';
+                        $('#messages').append(
+                            dateHtml +
+                            '<li class="portal-messages-bubble-row portal-messages-bubble-row--mine">' +
+                                '<div class="portal-messages-bubble">' +
+                                    portalEscapeHtml(item.message) +
+                                    '<span class="portal-messages-bubble__meta">' + portalEscapeHtml(item.time || '') + '</span>' +
+                                '</div>' +
+                            '</li>'
+                        );
+                    } else {
+                        $('#messages').append(
+                            dateHtml +
+                            '<li class="portal-messages-bubble-row portal-messages-bubble-row--other">' +
+                                portalChatAvatarHtml(item.user_data, 'portal-messages-item__avatar') +
+                                '<div class="portal-messages-bubble">' +
+                                    '<strong style="display:block;font-size:0.75rem;color:#1a472a;margin-bottom:0.25rem;">' + portalEscapeHtml(item.user_data.first_name || '') + '</strong>' +
+                                    portalEscapeHtml(item.message) +
+                                    '<span class="portal-messages-bubble__meta">' + portalEscapeHtml(item.time || '') + '</span>' +
+                                '</div>' +
+                            '</li>'
+                        );
                     }
-                
-                    $('#messages').append('\
-                        <!-- msg day -->\
-                        <li class="chat-list msg-day text-center">'+ date +'</li>\
-                        <!-- other msg -->\
-                        <li class="chat-list other-msg">'+ other_user_msg +'</li>\
-                        <!-- my msg -->\
-                        <li class="chat-list my-msg text-end">'+ my_msg + '</li>\
-                    ');
-                    $('#no_message').addClass('d-none');
-                    $('#send_message').removeClass('d-none');
                 });
-                setInterval(update_messages, 2000);
+
+                portalShowChatComposer(true);
+
+                if (portalMessagesPollId) {
+                    clearInterval(portalMessagesPollId);
+                }
+                portalMessagesPollId = setInterval(update_messages, 5000);
                 scroll_to_bottom();
             } else {
                 $('#messages').empty();
-                $('#no_message').addClass('d-none');
-                $('#send_message').removeClass('d-none');
+                portalShowChatComposer(true);
             }
         });
        /* AJAX API CALL */
@@ -4124,13 +4495,18 @@ function enableBuyNow(btn) {
             };
             $.ajax(settings).done(function (response) {
                 if (response.status == 'success') {
+                    $('#claim_success_banner').removeClass('d-none');
                     toastr.success('Product claim submitted successfully.');
+                    $('#claim_submit_btn').prop('disabled', true);
+                    setTimeout(function () {
+                        location.reload();
+                    }, 2500);
                 } else {
-                    toastr.error(response.message);
+                    toastr.error(response.message || 'Unable to submit claim.');
                 }
-                setTimeout(function() {
-                    location.reload();
-                }, 500);
+            }).fail(function (xhr) {
+                var message = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Unable to submit claim.';
+                toastr.error(message);
             });
             /* AJAX API CALL */
         }
@@ -4171,8 +4547,10 @@ function enableBuyNow(btn) {
 
     /* --------------- SCROLL TO BOTTOM --------------- */
     function scroll_to_bottom() {
-        const messagesSec     = document.getElementById('messages');
-        messagesSec.scrollTop = messagesSec.scrollHeight;
+        var messagesSec = document.getElementById('messages');
+        if (messagesSec) {
+            messagesSec.scrollTop = messagesSec.scrollHeight;
+        }
     }
     /* --------------- SCROLL TO BOTTOM --------------- */
 </script>

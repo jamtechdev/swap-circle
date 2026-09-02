@@ -2,14 +2,8 @@
 	$users_system = DB::table('users_system')->where('users_system_id', session('admin_id'))->get()->first();
 	$permissions = DB::table('users_system_roles')->where('users_system_roles_id', $users_system->users_system_roles_id)->get()->first();
 ?>
-<style>
-	li.mm-active > a i{
-		color: #8000FF;
-	}
-</style>
  
-<div class="deznav">
-	<div class="deznav-scroll">
+<div class="deznav">	<div class="deznav-scroll">
 		<ul class="metismenu" id="menu">
 			<?php if($permissions->dashboard == 'Yes'){ ?>
 			<li>
@@ -181,6 +175,15 @@
 					<span class="nav-text">FAQ's</span>
 				</a>
 			</li>	
+			<?php } ?>
+
+			<?php if($permissions->account_settings == 'Yes' || $permissions->system_settings == 'Yes'){ ?>
+			<li>
+				<a href="{{ url('admin/landing_page') }}" aria-expanded="true">
+					<i class="fa fa-globe"></i>
+					<span class="nav-text">Landing Page</span>
+				</a>
+			</li>
 			<?php } ?>
 
 			<?php if($permissions->account_settings == 'Yes'){ ?>

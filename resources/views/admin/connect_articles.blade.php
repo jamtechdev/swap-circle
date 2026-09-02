@@ -1,732 +1,359 @@
 @extends('layout.admin.list_master')
+
+@section('titleBar')
+<span>Connect Articles</span>
+@endsection
+
 @section('content')
-    <style>
-        .btn-light{
-          padding-left:10px;
-        }
-
-         table.dataTable tbody td {
-            font-size: 14px;
-            padding: 12px 15px;
-        }
-        table.dataTable thead th {
-            font-size: 14px;
-            padding: 12px 15px;
-        }
-        table tbody tr td .btn{
-            padding: 0.500rem 1.5rem;
-            font-size: 14px;
-        }
-        .content-body .container-fluid{
-            padding-top: 20px;
-        }
-        .container-fluid .row .btn{
-            padding: 0.500rem 1.5rem;
-        }
-        .dataTables_length label, .dataTables_filter label{
-            font-size: 14px;
-            margin-bottom:0px;
-        }
-        /* .card{
-            margin-bottom:0px;
-            height: calc(96% - 30px);
-        } */
-        .card .card-body{
-            padding: 1.875rem 1.875rem 0rem 1.875rem;
-        }
-        .dataTables_wrapper:after{
-            display:none;
-        }
-        
-        /* ==============================
-        Action Buttons: Border Only
-        (CSS-only, No HTML change)
-        ============================== */
-
-        /* Target action column buttons */
-        table td .btn {
-            background-color: transparent !important;
-            box-shadow: none !important;
-        }
-
-        /* Keep border & icon color */
-        table td .btn.btn-success {
-            border: 1px solid #28a745 !important;
-            color: #28a745 !important;
-        }
-
-        table td .btn.btn-danger {
-            border: 1px solid #dc3545 !important;
-            color: #dc3545 !important;
-        }
-
-        table td .btn.btn-warning {
-            border: 1px solid #ffc107 !important;
-            color: #ffc107 !important;
-        }
-
-        table td .btn.btn-secondary {
-            border: 1px solid #6c757d !important;
-            color: #6c757d !important;
-        }
-
-         table td .btn.btn-primary {
-            border: 1px solid #6c757d !important;
-            color: #6c757d !important;
-        }
-
-         table td .btn.btn-info {
-            border: 1px solid #6c757d !important;
-            color: #6c757d !important;
-        }
-
-        /* Hover effect (optional but clean) */
-        table td .btn:hover {
-            background-color: rgba(0, 0, 0, 0.03) !important;
-        }
-
-        /* Ensure icon keeps color */
-        table td .btn i {
-            color: inherit;
-        }
-
-        /* Compact info row (perfect alignment) */
-        .info-row {
-            display: grid;
-            grid-template-columns: 120px 10px 1fr;
-            align-items: center;
-            padding: 10px 14px;
-            margin-bottom: 8px;
-            border: 1px solid #e5e7eb;
-            border-radius: 10px;
-            background: #ffffff;
-            width: 100%;
-        }
-
-        /* Label */
-        .info-row .label {
-            font-size: 13px;
-            font-weight: 500;
-            color: #6b7280;
-            text-align: start !important;
-        }
-
-        /* Colon */
-        .info-row .colon {
-            font-size: 13px;
-            color: #6b7280;
-        }
-
-        /* Value */
-        .info-row .value {
-            font-size: 14px;
-            font-weight: 600;
-            color: #111827;
-        }
-
-        /* Image row override */
-        .info-row.image-row {
-            align-items: flex-start;
-        }
-
-        /* Small thumbnail */
-        .thumb-wrapper {
-            width: 64px;
-            height: 64px;
-            border-radius: 8px;
-            overflow: hidden;
-            border: 1px solid #e5e7eb;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.12);
-        }
-
-        .thumb-wrapper img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            cursor: zoom-in;
-        }
-
-        /* Status pill */
-        .status-pill {
-            padding: 4px 12px;
-            border-radius: 14px;
-            background: #eef2ff;
-            color: #4338ca;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        /* Description scrolling */
-        .article-description {
-            max-height: 80px;
-            overflow-y: auto;
-            line-height: 1.5;
-        }
-
-
-    </style>
-    <!-- Add Connect Article -->
-    <div class="modal fade" id="exampleModalAddConnectArticle">
-        <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal fade" id="exampleModalAddConnectArticle" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
-            @section('titleBar')
-            <span class="ml-2">Add Connect Article</span>
-            @endsection 
                 <div class="modal-header">
-                    <h5 class="modal-title">Add Connect Article</h5>
-                    <button type="button" class="close" data-dismiss="modal"><span>&times;</span>
-                    </button>
+                    <h5 class="modal-title">Add connect article</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span>&times;</span></button>
                 </div>
                 <div class="modal-body">
-                    <div class="basic-form">
-
-                        <div class="row col-md-12"> 
-                            <div class="form-group col-md-12">
-                                <b>Connect Category</b>
-                                <b>
-                                    <select class="form-control" id="addconnectCategory">
-                                    </select>
-                                </b>
-                            </div>
-                        </div>
-                        <div class="row col-md-12"> 
-                            <div class="form-group col-md-12">
-                                <b>Title</b>
-                                <b><input  type="text" name="title" class="form-control title input" required></b>
-                                <span class="error_msg" id="title_error"></span>
-                            </div>
-                        </div>
-                        <div class="row col-md-12"> 
-                            <div class="form-group col-md-12">
-                                <b>Description</b>
-                                <b><textarea rows="4" cols="50" name="description" class="form-control description input" ></textarea></b>
-                                <span class="error_msg" id="description_error"></span>
-                            </div>
-                        </div>
-                        <div class="row col-md-12"> 
-                            <div class="form-group col-md-12">
-                                <b>Image</b>
-                                <b><input  type="file" name="image" id="image" class="form-control image input" required multiple></b>
-                                <span class="error_msg" id="image_error"></span>
-                                <textarea rows="10" cols="50" class="input" id="image_string" hidden></textarea>
-                            </div>
-                        </div>
+                    <div class="form-group">
+                        <label for="addconnectCategory" class="font-weight-bold">Category</label>
+                        <select class="form-control" id="addconnectCategory"></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="add_article_title" class="font-weight-bold">Title</label>
+                        <input type="text" id="add_article_title" class="form-control title input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="add_article_description" class="font-weight-bold">Description</label>
+                        <textarea rows="4" id="add_article_description" class="form-control description input"></textarea>
+                    </div>
+                    <div class="form-group mb-0">
+                        <label for="image" class="font-weight-bold">Image</label>
+                        <input type="file" id="image" class="form-control image input" accept="image/*">
+                        <textarea id="image_string" class="input d-none"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-danger light" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Close</button>
                     <button type="button" class="btn btn-primary add_connect_article">Save</button>
                 </div>
             </div>
         </div>
     </div>
-    <!-- Add Connect Article -->
 
-    <!-- Edit Connect Article -->
-    <div class="modal fade" id="editConnectArticleModal">
-        <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal fade" id="editConnectArticleModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
-            @section('titleBar')
-            <span class="ml-2">Edit Connect Article</span>
-            @endsection 
                 <div class="modal-header">
-                    <h5 class="modal-title">Edit Connect Article</h5>
-                    <button type="button" class="close" data-bs-dismiss="modal"><span>&times;</span>
-                    </button>
+                    <h5 class="modal-title">Edit connect article</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span>&times;</span></button>
                 </div>
                 <div class="modal-body">
-                    <div class="basic-form">
-                        <input type="hidden" class="input" id="connect_articles_id">
-                        <div class="row col-md-12"> 
-                            <div class="form-group col-md-12">
-                                <b>Connect Category</b>
-                                <b>
-                                    <select class="form-control" id="editconnectCategory">
-                                    </select>
-                                </b>
-                            </div>
-                        </div>
-                        <div class="row col-md-12"> 
-                            <div class="form-group col-md-12">
-                                <b>Title</b>
-                                <b><input  type="text" name="title" id="title" class="form-control title input" required></b>
-                                <span class="error_msg" id="title_error"></span>
-                            </div>
-                        </div>
-                        <div class="row col-md-12"> 
-                            <div class="form-group col-md-12">
-                                <b>Description</b>
-                                <b><textarea rows="4" cols="50" id="description"  name="description" class="form-control description input" ></textarea></b>
-                                <span class="error_msg" id="description_error"></span>
-                            </div>
-                        </div>
-                        <div class="row col-md-12"> 
-                            <div class="form-group col-md-12">
-                                <b>Image</b>
-                                <b><input  type="file" name="image" id="edit_image" class="form-control image input" required multiple></b>
-                                <span class="error_msg" id="image_error"></span>
-                                <textarea rows="10" cols="50" class="input" id="edit_image_string" hidden></textarea>
-                            </div>
-                            <div class="form-group col-md-12">
-                                <b>Old Image</b>
-                                <div class="image-box text-center mx-auto">
-                                    <img src="" class="img-fluid" id="image_preview" alt="">
-                                </div>
-                            </div>
-                        </div>
+                    <input type="hidden" id="connect_articles_id">
+                    <div class="form-group">
+                        <label for="editconnectCategory" class="font-weight-bold">Category</label>
+                        <select class="form-control" id="editconnectCategory"></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="title" class="font-weight-bold">Title</label>
+                        <input type="text" id="title" class="form-control input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="description" class="font-weight-bold">Description</label>
+                        <textarea rows="4" id="description" class="form-control input"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_image" class="font-weight-bold">Replace image</label>
+                        <input type="file" id="edit_image" class="form-control input" accept="image/*">
+                        <textarea id="edit_image_string" class="input d-none"></textarea>
+                    </div>
+                    <div class="form-group mb-0">
+                        <label class="font-weight-bold d-block">Current image</label>
+                        <img src="" id="image_preview" alt="Current article image" class="admin-connect-thumb admin-connect-thumb--wide">
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-danger light" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" id="edit_connect_article">Edit</button>
+                    <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="edit_connect_article">Save changes</button>
                 </div>
             </div>
         </div>
     </div>
-    <!-- Edit Connect Article -->
 
-    <!-- View Connect Article -->
-    <div class="modal fade" id="viewConnectArticleModal">
+    <div class="modal fade" id="viewConnectArticleModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content">
-
-                <!-- HEADER -->
                 <div class="modal-header">
-                    <h5 class="modal-title">View Connect Article</h5>
-                    <button type="button" class="close" data-bs-dismiss="modal">
-                        <span>&times;</span>
-                    </button>
+                    <h5 class="modal-title">Article details</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span>&times;</span></button>
                 </div>
-
-                <!-- BODY -->
-                <div class="modal-body connect-category-modal" id="ConnectArticleViewModal">
-                    <!-- Dynamic content -->
+                <div class="modal-body admin-connect-view" id="ConnectArticleViewModal"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Close</button>
                 </div>
-
-                <!-- FOOTER -->
-                <div class="modal-footer justify-content-center">
-                    <button type="button" class="btn btn-danger light" data-bs-dismiss="modal">
-                        Close
-                    </button>
-                </div>
-
             </div>
         </div>
     </div>
-    <!-- Edit Connect Article -->
 
-    <!-- Image Zoom Modal -->
-    <div class="modal fade" id="imageZoomModal" tabindex="-1">
+    <div class="modal fade" id="imageZoomModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-xl modal-dialog-centered">
-            <div class="modal-content bg-transparent border-0">
-
+            <div class="modal-content admin-zoom-modal">
                 <div class="modal-header border-0">
-                    <button type="button" class="close" data-bs-dismiss="modal">
-                        <span>&times;</span>
-                    </button>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close"><span>&times;</span></button>
                 </div>
-
-                <div class="modal-body text-center">
-                    <img id="zoomedImage"
-                        src=""
-                        class="img-fluid rounded shadow-lg"
-                        style="max-height:90vh;">
+                <div class="modal-body text-center p-0">
+                    <img id="zoomedImage" src="" alt="Zoomed image" class="img-fluid rounded">
                 </div>
-
             </div>
         </div>
     </div>
-
 
     <div class="content-body">
         <div class="container-fluid">
-            <div class="page-titles mb-n5">
-				<ol class="breadcrumb">
-                    @section('titleBar')
-                    <span class="ml-2">Connect Articles</span>
-                    @endsection
-				</ol>
+            <div class="admin-filter-bar">
+                <div class="admin-filter-actions">
+                    <p class="admin-page-lead mb-0">Community articles and insights shown on the user Connect page.</p>
+                </div>
+                <div class="admin-filter-cta">
+                    <a href="{{ url('admin/connect_categories') }}" class="btn btn-outline-primary btn-sm mr-2">Manage categories</a>
+                    <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#exampleModalAddConnectArticle">Add article</button>
+                </div>
             </div>
-            <!-- row -->
 
-            <div class="row">
-                <div class="col-12">
-                    
-
-                    <div class="card">
-                        <div class="card-body">                                    
-                        <legend style="float: right;"><a style="float: right;" class="btn btn-primary" id="add_connect_article"  data-toggle="modal" data-target="#exampleModalAddConnectArticle"> Add Connect Article </a></legend>
-                            <div class="table-responsive">
-                                <table id="example" class="table dt-responsive nowrap display min-w850">
-                                    <thead>
-                                        <tr>
-                                            <th>#</th>
-                                            <th>Title</th>
-                                            <th>Description</th>
-                                            <th>Image</th>
-                                            <th>Status</th>
-                                            <th>Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
+            <div class="card admin-table-card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table id="example" class="table table-striped display w-100">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Title</th>
+                                    <th>Description</th>
+                                    <th>Image</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
                     </div>
                 </div>
-          	</div>
+            </div>
         </div>
     </div>
-    <script src="{{ asset('users/assets/js/bootstrap.bundle.js') }}"></script>
-    <script src="{{ asset('users/assets/js/jquery.min.js') }}"></script>
-    <script src="{{ asset('users/assets/js/jquery.validate.min.js') }}"></script>
-    <script src="{{ asset('users/assets/js/jquery.ui.min.js') }}"></script>
-    <script src="{{ asset('users/assets/js/jquery.additional.methods.js') }}"></script>
-    <script>
-        $(document).ready(function(){
-            
-            
-            // --------------- IMAGE PREVIEW & BSASE64 STRING --------------- //
-            function previewImage (image,string) {
-                var fileImage = image.files[0];
-                var reader = new FileReader();
+@endsection
 
-                reader.addEventListener("load", function() {
+@section('script')
+<script>
+$(document).ready(function () {
+    const assetBase = @json(url('/'));
+    const placeholderImage = @json(asset('images/upload.svg'));
 
-                    document.querySelector(string).value = reader.result.toString().replace(/^data:(.*,)?/, "");
-                }, false);
+    function resolveImageUrl(path) {
+        if (!path) return placeholderImage;
+        if (/^https?:\/\//i.test(path)) return path;
+        return assetBase.replace(/\/$/, '') + '/' + String(path).replace(/^\//, '');
+    }
 
-                if (fileImage) {
-                    reader.readAsDataURL(fileImage);
+    function escapeHtml(value) {
+        return $('<div>').text(value ?? '').html();
+    }
+
+    function truncate(text, limit) {
+        const value = String(text || '');
+        return value.length > limit ? value.substring(0, limit) + '…' : value;
+    }
+
+    function statusBadge(status) {
+        return window.adminStatusBadge(status);
+    }
+
+    function buildActions(item) {
+        let html = '<div class="admin-action-group">';
+        html += '<button type="button" class="btn btn-secondary view_connect_article" value="' + item.connect_articles_id + '" title="View"><i class="fa fa-eye"></i></button>';
+        html += '<button type="button" class="btn btn-info edit_connect_article" value="' + item.connect_articles_id + '" title="Edit"><i class="fa fa-edit"></i></button>';
+
+        if (item.status === 'Active') {
+            html += '<button type="button" class="btn btn-warning update_data" value="' + item.connect_articles_id + '" data-info="Inactive" title="Deactivate"><i class="fa fa-times"></i></button>';
+        } else if (item.status === 'Inactive' || item.status === 'Deleted') {
+            html += '<button type="button" class="btn btn-success update_data" value="' + item.connect_articles_id + '" data-info="Active" title="Activate"><i class="fa fa-check"></i></button>';
+        } else if (item.status === 'Pending') {
+            html += '<button type="button" class="btn btn-success update_data" value="' + item.connect_articles_id + '" data-info="Active" title="Approve"><i class="fa fa-check"></i></button>';
+            html += '<button type="button" class="btn btn-warning update_data" value="' + item.connect_articles_id + '" data-info="Inactive" title="Reject"><i class="fa fa-times"></i></button>';
+        }
+
+        if (item.status !== 'Deleted') {
+            html += '<button type="button" class="btn btn-danger delete_data" value="' + item.connect_articles_id + '" title="Delete"><i class="fa fa-trash"></i></button>';
+        }
+
+        html += '</div>';
+        return html;
+    }
+
+    function loadCategories() {
+        return $.get('/admin/connect_categories_fetch').done(function (response) {
+            const options = (response.connectCategories || [])
+                .filter(function (item) { return item.status === 'Active'; })
+                .map(function (item) {
+                    return '<option value="' + item.connect_categories_id + '">' + escapeHtml(item.name) + '</option>';
+                }).join('');
+            $('#addconnectCategory, #editconnectCategory').html(options);
+        });
+    }
+
+    function previewImage(input, targetSelector) {
+        const file = input.files && input.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function () {
+            $(targetSelector).val(String(reader.result).replace(/^data:(.*,)?/, ''));
+        };
+        reader.readAsDataURL(file);
+    }
+
+    $('#image').on('change', function () { previewImage(this, '#image_string'); });
+    $('#edit_image').on('change', function () { previewImage(this, '#edit_image_string'); });
+
+    loadCategories();
+
+    const table = $('#example').DataTable({
+        processing: true,
+        destroy: true,
+        ajax: {
+            url: '/admin/connect_articles_fetch',
+            type: 'GET',
+            dataSrc: function (json) {
+                return json.connectArticles || [];
+            }
+        },
+        columns: [
+            { data: null, render: (d, t, r, m) => m.row + 1 },
+            {
+                data: 'title',
+                render: function (value) {
+                    const safe = escapeHtml(value);
+                    return '<span class="admin-table-note" title="' + safe + '">' + escapeHtml(truncate(value, 48)) + '</span>';
                 }
-            }
+            },
+            {
+                data: 'description',
+                render: function (value) {
+                    const safe = escapeHtml(value || '-');
+                    return '<span class="admin-table-note" title="' + safe + '">' + escapeHtml(truncate(value || '-', 56)) + '</span>';
+                }
+            },
+            {
+                data: 'image',
+                orderable: false,
+                searchable: false,
+                render: function (image) {
+                    const src = resolveImageUrl(image);
+                    return '<img src="' + escapeHtml(src) + '" alt="" class="admin-connect-thumb admin-connect-thumb--wide zoomable-image" loading="lazy" onerror="this.onerror=null;this.src=\'' + placeholderImage + '\';">';
+                }
+            },
+            { data: 'status', render: (status) => statusBadge(status) },
+            { data: null, orderable: false, searchable: false, render: (item) => buildActions(item) }
+        ]
+    });
 
-            document.querySelector("#image").addEventListener("change", function() {
-                previewImage(this,"#image_string");
-            });
-            document.querySelector("#edit_image").addEventListener("change", function() {
-                previewImage(this,"#edit_image_string");
-            });
-            
-            fetch();
-            function fetch() {
-                var getsettings = {
-                    "url": "/admin/connect_categories_fetch",
-                    "method": "GET",
-                    "timeout": 0,
-                };
-                $.ajax(getsettings).done(function(response) {
-                    $('#addconnectCategory').html("");            
-                    $.each(response.connectCategories, function (key, item) {
-                        $("#addconnectCategory").append('<option value="'+item.connect_categories_id+'">'+item.name+'</option>');
-                    });
-                    var selectElement = document.getElementById('addconnectCategory');
-                    var bootstrapSelect = $(selectElement).data('selectpicker');
-                    if (bootstrapSelect !== undefined) {
-                       bootstrapSelect.destroy();
-                    }
-                });
-                $.ajax(getsettings).done(function(response) {
-                    var connect=$('#editconnectCategory');
-                    connect.html("");            
-                    $.each(response.connectCategories, function (key, item) {
-                        connect.append('<option value="'+item.connect_categories_id+'">'+item.name+'</option>');
-                    });
-                    var selectElement = document.getElementById('editconnectCategory');
-                    var bootstrapSelect = $(selectElement).data('selectpicker');
-                    if (bootstrapSelect !== undefined) {
-                       bootstrapSelect.destroy();
-                    }
-                });
-                var settings = {
-                    "url": "/admin/connect_articles_fetch",
-                    "method": "GET",
-                    "timeout": 0,
-                };
-                
-                $.ajax(settings).done(function (response) {
-                                $('tbody').html("");
-                                $.each(response.connectArticles, function (key, item) { 
-                                    var titletxt= item.title;
-                                    var title='';
-                                    if(titletxt.length > 40){
-                                        title=titletxt.substring(0,40) + '.....';
-                                    }else{
-                                        title=item.title;
-                                    }
+    const reload = () => table.ajax.reload(null, false);
 
-                                    var descriptiontxt= item.description;
-                                    var description='';
-                                    if(descriptiontxt.length > 40){
-                                        description=descriptiontxt.substring(0,40) + '.....';
-                                    }else{
-                                        description=item.description;
-                                    }
-                                    var statusHtml = '';
-                                    if (item.status == "Pending") {
-                                        statusHtml = '<span class="btn m-1 btn-info">Pending</span>';
-                                    } else if (item.status == "Active") {
-                                        statusHtml = '<span class="btn m-1 btn-success">Active</span>';
-                                    } else if (item.status == "Inactive") {
-                                        statusHtml = '<span class="btn m-1 btn-warning">Inactive</span>';
-                                    } else {
-                                        statusHtml = '<span class="btn m-1 btn-danger">Deleted</span>';
-                                    }
-
-                                    var actionHtml = '';
-                                    
-                                        actionHtml += '<button class="btn m-1 btn-primary view_connect_article" value="' + item.connect_articles_id + '">';
-                                        actionHtml += '<i class="fa fa-eye"></i>';
-                                        actionHtml += '</button>';
-                                        
-                                        actionHtml += '<button class="btn m-1 btn-info edit_connect_article"  value="' + item.connect_articles_id + '">';
-                                        actionHtml += '<i class="fa fa-edit"></i>';
-                                        actionHtml += '</button>';
-                                    if (item.status == "Active") {
-                                        actionHtml += '<button class="btn m-1 btn-warning update_data" value="' + item.connect_articles_id + '" data-info="Inactive">';
-                                        actionHtml += '<i class="fa fa-times"></i>';
-                                        actionHtml += '</button>';
-                                        
-                                    } else if (item.status == "Inactive") {
-                                        actionHtml += '<button class="btn m-1 btn-success update_data" value="' + item.connect_articles_id + '" data-info="Active" >';
-                                        actionHtml += '<i class="fa fa-check"></i>';
-                                        actionHtml += '</button>';
-                                    }
-
-                                    if (item.status == "Pending" || item.status == "Deleted") {
-                                        actionHtml += '<button class="btn m-1 btn-warning update_data" value="' + item.connect_articles_id + '" data-info="Inactive">';
-                                        actionHtml += '<i class="fa fa-times"></i>';
-                                        actionHtml += '</button>';
-                                        actionHtml += '<button class="btn m-1 btn-success update_data" value="' + item.connect_articles_id + '" data-info="Active">';
-                                        actionHtml += '<i class="fa fa-check"></i>';
-                                        actionHtml += '</button>';
-                                    }
-
-                                    if (item.status != "Deleted") {
-                                        actionHtml += '<button class="btn m-1 btn-danger delete_data" value="' + item.connect_articles_id + '" data-info="Deleted">';
-                                        actionHtml += '<i class="fa fa-trash"></i>';
-                                        actionHtml += '</button>';
-                                    }
-                                    var profile_image = "{{ url('/') }}" + "/" +item.image;
-                                    $('tbody').append('\
-                                        <tr class="odd gradeX">\
-                                        <td>' + (key+1) + '</td>\
-                                        <td>' + title + '</td>\
-                                        <td>' + description + '</td>\
-                                        <td><img src="'+profile_image+'" class="img-fluid" alt="" srcset="" width="55px" height="50px"></td>\
-                                        <td>' + statusHtml + '</td>\
-                                        <td>' + actionHtml + '</td>\
-                                        </tr>\
-                                    ');
-                                    });
-                });
-            }
-
-            $(document).on("click",'.edit_connect_article', function (e) {
-                e.preventDefault();
-                var connect_articles_id=$(this).val();
-                $('#editConnectArticleModal').modal('show');
-                
-                var settings = {
-                    "url": "/admin/connect_article_edit/"+connect_articles_id,
-                    "method": "GET",
-                    "timeout": 0,
-                };
-
-                $.ajax(settings).done(function (response) {
-                    var profile_image = "{{ url('/') }}" + "/" +response.data.image;
-                    if(response.status == "error"){
-                        toastr.success(response.message);
-                    }else{
-                        $('#title').val(response.data.title);
-                        $('#description').val(response.data.description);
-                        $('#connect_articles_id').val(response.data.connect_articles_id);
-                        $('#image_preview').attr('src', profile_image);
-                    }
-                });
-            });
-
-            $(document).on("click",'.delete_data', function (e) {
-                    e.preventDefault();
-                    var connect_articles_id=$(this).val();;
-                    var settings = {
-                    "url": "/admin/connect_article_delete",
-                    "method": "POST",
-                    "timeout": 0,
-                    "data": {
-                        'connect_articles_id':connect_articles_id,
-                    },
-                };
-                $.ajax(settings).done(function (response) {
-                    if(response.status == "success"){ 
-                        fetch();
-                        toastr.success(response.message);
-                    }else{
-                        toastr.success(response.message);
-                    }
-                });
-            });
-
-            $(document).on("click",'.update_data', function (e) {
-                    e.preventDefault();
-                    var connect_articles_id=$(this).val();
-                    var status=$(this).data("info");
-                    var settings = {
-                    "url": "/admin/connect_article_update",
-                    "method": "POST",
-                    "timeout": 0,
-                    "data": {
-                        'connect_articles_id':connect_articles_id,
-                        'status':status,
-                    },
-                };
-                $.ajax(settings).done(function (response) {
-                    if(response.status == "success"){ 
-                        fetch();
-                        toastr.success(response.message);
-                    }else{
-                        toastr.success(response.message);
-                    }
-                });
-            });
-
-
-            $(document).on("click", ".view_connect_article", function (e) {
-                e.preventDefault();
-
-                let id = $(this).val();
-                $('#viewConnectArticleModal').modal('show');
-
-                $.get("/admin/connect_article_edit/" + id, function (response) {
-
-                    $('#ConnectArticleViewModal').html("");
-
-                    if (response.status !== "success") {
-                        toastr.error(response.message);
-                        return;
-                    }
-
-                    let imageRow = response.data.image ? `
-                        <div class="info-row image-row">
-                            <span class="label">Image</span>
-                            <span class="colon">:</span>
-                            <span class="value">
-                                <div class="thumb-wrapper">
-                                    <img src="{{ url('/') }}/${response.data.image}"
-                                        class="zoomable-image"
-                                        alt="Article Image">
-                                </div>
-                            </span>
-                        </div>
-                    ` : '';
-
-                    $('#ConnectArticleViewModal').html(`
-
-                        <div class="info-row">
-                            <span class="label">Title</span>
-                            <span class="colon">:</span>
-                            <span class="value">${response.data.title}</span>
-                        </div>
-
-                        <div class="info-row">
-                            <span class="label">Description</span>
-                            <span class="colon">:</span>
-                            <span class="value article-description">
-                                ${response.data.description}
-                            </span>
-                        </div>
-
-                        <div class="info-row">
-                            <span class="label">Status</span>
-                            <span class="colon">:</span>
-                            <span class="value">
-                                <span class="status-pill">${response.data.status}</span>
-                            </span>
-                        </div>
-                        
-                        ${imageRow}
-                    `);
-                });
-            });
-
-
-            $(document).on('click', '.zoomable-image', function () {
-                $('#zoomedImage').attr('src', $(this).attr('src'));
-                $('#imageZoomModal').modal('show');
-            });
-
-
-            $(document).on('click','#edit_connect_article',function(e){
-                e.preventDefault();
-                var settings = {
-                "url": "/admin/connect_article_edit_data",
-                "method": "POST",
-                "timeout": 0,
-                "data": {
-                    'connect_articles_id':$("#connect_articles_id").val(),
-                    'title':$('#title').val(),                    
-                    'description':$('#description').val(),                    
-                    'connect_categories_id':$('#editconnectCategory').val(),                   
-                    'image':$('#edit_image_string').val(),
-                },
-             };
-
-            $.ajax(settings).done(function (response) {
-                        if (response.status == "success") {
-                            toastr.success(response.message);
-                            fetch();
-                            $('.modal-backdrop').remove();
-                            $('body').removeClass('modal-open');
-                            $('.modal').removeClass('show');
-                        } else {
-                            toastr.error(response.message);
-                            fetch();
-                            $('.modal-backdrop').remove();
-                            $('body').removeClass('modal-open');
-                            $('.modal').removeClass('show');
-                        }
-            });
-        });     
-
-        $(document).on('click','.add_connect_article',function(e){
-                e.preventDefault();
-                var settings = {
-                "url": "/admin/connect_article_add_data",
-                "method": "POST",
-                "timeout": 0,
-                "data": {
-                    'title':$('.title').val(),
-                    'description':$('.description').val(),
-                    'connect_categories_id':$('#addconnectCategory').val(),
-                    'image':$('#image_string').val(),
-                },
-            };
-            $.ajax(settings).done(function (response) {
-                if (response.status == "success") {
-                    toastr.success(response.message);
-                    fetch();
-                    $('.modal-backdrop').remove();
-                    $('body').removeClass('modal-open');
-                    $('.modal').removeClass('show');
-                    $( ".input" ).each(function() {
-                        $(this).val("");
-                    });
-                } else {
+    $(document).on('click', '.edit_connect_article', function () {
+        const id = $(this).val();
+        loadCategories().always(function () {
+            $('#editConnectArticleModal').modal('show');
+            $.get('/admin/connect_article_edit/' + id, function (response) {
+                if (response.status !== 'success') {
                     toastr.error(response.message);
-                    fetch();
-                    $('.modal-backdrop').remove();
-                    $('body').removeClass('modal-open');
-                    $('.modal').removeClass('show');
-                    $( ".input" ).each(function() {
-                        $(this).val("");
-                    });
+                    return;
                 }
+                $('#title').val(response.data.title);
+                $('#description').val(response.data.description);
+                $('#connect_articles_id').val(response.data.connect_articles_id);
+                $('#editconnectCategory').val(response.data.connect_categories_id);
+                $('#image_preview').attr('src', resolveImageUrl(response.data.image));
             });
         });
+    });
 
-
+    $(document).on('click', '.delete_data', function () {
+        if (!confirm('Delete this article?')) return;
+        $.post('/admin/connect_article_delete', { connect_articles_id: $(this).val() }, function (response) {
+            response.status === 'success' ? toastr.success(response.message) : toastr.error(response.message);
+            reload();
         });
-    </script>
+    });
+
+    $(document).on('click', '.update_data', function () {
+        $.post('/admin/connect_article_update', {
+            connect_articles_id: $(this).val(),
+            status: $(this).data('info')
+        }, function (response) {
+            response.status === 'success' ? toastr.success(response.message) : toastr.error(response.message);
+            reload();
+        });
+    });
+
+    $(document).on('click', '.view_connect_article', function () {
+        const id = $(this).val();
+        $('#viewConnectArticleModal').modal('show');
+        $.get('/admin/connect_article_edit/' + id, function (response) {
+            if (response.status !== 'success') {
+                toastr.error(response.message);
+                return;
+            }
+            const imageHtml = response.data.image
+                ? '<p><strong>Image</strong><img src="' + escapeHtml(resolveImageUrl(response.data.image)) + '" alt="Article image" class="admin-connect-thumb admin-connect-thumb--wide zoomable-image"></p>'
+                : '';
+            $('#ConnectArticleViewModal').html(
+                '<p><strong>Title</strong><span>' + escapeHtml(response.data.title) + '</span></p>' +
+                '<p><strong>Description</strong><span>' + escapeHtml(response.data.description || '-') + '</span></p>' +
+                '<p><strong>Status</strong>' + statusBadge(response.data.status) + '</p>' +
+                imageHtml
+            );
+        });
+    });
+
+    $(document).on('click', '.zoomable-image', function () {
+        const src = $(this).attr('src');
+        if (!src || src === placeholderImage) return;
+        $('#zoomedImage').attr('src', src);
+        $('#imageZoomModal').modal('show');
+    });
+
+    $('.add_connect_article').on('click', function () {
+        $.post('/admin/connect_article_add_data', {
+            title: $('#add_article_title').val(),
+            description: $('#add_article_description').val(),
+            connect_categories_id: $('#addconnectCategory').val(),
+            image: $('#image_string').val()
+        }, function (response) {
+            if (response.status === 'success') {
+                toastr.success(response.message);
+                $('#exampleModalAddConnectArticle').modal('hide');
+                $('.input').val('');
+                reload();
+            } else {
+                toastr.error(response.message);
+            }
+        });
+    });
+
+    $('#edit_connect_article').on('click', function () {
+        $.post('/admin/connect_article_edit_data', {
+            connect_articles_id: $('#connect_articles_id').val(),
+            title: $('#title').val(),
+            description: $('#description').val(),
+            connect_categories_id: $('#editconnectCategory').val(),
+            image: $('#edit_image_string').val()
+        }, function (response) {
+            if (response.status === 'success') {
+                toastr.success(response.message);
+                $('#editConnectArticleModal').modal('hide');
+                reload();
+            } else {
+                toastr.error(response.message);
+            }
+        });
+    });
+});
+</script>
 @endsection

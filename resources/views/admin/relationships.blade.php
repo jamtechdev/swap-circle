@@ -187,20 +187,24 @@
                                                     <td>{{ $item->name }}</td>
                                                    <td>
                                                         @if ($item->status=='Active')
-                                                            <span class="btn btn-success" style="cursor: default;">{{ $item->status }}</span>
-                                                        @else 
-                                                            <span class="btn btn-secondary" style="cursor: default;">{{ $item->status }}</span>
+                                                            <span class="admin-status-badge admin-status-badge--active">{{ $item->status }}</span>
+                                                        @elseif ($item->status=='Inactive')
+                                                            <span class="admin-status-badge admin-status-badge--inactive">{{ $item->status }}</span>
+                                                        @else
+                                                            <span class="admin-status-badge admin-status-badge--deleted">{{ $item->status }}</span>
                                                         @endif
                                                     </td>
                                                     <td> 
-                                                        <a class="btn btn-primary" data-toggle="modal" data-target="#modal_edit{{ $item->relationships_id }}"><i class="fas fa-edit"></i></a>
+                                                        <div class="admin-action-group">
+                                                        <a class="btn btn-info" data-toggle="modal" data-target="#modal_edit{{ $item->relationships_id }}" title="Edit"><i class="fas fa-edit"></i></a>
                                                         @if($item->status == 'Active')
-                                                            <a href="{{ url('/admin/relationships_update/Inactive/' . $item->relationships_id) }}" class="btn btn-secondary" title="Deactivate"><i class="fas fa-times"></i></a>
+                                                            <a href="{{ url('/admin/relationships_update/Inactive/' . $item->relationships_id) }}" class="btn btn-warning" title="Deactivate"><i class="fas fa-times"></i></a>
                                                         @endif 
                                                         @if($item->status == 'Inactive')
                                                             <a href="{{ url('/admin/relationships_update/Active/' . $item->relationships_id) }}" class="btn btn-success" title="Activate"><i class="fas fa-check"></i></a>
                                                         @endif 
-                                                        <a href="{{ url('/admin/relationships_update/Deleted/' . $item->relationships_id) }}" class="btn btn-danger" title="Delete"><i class="far fa-trash-alt"></i></a>                       
+                                                        <a href="{{ url('/admin/relationships_update/Deleted/' . $item->relationships_id) }}" class="btn btn-danger" title="Delete"><i class="far fa-trash-alt"></i></a>
+                                                        </div>
                                                     </td>
                                                     <!-- modal edit start -->
                                                     <div class="modal fade" id="modal_edit{{ $item->relationships_id }}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">

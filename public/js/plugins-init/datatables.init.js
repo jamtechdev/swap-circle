@@ -55,48 +55,15 @@ let dataSet = [
         return $(selector).DataTable(options || {});
     }
 
-    function bindRowSelection(table, selector) {
-        if (!table) {
-            return;
-        }
-
-        $(selector + ' tbody').off('click.rowSelection').on('click.rowSelection', 'tr', function() {
-            var node = table.row(this).node();
-            if (!node) {
-                return;
-            }
-
-            $(node).toggleClass('selected');
-        });
-
-        table.rows().every(function() {
-            $(this.node()).removeClass('selected')
-        });
-    }
-
     //example 1
-    var table = initDataTable('#example', {
-        createdRow: function ( row, data, index ) {
-           $(row).addClass('selected')
-        } 
-    });
-
-    bindRowSelection(table, '#example');
-
-
+    initDataTable('#example');
 
     //example 2
-    var table2 = initDataTable('#example2', {
-        createdRow: function ( row, data, index ) {
-            $(row).addClass('selected')
-        },
-
-        "scrollY":        "42vh",
-        "scrollCollapse": true,
-        "paging":         false
+    initDataTable('#example2', {
+        scrollY: '42vh',
+        scrollCollapse: true,
+        paging: false
     });
-
-    bindRowSelection(table2, '#example2');
 	
 	// 
 	var table3 = initDataTable('#example3, #example4, #example5');

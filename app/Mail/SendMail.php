@@ -24,6 +24,7 @@ class SendMail extends Mailable{
      * @return $this
      */
     public function build(){
-        return $this->subject('Mail Senders')->view('emails.otp',$this->details);
+        $title = $this->details['title'] ?? 'Swap Circle Notification';
+        return $this->subject($title)->view('emails.otp', ['details' => $this->details]);
     }
 }

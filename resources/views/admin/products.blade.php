@@ -382,45 +382,39 @@
                                             </td>
                                             <td>
                                                 @if ($item->status=='Active')
-                                                    <span class="btn btn-success" style="cursor: default;">{{ $item->status }}</span>
-                                                @else 
-                                                    <span class="btn btn-secondary" style="cursor: default;">{{ $item->status }}</span>
+                                                    <span class="admin-status-badge admin-status-badge--active">{{ $item->status }}</span>
+                                                @elseif ($item->status=='Inactive')
+                                                    <span class="admin-status-badge admin-status-badge--inactive">{{ $item->status }}</span>
+                                                @else
+                                                    <span class="admin-status-badge admin-status-badge--deleted">{{ $item->status }}</span>
                                                 @endif
                                             </td>
                                             <td>
-                                                {{-- <span class="btn btn-light" style="cursor: default; border: 1px solid #ced4da; color: #6c757d;">
-                                                    Managed by Admin
-                                                </span> --}}
-                                                {{-- <button
-                                                    type="button"
-                                                    class="btn btn-outline-primary ml-1 swap-sync-single-product"
-                                                    data-product-id="{{ $item->products_id }}"
-                                                >
-                                                    Sync Sales
-                                                </button> --}}
+                                                <div class="admin-action-group">
                                                 <button 
                                                     type="button" 
-                                                    class="btn btn-warning ml-1"
+                                                    class="btn btn-info"
                                                     data-toggle="modal" 
                                                     data-target="#modal_edit{{ $item->products_id }}"
-                                                    title="Edit Product" >
+                                                    title="Edit Product">
                                                     <i class="fa fa-edit"></i>
                                                 </button>
                                                 @if($item->status == 'Active')
                                                 <a href="{{ url('admin/products_update/Inactive/'.$item->products_id) }}" 
-                                                    class="btn btn-danger ml-1" 
+                                                    class="btn btn-warning" 
                                                     title="Deactivate"
                                                     onclick="return confirm('Deactivate this product?')">
                                                     <i class="fa fa-ban"></i>
                                                 </a>
                                                 @else
                                                 <a href="{{ url('admin/products_update/Active/'.$item->products_id) }}" 
-                                                    class="btn btn-success ml-1" 
+                                                    class="btn btn-success" 
                                                     title="Activate"
                                                     onclick="return confirm('Activate this product?')">
                                                     <i class="fa fa-check"></i>
                                                 </a>
                                                 @endif
+                                                </div>
                                         </td>
                                     </tr>
                                     @endforeach

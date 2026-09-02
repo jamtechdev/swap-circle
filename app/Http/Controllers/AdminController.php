@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
+use App\Support\LandingContent;
 use App\Models\Event_post;
 use App\Models\Tag;
 use App\Models\Event_tag;
@@ -24,12 +25,13 @@ use App\Models\{
 use App\Http\Controllers\Controller;
 use App\User;
 use Carbon\Carbon;
-use DB;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\SendMail;
-use Artisan;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Validator;
-use Session;
+use Illuminate\Support\Facades\Session;
+use Exception;
 
 class AdminController extends Controller
 {
@@ -83,8 +85,7 @@ class AdminController extends Controller
             Session::flash('success', ' Logged in successfully.');
             return redirect('admin/dashboard');
         } else {
-            Session::flash('error', 'Invalid Email/Password');
-            return redirect()->back();
+            return back()->with('error', 'Invalid Email/Password');
         }
     }
     // -------------- LOGIN AUTHENTICATION ------------- //
@@ -475,9 +476,37 @@ class AdminController extends Controller
             $data['description']          = $req->privacy_text;
             DB::table('system_settings')->where('type', 'privacy_text')->update($data);
         }
+
+        if (isset($req->cookie_text)) {
+            DB::table('system_settings')->updateOrInsert(
+                ['type' => 'cookie_text'],
+                ['description' => $req->cookie_text]
+            );
+        }
+
+        if (isset($req->gdpr_text)) {
+            DB::table('system_settings')->updateOrInsert(
+                ['type' => 'gdpr_text'],
+                ['description' => $req->gdpr_text]
+            );
+        }
+
+        if (isset($req->cookie_banner_text)) {
+            DB::table('system_settings')->updateOrInsert(
+                ['type' => 'cookie_banner_text'],
+                ['description' => $req->cookie_banner_text]
+            );
+        }
         if (isset($req->swap_offer_expire)) {
             $data['description']          = $req->swap_offer_expire;
             DB::table('system_settings')->where('type', 'swap_offer_expire')->update($data);
+        }
+
+        if (isset($req->claim_waiting_days)) {
+            DB::table('system_settings')->updateOrInsert(
+                ['type' => 'claim_waiting_days'],
+                ['description' => max(0, (int) $req->claim_waiting_days)]
+            );
         }
 
         if (isset($req->main_heading_label1)) {
@@ -572,6 +601,33 @@ class AdminController extends Controller
         return redirect('admin/' . $page_name);
     }
     // ------------- MANAGE SYSTEM USERS ROLES DATA -------------- //
+
+    // ------------- LANDING PAGE CMS -------------- //
+    public function landing_page(Request $request)
+    {
+        if (!$request->session()->has('admin_id')) {
+            return redirect('admin');
+        }
+
+        $page_name = 'landing_page';
+        $content = LandingContent::all();
+
+        return view('admin.landing_page', compact('page_name', 'content'));
+    }
+
+    public function landing_page_update(Request $request)
+    {
+        if (!$request->session()->has('admin_id')) {
+            return redirect('admin');
+        }
+
+        LandingContent::saveFromRequest($request);
+
+        session()->flash('success', 'Landing page content updated successfully!');
+
+        return redirect('admin/landing_page');
+    }
+    // ------------- LANDING PAGE CMS -------------- //
 
     // ------------- MANAGE SYSTEM USERS -------------- //
     public function users_system(Request $request)
@@ -671,8 +727,7 @@ class AdminController extends Controller
             session()->flash('success', 'User added successfully!');
             return redirect('admin/users_system');
         } else {
-            session()->flash('error', 'Oops! Somrthing went wrong. Please try again.');
-            return redirect()->back();
+            return back()->with('error', 'Oops! Somrthing went wrong. Please try again.');
         }
     }
     // ------------- MANAGE SYSTEM USERS ADD DATA -------------- //
@@ -718,8 +773,7 @@ class AdminController extends Controller
             session()->flash('success', 'User updated successfully!');
             return redirect('admin/users_system');
         } else {
-            session()->flash('error', 'Oops! Somrthing went wrong. Please try again.');
-            return redirect()->back();
+            return back()->with('error', 'Oops! Somrthing went wrong. Please try again.');
         }
     }
     // ------------- MANAGE SYSTEM USERS EDIT DATA -------------- //
@@ -773,8 +827,7 @@ class AdminController extends Controller
             session()->flash('success', 'Role added successfully!');
             return redirect('admin/users_system_roles');
         } else {
-            session()->flash('error', 'Oops! Somrthing went wrong. Please try again.');
-            return redirect()->back();
+            return back()->with('error', 'Oops! Somrthing went wrong. Please try again.');
         }
     }
     // ------------- MANAGE SYSTEM ROLES ADD DATA -------------- //
@@ -818,8 +871,7 @@ class AdminController extends Controller
             session()->flash('success', 'Role updated successfully!');
             return redirect('admin/users_system_roles');
         } else {
-            session()->flash('error', 'Oops! Somrthing went wrong. Please try again.');
-            return redirect()->back();
+            return back()->with('error', 'Oops! Somrthing went wrong. Please try again.');
         }
     }
     // ------------- MANAGE SYSTEM USERS ROLES DATA -------------- //
@@ -892,6 +944,32 @@ class AdminController extends Controller
         }
     }
     // ------------- MANAGE SYSTEM PRIVACY -------------- //
+
+    // ------------- MANAGE SYSTEM COOKIES -------------- //
+    public function system_cookies(Request $request)
+    {
+        if ($request->session()->has('admin_id')) {
+            $page_name = 'system_cookies';
+            $system_settings = DB::table('system_settings')->get();
+            return view('admin.system_cookies', compact('system_settings', 'page_name'));
+        } else {
+            return redirect('admin');
+        }
+    }
+    // ------------- MANAGE SYSTEM COOKIES -------------- //
+
+    // ------------- MANAGE SYSTEM GDPR -------------- //
+    public function system_gdpr(Request $request)
+    {
+        if ($request->session()->has('admin_id')) {
+            $page_name = 'system_gdpr';
+            $system_settings = DB::table('system_settings')->get();
+            return view('admin.system_gdpr', compact('system_settings', 'page_name'));
+        } else {
+            return redirect('admin');
+        }
+    }
+    // ------------- MANAGE SYSTEM GDPR -------------- //
 
     // ------------- MANAGE USERS CUSTOMERS FAQs -------------- //
     public function users_customers_faqs_fetch(Request $request)
@@ -1541,12 +1619,10 @@ class AdminController extends Controller
                     session()->flash('success', 'Task type added successfully!');
                     return redirect('admin/tasks_types');
                 } else {
-                    session()->flash('error', 'Oops! Something went wrong. Please try again.');
-                    return redirect()->back();
+                    return back()->with('error', 'Oops! Something went wrong. Please try again.');
                 }
             } else {
-                session()->flash('error', 'Task type already exist.');
-                return redirect()->back();
+                return back()->with('error', 'Task type already exist.');
             }
         } else {
             return redirect('admin');
@@ -1568,8 +1644,7 @@ class AdminController extends Controller
                 session()->flash('success', 'Task type updated successfully!');
                 return redirect('admin/tasks_types');
             } else {
-                session()->flash('error', 'Oops! Somrthing went wrong. Please try again.');
-                return redirect()->back();
+                return back()->with('error', 'Oops! Somrthing went wrong. Please try again.');
             }
         } else {
             return redirect('admin');
@@ -1636,12 +1711,10 @@ class AdminController extends Controller
                     session()->flash('success', 'Occupation added successfully!');
                     return redirect('admin/occupations');
                 } else {
-                    session()->flash('error', 'Oops! Something went wrong. Please try again.');
-                    return redirect()->back();
+                    return back()->with('error', 'Oops! Something went wrong. Please try again.');
                 }
             } else {
-                session()->flash('error', 'Occupation already exist.');
-                return redirect()->back();
+                return back()->with('error', 'Occupation already exist.');
             }
         } else {
             return redirect('admin');
@@ -1663,8 +1736,7 @@ class AdminController extends Controller
                 session()->flash('success', 'Occupations updated successfully!');
                 return redirect('admin/occupations');
             } else {
-                session()->flash('error', 'Oops! Somrthing went wrong. Please try again.');
-                return redirect()->back();
+                return back()->with('error', 'Oops! Somrthing went wrong. Please try again.');
             }
         } else {
             return redirect('admin');
@@ -1731,12 +1803,10 @@ class AdminController extends Controller
                     session()->flash('success', 'Relationship added successfully!');
                     return redirect('admin/relationships');
                 } else {
-                    session()->flash('error', 'Oops! Something went wrong. Please try again.');
-                    return redirect()->back();
+                    return back()->with('error', 'Oops! Something went wrong. Please try again.');
                 }
             } else {
-                session()->flash('error', 'Occupation already exist.');
-                return redirect()->back();
+                return back()->with('error', 'Occupation already exist.');
             }
         } else {
             return redirect('admin');
@@ -1758,8 +1828,7 @@ class AdminController extends Controller
                 session()->flash('success', 'Relationship updated successfully!');
                 return redirect('admin/relationships');
             } else {
-                session()->flash('error', 'Oops! Somrthing went wrong. Please try again.');
-                return redirect()->back();
+                return back()->with('error', 'Oops! Somrthing went wrong. Please try again.');
             }
         } else {
             return redirect('admin');
@@ -1883,8 +1952,7 @@ class AdminController extends Controller
             session()->flash('success', 'Payment Method added successfully!');
             return redirect(route('payment_methods'));
         } else {
-            session()->flash('error', 'Oops! Somrthing went wrong. Please try again.');
-            return redirect()->back();
+            return back()->with('error', 'Oops! Somrthing went wrong. Please try again.');
         }
     }
     // ------------- MANAGE PAYMENT METHODS ADD DATA -------------- //
@@ -1914,8 +1982,7 @@ class AdminController extends Controller
             session()->flash('success', 'User updated successfully!');
             return redirect(route('payment_methods'));
         } else {
-            session()->flash('error', 'Oops! Somrthing went wrong. Please try again.');
-            return redirect()->back();
+            return back()->with('error', 'Oops! Somrthing went wrong. Please try again.');
         }
     }
     // ------------- MANAGE PAYMENT METHODS EDIT DATA -------------- //
@@ -2474,57 +2541,77 @@ class AdminController extends Controller
     // ------------- MANAGE RATE API PAGE -------------- //
     public function currency_rate()
     {
-        if (session()->has('admin_id')) {
-            $system_setting_currency = DB::table('system_settings')->select('description')->where('type', 'system_currencies_id')->first();
-            $system_currency = DB::table('system_currencies')->where('system_currencies_id', $system_setting_currency->description)->first();
-            $currencies = DB::table('system_currencies')->get();
-            $rate_api = DB::table('rate_api')->get();
-            $system_currency_code = $system_currency->code;
-
-            $final_data = [];
-
-            foreach ($rate_api as $api) {
-                if ($api->name == "Exchangerate") {
-                    $url = $api->url;
-                    $req_url = "$url?$system_currency_code";
-                    $response_json = file_get_contents($req_url);
-
-                    if (false !== $response_json) {
-                        try {
-                            $response = json_decode($response_json);
-
-                            if ($response->success === true) {
-                                $data = $response->rates;
-
-                                $final_data = [];
-                                foreach ($currencies as $currency) {
-                                    $currencyCode = $currency->code;
-                                    if (isset($data->$currencyCode)) {
-                                        $final_data[$currencyCode] = $data->$currencyCode;
-                                    }
-                                }
-                                $final_data = collect($final_data)->map(function ($value, $key) use ($currencies) {
-                                    $currency = $currencies->firstWhere('code', $key);
-                                    $symbol = $currency ? $currency->symbol : '';
-
-                                    return [
-                                        'code' => $key,
-                                        'value' => number_format($value, 2),
-                                        'symbol' => $symbol,
-                                    ];
-                                })->values()->all();
-                            }
-                        } catch (Exception $e) {
-                            // Handle JSON parse error...
-                        }
-                    }
-                }
-            }
-
-            return view('admin.currency_rate', compact('final_data'));
-        } else {
+        if (!session()->has('admin_id')) {
             return redirect('admin');
         }
+
+        $system_setting_currency = DB::table('system_settings')
+            ->select('description')
+            ->where('type', 'system_currencies_id')
+            ->first();
+
+        $system_currency = DB::table('system_currencies')
+            ->where('system_currencies_id', $system_setting_currency->description ?? 0)
+            ->first();
+
+        $baseCode = $system_currency->code ?? 'EUR';
+        $currencies = DB::table('system_currencies')
+            ->where('status', 'Active')
+            ->orderBy('code')
+            ->get()
+            ->unique('code');
+
+        $final_data = [];
+        $fetchError = null;
+        $rateSource = 'ExchangeRate-API';
+        $fetchedAt = now()->format('d M Y, H:i');
+
+        $ctx = stream_context_create([
+            'ssl' => [
+                'verify_peer' => false,
+                'verify_peer_name' => false,
+            ],
+        ]);
+
+        $reqUrl = 'https://api.exchangerate-api.com/v4/latest/' . rawurlencode($baseCode);
+        $responseJson = @file_get_contents($reqUrl, false, $ctx);
+
+        if ($responseJson !== false) {
+            $response = json_decode($responseJson, true);
+
+            if (is_array($response) && isset($response['rates']) && is_array($response['rates'])) {
+                foreach ($currencies as $currency) {
+                    $code = $currency->code;
+                    if (!isset($response['rates'][$code])) {
+                        continue;
+                    }
+
+                    $final_data[] = [
+                        'code' => $code,
+                        'name' => $currency->name ?: $code,
+                        'value' => number_format((float) $response['rates'][$code], 4),
+                        'symbol' => $currency->symbol ?? '',
+                    ];
+                }
+
+                if (isset($response['date'])) {
+                    $fetchedAt = $response['date'];
+                }
+            } else {
+                $fetchError = 'Unable to read exchange rates from the provider response.';
+            }
+        } else {
+            $fetchError = 'Unable to reach the exchange rate service. Check your connection and try again.';
+        }
+
+        return view('admin.currency_rate', compact(
+            'final_data',
+            'baseCode',
+            'system_currency',
+            'fetchError',
+            'rateSource',
+            'fetchedAt'
+        ));
     }
     // ------------- MANAGE RATE API PAGE -------------- //
 

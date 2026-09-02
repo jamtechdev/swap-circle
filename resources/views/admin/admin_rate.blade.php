@@ -196,9 +196,7 @@
             {
                 data: null,
                 render: function (data) {
-                if (data.status === "Active")   return '<span class="btn m-1 btn-success">Active</span>';
-                if (data.status === "Inactive") return '<span class="btn m-1 btn-warning">Inactive</span>';
-                return '<span class="btn m-1 btn-danger">Deleted</span>';
+                return window.adminStatusBadge(data.status);
                 }
             },
             {
@@ -206,11 +204,14 @@
                 orderable: false,
                 searchable: false,
                 render: function (data) {
-                return `
-                    <button class="btn m-1 btn-info edit_rate_api" value="${data.system_currencies_id}">
-                    <i class="fa fa-edit"></i>
-                    </button>
-                `;
+                return window.adminActionGroup([
+                    window.adminActionButton('edit', {
+                        tag: 'button',
+                        title: 'Edit',
+                        extraClass: 'edit_rate_api',
+                        attrs: { value: data.system_currencies_id },
+                    }),
+                ]);
                 }
             }
             ]

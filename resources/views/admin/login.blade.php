@@ -1,93 +1,67 @@
-<!DOCTYPE html>
-<html lang="en" class="h-100">
-    <head>
-        <?php 
-            $system_image=DB::table('system_settings')->select('description')->where('type', 'system_image')->get(); 
-            $system_name=DB::table('system_settings')->select('description')->where('type', 'system_name')->get(); 
-        ?>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width,initial-scale=1">
-        <title><?php echo $system_name[0]->description; ?> :: Admin Portal</title>
-        <!-- Favicon icon -->
-		<link rel="icon" type="image" sizes="24x24" href="{{ asset('uploads/system_image/favico.png') }}">
-        <link href="{{asset('css/style.css')}}" rel="stylesheet">
-        @vite(['resources/sass/app.scss', 'resources/js/app.js'])
-        <style>
-            body{
-               background-color: #33d17b;
-            }
-        </style>
-    </head>
-    <body class="h-100">
-        <div class="authincation h-100">
-            <div class="container h-100">
-                <div class="row justify-content-center h-100 align-items-center">
-                    <div class="col-md-6">
-                        <div class="authincation-content">
-                            <div class="row no-gutters">
-                                <div class="col-xl-12">
-                                    <div class="auth-form">
-                                        <div class="text-center mb-4 logo">
-                                            <img class="text-center mb-4" style="width: 75%;" src="{{ asset('uploads/system_image/'.$system_image[0]->description) }}" alt="image">
-                                        </div>
+@extends('layout.auth.master')
 
-                                        <h4 class="text-center mb-4">Sign in your account</h4>
-                                        <form  method="POST" action="{{url('/admin/login')}}">
-                                            @csrf
-                                            <div class="form-group">
-                                                <label class="mb-1"><strong>Email</strong></label>
-                                                <input type="email" class="form-control"  id="email" name="email" placeholder="Enter email">
-                                            </div>
-                                            <div class="form-group">
-                                                <label class="mb-1"><strong>Password</strong></label>
-                                                <input type="password" class="form-control" id="password" name="password" placeholder="Enter Password">
-                                            </div>
-                                            <div class="text-center">
-                                                <button type="submit" class="btn btn-primary btn-block">Sign Me In</button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+@section('title', ($brandName ?? 'Swap Circle') . ' — Admin Sign In')
+
+@php
+    $heroEyebrow = 'Admin Portal';
+    $heroTitle = 'Manage your platform.<br>Stay in control.';
+    $heroText = 'Access dashboards, users, products, rates, and system settings from one secure place.';
+@endphp
+
+@section('content')
+    <div class="text-center lg:text-left">
+        <img src="{{ asset('uploads/system_image/' . $brandLogo) }}" alt="{{ $brandName }}" class="mx-auto h-12 w-auto lg:mx-0">
+        <span class="mt-6 inline-flex items-center rounded-full border border-forest/15 bg-lime-soft px-3 py-1 text-xs font-bold uppercase tracking-wider text-forest">Admin access</span>
+        <h1 class="mt-3 font-display text-3xl font-bold text-forest sm:text-4xl">Welcome back</h1>
+        <p class="mt-2 text-sm text-gray-500">Sign in to the {{ $brandName }} admin dashboard.</p>
+    </div>
+
+    <form method="POST" action="{{ url('/admin/login') }}" class="mt-8 space-y-4" novalidate>
+        @csrf
+
+        <div>
+            <label for="email" class="auth-label">Email address</label>
+            <div class="relative">
+                <span class="auth-input-icon">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                </span>
+                <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    class="auth-input"
+                    placeholder="admin@swapcircle.com"
+                    value="{{ old('email') }}"
+                    autocomplete="email"
+                    required
+                >
             </div>
         </div>
-        <!--**********************************
-            Scripts
-        ***********************************-->
-        <!-- Required vendors -->
-        <script src="{{asset('vendor/global/global.min.js')}}"></script>
-        <script src="{{asset('vendor/global/bootstrap.bundle.min.js')}}"></script>
-        <script src="{{asset('vendor/metismenu/js/metisMenu.min.js')}}"></script>
-    	<script src="{{asset('vendor/bootstrap-select/dist/js/bootstrap-select.min.js')}}"></script>
-        <script src="{{asset('js/settings.js')}}"></script>
 
-        <link href="{{asset('toasters/toastr.min.css')}}" rel="stylesheet" type="text/css" />   
-        <script src="{{asset('toasters/toastr.min.js')}}" type="text/javascript"></script>
-        <script>
-            toastr.options = {
-              "closeButton": true,
-              "debug": false,
-              "positionClass": "toast-top-right",
-              "onclick": null,
-              "showDuration": "1000",
-              "hideDuration": "1000",
-              "timeOut": "5000",
-              "extendedTimeOut": "1000",
-              "showEasing": "swing",
-              "hideEasing": "linear",
-              "showMethod": "fadeIn",
-              "hideMethod": "fadeOut"
-            }
-            //Command: toastr['success']("hello");
+        <div>
+            <label for="password" class="auth-label">Password</label>
+            <div class="relative">
+                <span class="auth-input-icon">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                </span>
+                <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    class="auth-input pr-11"
+                    placeholder="Enter password"
+                    autocomplete="current-password"
+                    required
+                >
+                <button type="button" class="auth-input-toggle" data-toggle-password="#password" aria-label="Show password" aria-pressed="false"></button>
+            </div>
+        </div>
 
-            <?php if(Session::has('success')){ ?> Command: toastr['success']("<?php echo Session('success'); ?>"); <?php } ?>
-            <?php if(Session::has('error')){ ?> Command: toastr['error']("<?php echo Session('error'); ?>"); <?php } ?>
-            <?php if(Session::has('warning')){ ?> Command: toastr['warning']("<?php echo Session('warning'); ?>"); <?php } ?>
-            <?php if(Session::has('info')){ ?> Command: toastr['info']("<?php echo Session('info'); ?>"); <?php } ?>
-        </script>
-    </body>
-</html>
+        <button type="submit" class="auth-btn-primary mt-2">Sign in to admin</button>
+    </form>
+
+    <p class="mt-8 text-center text-sm text-gray-500 lg:text-left">
+        Not an admin?
+        <a href="{{ url('/login') }}" class="font-bold text-forest hover:text-lime-hover">User portal login</a>
+    </p>
+@endsection

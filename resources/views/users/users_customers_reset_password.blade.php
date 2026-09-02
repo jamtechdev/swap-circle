@@ -1,205 +1,128 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <?php 
-            $system_image=DB::table('system_settings')->select('description')->where('type', 'system_image')->get(); 
-            $system_name=DB::table('system_settings')->select('description')->where('type', 'system_name')->get();
-            $auth_bg_image=DB::table('system_settings')->select('description')->where('type', 'auth_bg_image')->first()->description; 
-            $auth_image=DB::table('system_settings')->select('description')->where('type', 'auth_image')->first()->description;  
-        ?>
-        <meta charset="UTF-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title><?php echo $system_name[0]->description; ?> :: Users Customers Portal</title>
+@extends('layout.auth.master')
 
-        <link href="{{ asset('users/assets/css/bootstrap.min.css') }}" rel="stylesheet" type="text/css" />
-        <link href="{{ asset('users/assets/css/style.css') }}" rel="stylesheet" type="text/css" />
-        <link href="{{ asset('users/assets/css/custom.css') }}" rel="stylesheet" type="text/css" />
-    </head>
-    <body>
-        <div id="wrapper">
-            <div class="container-fluid">
-                <div class="row login min-vh-100">
-                    <!-- LEFT SECTION START -->
-                    <!-- <div class="col-lg-6 left d-lg-flex align-items-center justify-content-center justify-content-md-start py-5 d-none">
-                        <img src="{{ asset('users/assets/images/Rocket_Boy_Flatline.png') }}" class="img-fluid w-75 mx-auto" alt="image">
-                    </div> -->
-                    <div class="col-lg-6 left d-lg-flex align-items-center justify-content-center justify-content-md-start py-5 d-none" style="background-image: url('{{ asset($auth_bg_image) }}'); background-size: cover; background-position: center right;">
-                        <img src="{{ asset($auth_image) }}" class="img-fluid w-75 mx-auto" alt="image">    
-                    </div>
-                    <!-- LEFT SECTION END -->
+@section('title', ($brandName ?? 'Swap Circle') . ' — Reset Password')
 
-                    <!-- RIGHT SECTION START -->
-                    <div class="col-lg-6 d-flex flex-column justify-content-sm-around justify-content-center align-items-center flex-wrap  py-5">
-                        <div class="logo text-center">
-                            <img src="{{ asset('uploads/system_image/'.$system_image[0]->description) }}" class="img-fluid img-logo" alt="image">
-                            <h3 class="main-heading mt-5">Reset Password?</h3>
-                            <p class="sub-heading mt-2">Create new password for your <br/> <?php echo $system_name[0]->description; ?> account.</p>
-                            <!-- FORM RESET PASSWORD START -->
-                            <form id="frm_reset_password" class="mt-5">
-                                @csrf
-                                <!-- EMAIL -->
-                                <input type="hidden" id="email" value="{{ $email}}">
-                                <!-- OTP -->
-                                <input type="hidden" id="otp" value="{{ $otp }}">
-                                <!-- PASSWORD -->
-                                <div class="form-group position-relative w-pass mb-3">
-                                    <span class="input-icon"><img src="{{ asset('users/assets/images/icons/lock.png') }}" class="img-fluid"></span>
-                                    <input type="password" class="form-control" placeholder="New password" aria-label="Password" name="password" id="password">
-                                    <span class="input-icon right"><img src="{{ asset('users/assets/images/icons/Eye-slash 1.png') }}" class="img-fluid" id="icon_password"></span>
-                                    <span class="error_msg" id="error_password"></span>
-                                </div>
-                                <!-- CONFIRM PASSWORD -->
-                                <div class="form-group position-relative w-pass mb-3">
-                                    <span class="input-icon"><img src="{{ asset('users/assets/images/icons/lock.png') }}" class="img-fluid"></span>
-                                    <input type="password" class="form-control" placeholder="Confirm new password" aria-label="Confirm password" name="confirm_password" id="confirm_password">
-                                    <span class="input-icon right"><img src="{{ asset('users/assets/images/icons/Eye-slash 1.png') }}" class="img-fluid" id="icon_confirm_password"></span>
-                                    <span class="error_msg" id="error_confirm_password"></span>
-                                </div>
-                                <div class="pt-4">
-                                    <button type="submit" id="btnResetPassword" class="btn btn-login btn-primary w-100 mt-4">Reset Password</button>
-                                    <a href="{{ url('/') }}" class="d-inline-block mt-3">Back to login</a>
-                                </div>
-                            </form>
-                            <!-- FORM RESET PASSWORD END -->
-                        </div>
-                    </div>
-                    <!-- RIGHT SECTION END -->
-                </div>
+@php
+    $heroTitle = 'Create a new<br>secure password.';
+    $heroText = 'Choose a strong password you haven\'t used before. You\'ll use it to sign in to your Swap Circle account.';
+@endphp
+
+@section('back_url', url('/login'))
+@section('back_label', 'Back to login')
+
+@section('content')
+    <div class="text-center lg:text-left">
+        <img src="{{ asset('uploads/system_image/' . $brandLogo) }}" alt="{{ $brandName }}" class="mx-auto h-12 w-auto lg:mx-0">
+        <div class="mx-auto mt-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-lime-soft lg:mx-0">
+            <svg class="h-7 w-7 text-forest" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+        </div>
+        <h1 class="mt-5 font-display text-3xl font-bold text-forest">Reset Password</h1>
+        <p class="mt-2 text-sm text-gray-500">Create a new password for your {{ $brandName }} account.</p>
+    </div>
+
+    <form id="frm_reset_password" class="mt-8 space-y-4" novalidate>
+        @csrf
+        <input type="hidden" id="email" value="{{ $email }}">
+        <input type="hidden" id="otp" value="{{ $otp }}">
+
+        <div>
+            <label for="password" class="auth-label">New password</label>
+            <div class="relative">
+                <span class="auth-input-icon">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                </span>
+                <input type="password" id="password" name="password" class="auth-input pr-11" placeholder="At least 7 characters" autocomplete="new-password">
+                <button type="button" class="auth-input-toggle" data-toggle-password="#password" aria-label="Toggle password"></button>
             </div>
+            <span class="auth-error" id="error_password"></span>
         </div>
 
-        <!-- SCRIPTS -->
-        <script src="{{ asset('users/assets/js/bootstrap.bundle.js') }}"></script>
-        <script src="{{ asset('users/assets/js/jquery.min.js') }}"></script>
-        <script src="{{ asset('users/assets/js/jquery.validate.min.js') }}"></script>
-        <script>
-            $(document).ready(function() {
-                // -------------- SHOW / HIDE PASSWORD VALUE ------------- //
-                $("#icon_password").on("click", function() {
-                    var input = $("#password");
-                    if (input.attr("type") === "password") {
-                        input.attr("type", "text");
-                    } else {
-                        input.attr("type", "password");
-                    }
-                });
-                $("#icon_confirm_password").on("click", function() {
-                    var input = $("#confirm_password");
-                    if (input.attr("type") === "password") {
-                        input.attr("type", "text");
-                    } else {
-                        input.attr("type", "password");
-                    }
-                });
-                // -------------- SHOW / HIDE PASSWORD VALUE ------------- //
+        <div>
+            <label for="confirm_password" class="auth-label">Confirm new password</label>
+            <div class="relative">
+                <span class="auth-input-icon">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                </span>
+                <input type="password" id="confirm_password" name="confirm_password" class="auth-input pr-11" placeholder="Re-enter password" autocomplete="new-password">
+                <button type="button" class="auth-input-toggle" data-toggle-password="#confirm_password" aria-label="Toggle confirm password"></button>
+            </div>
+            <span class="auth-error" id="error_confirm_password"></span>
+        </div>
 
-                // -------------- FORM RESET PASSWORD VALIDATION ------------- //
-                $("#frm_reset_password").validate({
-                    rules: {
-                        password: {
-                            required: true,
-                            minlength: 7
-                        },
-                        confirm_password: {
-                            required: true,
-                            equalTo: "#password"
-                        }
-                    },
-                    messages: {
-                        password: {
-                            required: "This field is required.",
-                            minlength: "Password should be at least 7 characters long."
-                        },
-                        confirm_password: {
-                            required: "This field is required.",
-                            equalTo: "Please enter the same value as password."
-                        },
-                    },
-                    errorPlacement: function (error, element) {
-                        //error.insertAfter (element);
-                        if (element.attr("name") == "password") {
-                            $("#error_password").html(error);
-                        } else if (element.attr("name") == "confirm_password") {
-                            $("#error_confirm_password").html(error);
-                        }
-                    }
-                });
-                // -------------- FORM RESET PASSWORD VALIDATION ------------- //
+        <button type="submit" id="btnResetPassword" class="auth-btn-primary mt-2">
+            <span id="btn_reset_text">Reset Password</span>
+            <span id="btn_reset_loader" class="hidden items-center gap-2">
+                <svg class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                Resetting...
+            </span>
+        </button>
+    </form>
 
-                // -------------- FORM RESET PASSWORD SUBMISSION ------------- //
-                $("#frm_reset_password").on("submit", function (event) {
-                    event.preventDefault();
-                    if ($("#frm_reset_password").valid()) {
-                        var email = $("#email").val();                        
-                        var otp = $("#otp").val();                            
-                        var password = $("#password").val();                  
-                        var confirm_password = $("#confirm_password").val();  
+    <p class="mt-6 text-center text-sm text-gray-500 lg:text-left">
+        Remember your password?
+        <a href="{{ url('/login') }}" class="font-bold text-forest hover:text-lime-hover">Sign In</a>
+    </p>
+@endsection
 
-                        var settings = {
-                            "url": "{{ rtrim(config('app.api_url'), '/') }}/modify_password",
-                            "method": "POST",
-                            "timeout": 0,
-                            "headers": {
-                                "Content-Type": "application/json"
-                            },
-                    
-                            "data": JSON.stringify({
-                                "email": email,
-                                "otp": otp,
-                                "password": password,
-                                "confirm_password": confirm_password,
-                            }),
-                        };
+@push('scripts')
+<script>
+$(function () {
+    $("#frm_reset_password").validate({
+        rules: {
+            password: { required: true, minlength: 7 },
+            confirm_password: { required: true, equalTo: "#password" },
+        },
+        messages: {
+            password: {
+                required: "This field is required.",
+                minlength: "Password should be at least 7 characters long.",
+            },
+            confirm_password: {
+                required: "This field is required.",
+                equalTo: "Please enter the same value as password.",
+            },
+        },
+        errorPlacement: function (error, element) {
+            if (element.attr("name") === "password") $("#error_password").html(error);
+            else if (element.attr("name") === "confirm_password") $("#error_confirm_password").html(error);
+        }
+    });
 
-                        $("#btnResetPassword").prop("disabled", true).text("Resetting...");
+    $("#frm_reset_password").on("submit", function (event) {
+        event.preventDefault();
+        if (!$("#frm_reset_password").valid()) return;
 
-                        $.ajax(settings).done(function (response) {
-                            if (response.status == "error"){ 
-                                Command: toastr["error"](response.message);
-                            } else{
-                                Command: toastr["success"]("Password reset successfully. Please login.");
-                                setTimeout(function () {
-                                    window.location.href = "/";
-                                }, 1200);
-                            }
-                        }).fail(function () {
-                            Command: toastr["error"]("Unable to reset password. Please try again.");
-                        }).always(function () {
-                            $("#btnResetPassword").prop("disabled", false).text("Reset Password");
-                        });
-                    }
-                });
-                // -------------- FORM RESET PASSWORD SUBMISSION ------------- //
-            });
-        </script>
-        <!-- SCRIPTS -->
+        $("#btnResetPassword").prop("disabled", true);
+        $("#btn_reset_text").addClass("hidden");
+        $("#btn_reset_loader").removeClass("hidden").addClass("inline-flex");
 
-        <!-- TOASTERS -->
-        <link href="{{asset('toasters/toastr.min.css')}}" rel="stylesheet" type="text/css" />   
-        <script src="{{asset('toasters/toastr.min.js')}}" type="text/javascript"></script>
-        <script>
-            toastr.options = {
-                "closeButton": true,
-                "debug": false,
-                "positionClass": "toast-top-right",
-                "onclick": null,
-                "showDuration": "1000",
-                "hideDuration": "1000",
-                "timeOut": "5000",
-                "extendedTimeOut": "1000",
-                "showEasing": "swing",
-                "hideEasing": "linear",
-                "showMethod": "fadeIn",
-                "hideMethod": "fadeOut"
+        $.ajax({
+            url: "{{ rtrim(config('app.api_url'), '/') }}/modify_password",
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            data: JSON.stringify({
+                email: $("#email").val(),
+                otp: $("#otp").val(),
+                password: $("#password").val(),
+                confirm_password: $("#confirm_password").val(),
+            }),
+        }).done(function (response) {
+            if (response.status === "error") {
+                toastr.error(response.message);
+            } else {
+                toastr.success("Password reset successfully. Please sign in.");
+                setTimeout(function () {
+                    window.location.href = "/login";
+                }, 1200);
             }
-            //Command: toastr['success']("hello");
-
-            <?php if(Session::has('success')){ ?> Command: toastr['success']("<?php echo Session('success'); ?>"); <?php } ?>
-            <?php if(Session::has('error')){ ?> Command: toastr['error']("<?php echo Session('error'); ?>"); <?php } ?>
-            <?php if(Session::has('warning')){ ?> Command: toastr['warning']("<?php echo Session('warning'); ?>"); <?php } ?>
-            <?php if(Session::has('info')){ ?> Command: toastr['info']("<?php echo Session('info'); ?>"); <?php } ?>
-        </script>
-        <!-- TOASTERS -->
-    </body>
-</html>
+        }).fail(function () {
+            toastr.error("Unable to reset password. Please try again.");
+        }).always(function () {
+            $("#btnResetPassword").prop("disabled", false);
+            $("#btn_reset_text").removeClass("hidden");
+            $("#btn_reset_loader").addClass("hidden").removeClass("inline-flex");
+        });
+    });
+});
+</script>
+@endpush

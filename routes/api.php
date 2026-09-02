@@ -62,6 +62,7 @@ Route::post('/update_activity_interval', [ApiController::class, 'update_activity
 Route::post('/users_customers_last_activity', [ApiController::class, 'users_customers_last_activity']);
 Route::post('/users_customers_activity_interval', [ApiController::class, 'users_customers_activity_interval']);
 Route::post('/users_customers_verify_otp', [ApiController::class, 'users_customers_verify_otp']);
+Route::post('/resend_otp', [ApiController::class, 'resend_otp']);
 //USER AUTHENTICATION
 
 //LIVE CHAT MESSAGES

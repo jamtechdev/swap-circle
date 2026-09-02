@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="admin-page-scroll">
 	<head>
 		<?php 
 			$system_image=DB::table('system_settings')->select('description')->where('type', 'system_image')->get(); 
@@ -16,23 +16,15 @@
 	    <!-- Custom Stylesheet -->
 	    <link href="{{asset('vendor/bootstrap-select/dist/css/bootstrap-select.min.css')}}" rel="stylesheet">
 	    <link href="{{asset('css/style.css')}}" rel="stylesheet">
-		@vite(['resources/sass/app.scss', 'resources/js/app.js'])
-		<link rel="stylesheet" type="text/css" href="{{asset('/icons/flaticon/flaticon.css')}}">
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
+		@vite(['resources/sass/app.scss', 'resources/js/app.js', 'resources/css/admin.css', 'resources/js/admin.js'])
 		<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css">
-		<style>
-			table.dataTable tbody tr.selected,
-			table.dataTable tbody th.selected,
-			table.dataTable tbody td.selected,
-			table.dataTable.display tbody tr.odd.selected > .sorting_1,
-			table.dataTable.display tbody tr.even.selected > .sorting_1 {
-				background-color: #fff !important;
-				color: inherit !important;
-			}
-		</style>
 		@yield('style')
 	</head>
 
-	<body>
+	<body class="admin-page" data-layout="vertical" data-sidebar-style="full" data-header-position="fixed" data-sidebar-position="fixed">
 
 	    <!--*******************
 	        Preloader start
@@ -58,15 +50,12 @@
 	            Nav header start
 	        ***********************************-->
 	       <div class="nav-header">
-				<div style="display: flex; justify-content: space-evenly; align-items: baseline; filter: brightness(1.2);">
-					<a href="{{ url('/admin/dashboard') }}">
-						<img 
-							style="width: 100%; margin-top: 30px; cursor: pointer;" 
-							src="{{ asset('uploads/system_image/'.$system_image[0]->description) }}" 
-							alt="image"
-						>
-					</a>
-				</div>
+				<a href="{{ url('/admin/dashboard') }}" class="admin-brand-link">
+					<img
+						src="{{ asset('uploads/system_image/'.$system_image[0]->description) }}"
+						alt="{{ $system_name[0]->description ?? 'Admin' }}"
+					>
+				</a>
 			</div>
 
 	        <!--**********************************
@@ -96,11 +85,6 @@
 	        ***********************************-->
 
 			@yield('content')
-				
-			<i class="flaticon-airplane49"></i>  <span class="flaticon-airplane49"></span>
-	        <!--**********************************
-	            Sidebar end
-	        ***********************************-->
 
 	        <!--**********************************
 	            Content body end
@@ -111,20 +95,9 @@
 	        ***********************************-->
 	        <div class="footer">
 			    <div class="copyright">
-			        <p>Copyright © <?php echo date('Y'); ?></p>
+			        <p>&copy; {{ date('Y') }} {{ $system_name[0]->description ?? 'Swap Circle' }}</p>
 			    </div>
 			</div>
-	        <!--**********************************
-	            Footer end
-	        ***********************************-->
-
-	        <!--**********************************
-	           Support ticket button start
-	        ***********************************-->
-
-	        <!--**********************************
-	           Support ticket button end
-	        ***********************************-->
    	 	</div>
 	    <!--**********************************
 	        Main wrapper end
@@ -145,6 +118,15 @@
 		
 	    <!-- Datatable -->
 	    <script src="{{asset('vendor/datatables/js/jquery.dataTables.min.js')}}"></script>
+	    <script>
+	        if ($.fn.dataTable) {
+	            $.extend(true, $.fn.dataTable.defaults, {
+	                language: {
+	                    lengthMenu: '_MENU_ Entries per page',
+	                },
+	            });
+	        }
+	    </script>
 	    <script src="{{ asset('js/plugins-init/datatables.init.js') }}?v=20260601-2-{{ filemtime(public_path('js/plugins-init/datatables.init.js')) }}"></script>
 
 	    <script>
@@ -235,5 +217,7 @@
 			<?php if(Session::has('warning')){ ?> Command: toastr['warning']("<?php echo Session('warning'); ?>"); <?php } ?>
 			<?php if(Session::has('info')){ ?> Command: toastr['info']("<?php echo Session('info'); ?>"); <?php } ?>
 		</script>
+		@yield('script')
+		@vite(['resources/css/admin.css'])
 	</body>
 </html>

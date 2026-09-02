@@ -7,8 +7,9 @@ use Illuminate\Support\Str;
 use App\Models\Event_post;
 use App\Models\Tag;
 use App\Models\Event_tag;
+use App\Models\FavoriteConnectArticle;
 
-use App\Http\Controllers\Controller;
+use App\Support\UserPortal;
 use App\User;
 use Carbon\Carbon;
 use DB;
@@ -19,6 +20,11 @@ use Session;
 class UsersController extends Controller{
     public $successStatus = 200;
     public $errorStatus = 401;
+
+    protected function portalRedirectForSession()
+    {
+        return redirect(UserPortal::postAuthRedirectUrl((int) session('id')));
+    }
 
     // -------------- CACHE PAGE ------------- //
     public function clear_cache(Request $request){
@@ -35,7 +41,7 @@ class UsersController extends Controller{
     // -------------- SIGNUP ------------- //
 	public function users_customers_signup(){
         if (session()->has('id')) {
-            return redirect('users/dashboard');
+            return $this->portalRedirectForSession();
         } else{
             return view('users.users_customers_signup');
         }
@@ -45,7 +51,7 @@ class UsersController extends Controller{
     // -------------- SIGNUP INDIVIDUAL ------------- //
     public function users_customers_signup_individual(){
         if (session()->has('id')) {
-            return redirect('users/dashboard');
+            return $this->portalRedirectForSession();
         } else{
             return view('users.users_customers_signup_individual');
         }
@@ -55,7 +61,7 @@ class UsersController extends Controller{
     // -------------- SIGNUP CORPORATE ------------- //
     public function users_customers_signup_corporate(){
         if (session()->has('id')) {
-            return redirect('users/dashboard');
+            return $this->portalRedirectForSession();
         } else{
             return view('users.users_customers_signup_corporate');
         }
@@ -65,7 +71,7 @@ class UsersController extends Controller{
     // -------------- SIGNUP WAIT ------------- //
     public function users_customers_signup_wait(){
         if (session()->has('id')) {
-            return redirect('users/dashboard');
+            return $this->portalRedirectForSession();
         } else{
             return view('users.users_customers_signup_wait');
         }
@@ -74,27 +80,40 @@ class UsersController extends Controller{
 
     // -------------- SIGNUP AUTHENTICATION PROCESSING ------------- //
     public function users_customers_signup_process(Request $request){
-        if (isset($request->users_customers_type) && isset($request->users_customers_id) && isset($request->email) && isset($request->phone)) {
+        if ($request->filled('users_customers_type')
+            && $request->filled('users_customers_id')
+            && $request->filled('email')) {
             $request->session()->put([
                 'users_customers_type' => $request->users_customers_type,
                 'id'                   => $request->users_customers_id,
-                'profile_pic'          => $request->profile_pic,
-                'first_name'           => $request->first_name,
+                'profile_pic'          => $request->profile_pic ?? '',
+                'first_name'           => $request->first_name ?? '',
                 'last_name'            => $request->last_name ?? '',
                 'company_name'         => $request->company_name ?? '',
                 'email'                => $request->email,
-                'phone'                => $request->phone,
+                'phone'                => $request->phone ?? '',
             ]);
             Session::flash('success', 'Signed up successfully.');
-            return true;
+            return response()->json([
+                'success' => true,
+                'redirect_url' => UserPortal::postAuthRedirectUrl((int) $request->users_customers_id),
+            ]);
         }
-        return false;
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Missing required account details.',
+        ], 422);
     }
     // -------------- SIGNUP AUTHENTICATION PROCESSING ------------- //
     
     // -------------- SIGNUP VERIFIED ------------- //
     public function users_customers_signup_verified(){
-        return view('users.users_customers_signup_verified');
+        $redirectUrl = session()->has('id')
+            ? UserPortal::postAuthRedirectUrl((int) session('id'))
+            : url('/users/products');
+
+        return view('users.users_customers_signup_verified', compact('redirectUrl'));
     }
     // -------------- SIGNUP VERIFIED ------------- //
 
@@ -102,7 +121,7 @@ class UsersController extends Controller{
     // -------------- LOGIN AUTHENTICATION MAIN ------------- //
 	public function users_customers_login(){
         if (session()->has('id')) {
-            return redirect('users/dashboard');
+            return redirect(UserPortal::postAuthRedirectUrl((int) session('id')));
         } else{
             return view('users.users_customers_login');
         }
@@ -111,21 +130,30 @@ class UsersController extends Controller{
     
     // -------------- LOGIN AUTHENTICATION PROCESSING ------------- //
     public function users_customers_login_process(Request $request){
-        if (isset($request->users_customers_type) && isset($request->users_customers_id) && isset($request->email) && isset($request->phone)) {
+        if ($request->filled('users_customers_type')
+            && $request->filled('users_customers_id')
+            && $request->filled('email')) {
             $request->session()->put([
                 'users_customers_type' => $request->users_customers_type,
                 'id'                   => $request->users_customers_id,
-                'profile_pic'          => $request->profile_pic,
-                'first_name'           => $request->first_name,
+                'profile_pic'          => $request->profile_pic ?? '',
+                'first_name'           => $request->first_name ?? '',
                 'last_name'            => $request->last_name ?? '',
                 'company_name'         => $request->company_name ?? '',
                 'email'                => $request->email,
-                'phone'                => $request->phone,
+                'phone'                => $request->phone ?? '',
             ]);
             Session::flash('success', 'Logged in successfully.');
-            return true;
+            return response()->json([
+                'success' => true,
+                'redirect_url' => UserPortal::postAuthRedirectUrl((int) $request->users_customers_id),
+            ]);
         }
-        return false;
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Missing required account details.',
+        ], 422);
     }
     // -------------- LOGIN AUTHENTICATION PROCESSING ------------- //
 
@@ -140,7 +168,7 @@ class UsersController extends Controller{
     // -------------- FORGOT PASSWORD ------------- //
     public function users_customers_forgot_password(){
         if (session()->has('id')) {
-            return redirect('users/dashboard');
+            return $this->portalRedirectForSession();
         } else{
             return view('users.users_customers_forgot_password');
         }
@@ -153,10 +181,19 @@ class UsersController extends Controller{
     }
     // -------------- VERIFICATION CODE ------------- //
 
+    // -------------- RESEND OTP ------------- //
+    public function users_customers_resend_otp($id){
+        if (session()->has('id')) {
+            return $this->portalRedirectForSession();
+        }
+        return view('users.users_customers_resend_otp', ['users_customers_id' => $id]);
+    }
+    // -------------- RESEND OTP ------------- //
+
     // -------------- RESET PASSWORD ------------- //
     public function users_customers_reset_password($email, $otp){
         if(session()->has('id')) {
-            return redirect('/users/dashboard');
+            return $this->portalRedirectForSession();
         } else {
             return view('users.users_customers_reset_password', compact('email', 'otp'));
         } 
@@ -166,7 +203,7 @@ class UsersController extends Controller{
     // -------------- DASHBOARD ------------- //
     // public function users_customers_dashboard(){
     //     if (!session()->has('id')) {
-    //         return redirect('/');
+    //         return redirect('/login');
     //     } else{
     //         $products_purchases = DB::table('products_purchases')->orderBy('products_purchases_id', 'DESC')->get();
     //         if (count($products_purchases) > 0) {
@@ -188,65 +225,38 @@ class UsersController extends Controller{
     public function users_customers_dashboard()
     {
         if (!session()->has('id')) {
-            return redirect('/');
+            return redirect('/login');
         }
 
-        $products = DB::table('products')
-            ->where('status', 'Active')
-            ->orderBy('products_id', 'ASC')
-            ->get();
+        $userId = (int) session('id');
+        $hasPurchases = UserPortal::successfulPurchaseCount($userId) > 0;
+        $claimWaitingDays = UserPortal::claimWaitingDays();
 
-        $products_purchases = DB::table('products_purchases')
-            ->where('users_customers_id', session('id'))
-            ->orderBy('products_purchases_id', 'DESC')
-            ->get();
-
-        foreach ($products_purchases as $prod_purchase) {
-
-            // Product
-            $prod_purchase->product = DB::table('products')
-                ->where('products_id', $prod_purchase->products_id)
-                ->first();
-
-            // Safety check: product exists
-            if (!$prod_purchase->product) {
-                continue;
-            }
-
-            if (in_array($prod_purchase->product->type, ['A', 'B'])) {
-
-                // Beneficiary
-                $prod_purchase->beneficiary = DB::table('products_purchases_beneficiaries')
-                    ->where('products_purchases_id', $prod_purchase->products_purchases_id)
-                    ->first();
-
-                // 👇 IMPORTANT NULL CHECK
-                if (!$prod_purchase->beneficiary) {
-                    continue;
-                }
-
-                // Occupation (SAFE)
-                $prod_purchase->beneficiary->occupation =
-                    DB::table('occupations')
-                        ->where('occupations_id', $prod_purchase->beneficiary->occupations_id)
-                        ->value('name');
-
-                // Relationship (SAFE)
-                $prod_purchase->beneficiary->relationship =
-                    DB::table('relationships')
-                        ->where('relationships_id', $prod_purchase->beneficiary->relationships_id)
-                        ->value('name');
-            }
+        if (!$hasPurchases) {
+            return view('users.dashboard', [
+                'hasPurchases' => false,
+                'ownedProductsCount' => 0,
+                'claimWaitingDays' => $claimWaitingDays,
+                'products_purchases' => collect(),
+            ]);
         }
 
-        return view('users.dashboard', compact('products_purchases', 'products'));
+        $products_purchases = UserPortal::loadUserPurchases($userId, true);
+        $ownedProductsCount = $products_purchases->count();
+
+        return view('users.dashboard', compact(
+            'products_purchases',
+            'ownedProductsCount',
+            'claimWaitingDays',
+            'hasPurchases'
+        ));
     }
     // -------------- DASHBOARD ------------- //
 
     // -------------- WALLETS ------------- //
     public function users_customers_wallets(){
         if (!session()->has('id')) {
-            return redirect('/');
+            return redirect('/login');
         } else{
             return view('users.users_customers_wallets');
         }
@@ -256,7 +266,7 @@ class UsersController extends Controller{
     // -------------- DATA ANALYSIS ------------- //
     public function users_customers_data_analysis(){
     	if (!session()->has('id')) {
-            return redirect('/');
+            return redirect('/login');
         } else{
             return view('users.users_customers_data_analysis');
         }
@@ -266,7 +276,7 @@ class UsersController extends Controller{
     // -------------- OFFERS ------------- //
     public function users_customers_offers(){
     	if (!session()->has('id')) {
-            return redirect('/');
+            return redirect('/login');
         } else{
             return view('users.users_customers_offers');
         }
@@ -276,7 +286,7 @@ class UsersController extends Controller{
     // -------------- OFFER REQUESTS ------------- //
      public function users_customers_offer_requests($offer_id){
         if (!session()->has('id')) {
-            return redirect('/');
+            return redirect('/login');
         } else{
             return view('users.users_customers_offer_requests', compact('offer_id'));
         }
@@ -286,18 +296,22 @@ class UsersController extends Controller{
     // -------------- PRODUCTS ------------- //
     public function users_customers_products(){
     	if (!session()->has('id')) {
-            return redirect('/');
-        } else{
-            $products      = DB::table('products')->where('status', 'Active')->orderBy('products_id', 'ASC')->get();
-            return view('users.users_customers_products', compact('products'));
+            return redirect('/login');
         }
+
+        $userId = (int) session('id');
+        $products = DB::table('products')->where('status', 'Active')->orderBy('products_id', 'ASC')->get();
+        $hasPurchases = UserPortal::successfulPurchaseCount($userId) > 0;
+        $portalHomeUrl = UserPortal::postAuthRedirectUrl($userId);
+
+        return view('users.users_customers_products', compact('products', 'hasPurchases', 'portalHomeUrl'));
     }
     // -------------- PRODUCTS ------------- //
 
     // -------------- PRODUCTS BUY ------------- //
     public function products_buy($type, $id){
     	if (!session()->has('id')) {
-            return redirect('/');
+            return redirect('/login');
         } else{
             $product = DB::table('products')
                 ->where('products_id', $id)
@@ -321,31 +335,23 @@ class UsersController extends Controller{
     // -------------- PRODUCTS CLAIMS ------------- //
      public function products_claims(){
     	if (!session()->has('id')) {
-            return redirect('/');
-        } else{ 
-            $purchased_products = DB::table('products_purchases')
-                                ->where('users_customers_id', session('id'))
-                                ->select('products_purchases.*')
-                                ->whereIn('products_purchases_id', function($query) {
-                                    $query->select(DB::raw('MAX(products_purchases_id)'))
-                                        ->from('products_purchases')
-                                        ->groupBy('products_id');
-                                })
-                                ->orderBy('products_purchases_id', 'ASC')
-                                ->get(); 
-
-            foreach($purchased_products as $purchased_product) {
-               $purchased_product->product  = DB::table('products')->where('products_id', $purchased_product->products_id)->first();
-            }
-            return view('users.products_claims', compact('purchased_products'));
+            return redirect('/login');
         }
+
+        $purchased_products = UserPortal::loadLatestPurchasesForClaims((int) session('id'));
+        $claimWaitingDays = UserPortal::claimWaitingDays();
+        $eligiblePurchases = $purchased_products->filter(function ($purchase) {
+            return ($purchase->claim_eligibility['eligible'] ?? false) && !($purchase->existing_claim ?? false);
+        });
+
+        return view('users.products_claims', compact('purchased_products', 'claimWaitingDays', 'eligiblePurchases'));
     }
     // -------------- PRODUCTS CLAIMS ------------- //
     
     // -------------- TRACK ------------- //
     public function users_customers_track(){
     	if (!session()->has('id')) {
-            return redirect('/');
+            return redirect('/login');
         } else{
             return view('users.users_customers_track');
         }
@@ -355,7 +361,7 @@ class UsersController extends Controller{
     // -------------- CONNECT ------------- //
     public function users_customers_connect(){
     	if (!session()->has('id')) {
-            return redirect('/');
+            return redirect('/login');
         } else{
             return view('users.users_customers_connect');
         }
@@ -364,14 +370,49 @@ class UsersController extends Controller{
 
     // -------------- CONNECT BLOG ------------- //
     public function users_customers_connect_blog($blog_id){
-       return view('users.users_customers_connect_blog', compact('blog_id'));
+        if (!session()->has('id')) {
+            return redirect('/login');
+        }
+
+        $article = DB::table('connect_articles')
+            ->where(['connect_articles_id' => $blog_id, 'status' => 'Active'])
+            ->first();
+
+        if (!$article) {
+            return view('users.users_customers_connect_blog', [
+                'blog_id' => $blog_id,
+                'article' => null,
+            ]);
+        }
+
+        $userId = session()->get('id');
+        $likedCount = FavoriteConnectArticle::where([
+            'users_customers_id' => $userId,
+            'connect_articles_id' => $blog_id,
+            'status' => 'Active',
+        ])->count();
+
+        $article->liked = $likedCount > 0 ? 'Yes' : 'No';
+
+        $imagePath = ltrim((string) ($article->image ?? ''), '/');
+        if ($imagePath !== '' && file_exists(public_path($imagePath))) {
+            $article->image_url = asset($imagePath);
+        } else {
+            $article->image_url = asset('images/upload.svg');
+            $article->image_is_fallback = true;
+        }
+
+        return view('users.users_customers_connect_blog', [
+            'blog_id' => $blog_id,
+            'article' => $article,
+        ]);
     }
     // -------------- CONNECT BLOG ------------- //
     
     // -------------- PROFILE ------------- //
     public function users_customers_profile(){
     	if (!session()->has('id')) {
-            return redirect('/');
+            return redirect('/login');
         } else{
             return view('users.users_customers_profile');
         }
@@ -381,7 +422,7 @@ class UsersController extends Controller{
     // -------------- PROFILE EDIT ------------- //
     public function users_customers_profile_edit(){
     	if (!session()->has('id')) {
-            return redirect('/');
+            return redirect('/login');
         } else{
             return view('users.users_customers_profile_edit');
         }
@@ -391,7 +432,7 @@ class UsersController extends Controller{
     // -------------- BILLING PAYMENT ------------- //
     public function users_customers_billing_payment(){
         if (!session()->has('id')) {
-            return redirect('/');
+            return redirect('/login');
         } else{
             return view('users.users_customers_billing_payment');
         }
@@ -401,7 +442,7 @@ class UsersController extends Controller{
     // -------------- TRANSACTIONS ------------- //
     public function users_customers_transactions(){
         if (!session()->has('id')) {
-            return redirect('/');
+            return redirect('/login');
         } else{
             return view('users.users_customers_transactions');
         }
@@ -411,7 +452,7 @@ class UsersController extends Controller{
     // -------------- SETTINGS ------------- //
     public function users_customers_settings(){
         if (!session()->has('id')) {
-            return redirect('/');
+            return redirect('/login');
         } else{
             return view('users.users_customers_settings');
         }
@@ -421,7 +462,7 @@ class UsersController extends Controller{
     // -------------- FAQS------------- //
     public function users_customers_faqs(){
     	if (!session()->has('id')) {
-            return redirect('/');
+            return redirect('/login');
         } else{
             return view('users.users_customers_faqs');
         }
@@ -431,7 +472,7 @@ class UsersController extends Controller{
     // -------------- MESSAGE------------- //
     public function users_customers_message($user_id = null){
         if (!session()->has('id')) {
-            return redirect('/');
+            return redirect('/login');
         } else{
             return view('users.users_customers_message', compact('user_id'));
         }
@@ -442,7 +483,7 @@ class UsersController extends Controller{
     // -------------- STRIPE PAYMENT SUCCESS ------------- //
     public function stripe_payment_success(Request $request){
         if (!session()->has('id')) {
-            return redirect('/');
+            return redirect('/login');
         }
 
         $session_id = $request->query('session_id');
@@ -464,7 +505,12 @@ class UsersController extends Controller{
         $responseData = json_decode($response->getContent(), true);
 
         if ($responseData['status'] === 'success') {
-            return view('users.stripe_payment_success', ['purchase_id' => $purchase_id])->with('success', 'Payment completed successfully! Your purchase has been confirmed.');
+            $portalHomeUrl = UserPortal::postAuthRedirectUrl((int) session('id'));
+
+            return view('users.stripe_payment_success', [
+                'purchase_id' => $purchase_id,
+                'portalHomeUrl' => $portalHomeUrl,
+            ])->with('success', 'Payment completed successfully! Your purchase has been confirmed.');
         } else {
             return redirect('/users/products')->with('error', $responseData['message'] ?? 'Payment verification failed.');
         }
@@ -474,7 +520,7 @@ class UsersController extends Controller{
     // -------------- PRODUCT VIEW ------------- //
     public function product_view($product_id){
         if (!session()->has('id')) {
-            return redirect('/');
+            return redirect('/login');
         } else{
             $product = DB::table('products')->where('products_id', $product_id)->first();
             if (!$product) {
@@ -520,7 +566,7 @@ class UsersController extends Controller{
     // -------------- STRIPE PAYMENT CANCEL ------------- //
     public function stripe_payment_cancel(Request $request){
         if (!session()->has('id')) {
-            return redirect('/');
+            return redirect('/login');
         }
 
         $purchase_id = $request->query('purchase_id');

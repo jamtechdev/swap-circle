@@ -1,39 +1,38 @@
 @extends('layout.users.master')
+
+@section('page_title', 'FAQs')
+@section('page_subtitle', 'Answers to common questions')
+
 @section('content')
     <div class="page-content-wrapper">
         <div class="page-content-tab">
             <div class="container-fluid px-4 pb-4">
-                <div class="profile-faq">
-                    <nav aria-label="breadcrumb">
-                        <ol class="breadcrumb d-flex align-items-center">
-                            <li class="breadcrumb-item">
-                                <a href="{{ url('/users/profile') }}" class="text-primary">Profile</a>
+                <div class="portal-faq-panel">
+                    <nav class="portal-profile-breadcrumb" aria-label="Breadcrumb">
+                        <ol class="portal-profile-breadcrumb__list">
+                            <li class="portal-profile-breadcrumb__item">
+                                <a href="{{ url('/users/profile') }}">Profile</a>
                             </li>
-                            <li class="mx-3">
-                                <svg width="5" height="10" viewBox="0 0 5 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M4.21749 3.11406C5.22417 4.12074 5.25773 5.73205 4.31816 6.77904L4.21749 6.88529L1.47119 9.47108C1.21084 9.73143 0.788734 9.73143 0.528385 9.47108C0.288062 9.23076 0.269576 8.8526 0.472926 8.59107L0.528385 8.52827L3.27468 5.94248C3.76797 5.44919 3.79393 4.66553 3.35257 4.14168L3.27468 4.05687L0.528385 1.47108C0.268035 1.21073 0.268035 0.78862 0.528385 0.52827C0.768707 0.287947 1.14686 0.269461 1.40839 0.472811L1.47119 0.52827L4.21749 3.11406Z" fill="#21333B"/>
-                                </svg>
-                            </li>
-                            <li class="breadcrumb-item active" aria-current="page">
-                                <a href="javascript:void(0)">FAQs</a>
-                            </li> 
+                            <li class="portal-profile-breadcrumb__sep" aria-hidden="true">/</li>
+                            <li class="portal-profile-breadcrumb__item portal-profile-breadcrumb__item--active" aria-current="page">FAQs</li>
                         </ol>
                     </nav>
-                </div>
-                <div class="row mt-5">
-                    <div class="cal-12">
-                        <!-- faqs start -->
-                        <div class="accordion" id="accordionExample"></div>
-                        <!-- faqs end -->
+
+                    <div class="portal-faq-panel__head">
+                        <h1 class="portal-faq-panel__title">Frequently asked questions</h1>
+                        <p class="portal-faq-panel__lead">Find quick answers about your Swap Circle account.</p>
                     </div>
+
+                    <div class="portal-faq-list" id="accordionExample"></div>
                 </div>
             </div>
-        </div> 
+        </div>
     </div>
 @endsection
-@section('script') 
+
+@section('script')
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
             get_faqs();
         });
     </script>

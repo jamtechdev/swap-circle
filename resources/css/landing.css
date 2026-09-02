@@ -1,0 +1,61 @@
+@import "tailwindcss";
+
+@theme {
+    --color-lime: #c8e635;
+    --color-lime-hover: #b8d42a;
+    --color-lime-soft: #eef6c8;
+    --color-forest: #1a472a;
+    --color-forest-mid: #245c38;
+    --color-forest-deep: #0f2e1c;
+    --font-family-display: "Fraunces", Georgia, serif;
+    --font-family-sans: "DM Sans", system-ui, sans-serif;
+}
+
+@layer base {
+    html {
+        scroll-behavior: smooth;
+    }
+
+    body.landing-page {
+        font-family: var(--font-sans);
+    }
+}
+
+@layer utilities {
+    .animate-float {
+        animation: float 6s ease-in-out infinite;
+    }
+
+    .animate-ticker {
+        animation: ticker 35s linear infinite;
+    }
+
+    .animate-ticker:hover {
+        animation-play-state: paused;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .animate-ticker {
+            animation: none;
+        }
+    }
+
+    .animate-pulse-orb {
+        animation: pulse-orb 8s ease-in-out infinite;
+    }
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+}
+
+@keyframes ticker {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+}
+
+@keyframes pulse-orb {
+    0%, 100% { transform: scale(1); opacity: 0.35; }
+    50% { transform: scale(1.15); opacity: 0.5; }
+}

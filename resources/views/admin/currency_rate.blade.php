@@ -1,176 +1,53 @@
 @extends('layout.admin.list_master')
-@section('style')
-<link href="{{ asset('users/assets/css/bootstrap.min.css') }}" rel="stylesheet" type="text/css" />
-<link href="{{ asset('users/assets/css/navbar.css') }}" rel="stylesheet" type="text/css" />
-<link href="{{ asset('users/assets/plugin/splide/splide.min.css') }}" rel="stylesheet" type="text/css" />
-<link href="{{ asset('users/assets/css/jquery.ui.min.css') }}" rel="stylesheet" type="text/css" />
-<link href="{{ asset('users/assets/css/style.css') }}" rel="stylesheet" type="text/css" />
-<link href="{{ asset('users/assets/css/custom.css') }}" rel="stylesheet" type="text/css" />
+
+@section('titleBar')
+<span>Currency Rate</span>
 @endsection
+
 @section('content')
-    <div class="page-content-wrapper">
-        <div class="page-content-tab">
-            <div class="container-fluid px-4 pb-4">
-                @section('titleBar')
-                <span class="ml-2">Currency Rate </span>
-                @endsection 
-                <div class="wallet-wrapper">
-                    <div class="wallet-tabs">
-                        <div class="row">
-                            <div class="col-sm-12">
-                                <div class="card border-0 mb-3 bg-light p-2">
-                                    <div class="card-body">
-                                        {{-- <div class="d-flex align-items-center justify-content-around flex-wrap mb-4 gap-2">
-                                             <div class="text-danger d-flex align-items-center">
-                                                <span class="analysis-icon bg-danger me-2">
-                                                <img class="img-fluid" src="{{ asset('users/assets/images/icons/mini-icon/send-down-2.png') }}" alt="">
-                                                </span> <span>â‚¦889.00</span>
-                                            </div>
-                                            <div class="text-success d-flex align-items-center">
-                                                <span class="analysis-icon bg-primary me-2">
-                                                <img class="img-fluid" src="{{ asset('users/assets/images/icons/mini-icon/Send-2.png') }}" alt="">
-                                                </span>
-                                                <span>â‚¦889.00</span>
-                                            </div>
-                                            <div class="text-black d-flex align-items-center">
-                                                <span class="analysis-icon bg-black me-2">
-                                                <img class="img-fluid" src="{{ asset('users/assets/images/icons/mini-icon/account_balance-2.png') }}" alt="">
-                                                </span>
-                                                <span>â‚¦889.00</span>
-                                            </div> 
-                                        </div> --}}
-                                        <div class="row flex-wrap">
-                                            @foreach ($final_data as $item)
-                                            <div class="col col-lg-3 mb-3">
-                                                <div class="average-no bg-white p-3 text-center rounded-4">
-                                                    <p class="mb-1">{{ $item['code'] }}</p>
-                                                    <h4 class="fw-bold mb-0">{{ $item['symbol'] }} {{ $item['value'] }}</h4>
-                                                </div>
-                                            </div>
-                                        @endforeach
-                                        
-                                            {{-- <div class="col col-lg-3 mb-3">
-                                                <div class="average-no bg-white p-3 text-center rounded-4">
-                                                    <p class="mb-1">Market Name</p>
-                                                    <h4 class="fw-bold mb-0">â‚¦889.00</h4>
-                                                </div>
-                                            </div>
-                                            <div class="col col-lg-3 mb-3">
-                                                <div class="average-no bg-white p-3 text-center rounded-4">
-                                                    <p class="mb-1">Market Name</p>
-                                                    <h4 class="fw-bold mb-0">â‚¦889.00</h4>
-                                                </div>
-                                            </div>
-                                            <div class="col col-lg-3 mb-3">
-                                                <div class="average-no bg-white p-3 text-center rounded-4">
-                                                    <p class="mb-1">Market Name</p>
-                                                    <h4 class="fw-bold mb-0">â‚¦889.00</h4>
-                                                </div>
-                                            </div>
-                                            <div class="col col-lg-3 mb-3">
-                                                <div class="average-no bg-white p-3 text-center rounded-4">
-                                                    <p class="mb-1">Market Name</p>
-                                                    <h4 class="fw-bold mb-0">â‚¦889.00</h4>
-                                                </div>
-                                            </div>
-                                            <div class="col col-lg-3 mb-3">
-                                                <div class="average-no bg-white p-3 text-center rounded-4">
-                                                    <p class="mb-1">Market Name</p>
-                                                    <h4 class="fw-bold mb-0">â‚¦889.00</h4>
-                                                </div>
-                                            </div> --}}
-                                        </div>
-                                    </div>
-                                </div>                                            
+<div class="content-body">
+    <div class="container-fluid">
+        <div class="admin-currency-head">
+            <div>
+                <p class="admin-currency-head__label">Live exchange rates</p>
+                <h2 class="admin-currency-head__title">Base currency: {{ $baseCode }} @if($system_currency && $system_currency->symbol)<span class="admin-currency-head__symbol">({{ $system_currency->symbol }})</span>@endif</h2>
+                <p class="admin-currency-head__meta">Source: {{ $rateSource }} · Updated {{ $fetchedAt }}</p>
+            </div>
+            <a href="{{ url('admin/rate_api') }}" class="btn btn-outline-primary btn-sm">Manage Rate APIs</a>
+        </div>
+
+        @if(!empty($fetchError))
+            <div class="alert alert-warning admin-currency-alert" role="alert">
+                {{ $fetchError }}
+            </div>
+        @endif
+
+        @if(empty($final_data) && empty($fetchError))
+            <div class="card admin-table-card">
+                <div class="card-body admin-currency-empty">
+                    <p class="mb-2">No currency rates are available right now.</p>
+                    <p class="text-muted mb-0">Ensure at least one active currency is configured in system settings.</p>
+                </div>
+            </div>
+        @else
+            <div class="row g-3 admin-currency-grid">
+                @foreach($final_data as $item)
+                    <div class="col-6 col-md-4 col-xl-3">
+                        <div class="admin-currency-card">
+                            <div class="admin-currency-card__top">
+                                <span class="admin-currency-card__code">{{ $item['code'] }}</span>
+                                @if(!empty($item['symbol']))
+                                    <span class="admin-currency-card__symbol">{{ $item['symbol'] }}</span>
+                                @endif
                             </div>
-                            {{-- <div class="col-sm-12">
-                                <div class="card border-0 mb-3 bg-light py-2">
-                                    <div class="card-body">
-                                         <div class="d-flex align-items-center justify-content-around flex-wrap mb-4 gap-2">
-                                            <div class="text-danger d-flex align-items-center">
-                                                <span class="analysis-icon bg-primary me-2">
-                                                <img class="img-fluid" src="{{ asset('users/assets/images/icons/mini-icon/send-down-2..png') }}" alt="">
-                                                </span>
-                                                <span>â‚¦889.00</span>
-                                            </div>
-                                            <div class="text-success d-flex align-items-center">
-                                                <span class="analysis-icon bg-primary me-2">
-                                                <img class="img-fluid" src="{{ asset('users/assets/images/icons/mini-icon/Send-2.png') }}" alt="">
-                                                </span>
-                                                <span>â‚¦889.00</span>
-                                            </div>
-                                            <div class="text-black d-flex align-items-center">
-                                                <span class="analysis-icon bg-black me-2">
-                                                <img class="img-fluid" src="{{ asset('users/assets/images/icons/mini-icon/account_balance-2.png') }}" alt="">
-                                                </span>
-                                                <span>â‚¦889.00</span>
-                                            </div>
-                                        </div> 
-                                        <div class="row flex-wrap">
-                                            <div class="col col-lg-3 mb-3">
-                                                <div class="average-no bg-white p-3 text-center rounded-4">
-                                                    <p class="mb-1">Market Name</p>
-                                                    <h4 class="fw-bold mb-0">â‚¦889.00</h4>
-                                                </div>
-                                            </div>
-                                            <div class="col col-lg-3 mb-3">
-                                                <div class="average-no bg-white p-3 text-center rounded-4">
-                                                    <p class="mb-1">Market Name</p>
-                                                    <h4 class="fw-bold mb-0">â‚¦889.00</h4>
-                                                </div>
-                                            </div>
-                                            <div class="col col-lg-3 mb-3">
-                                                <div class="average-no bg-white p-3 text-center rounded-4">
-                                                    <p class="mb-1">Market Name</p>
-                                                    <h4 class="fw-bold mb-0">â‚¦889.00</h4>
-                                                </div>
-                                            </div>
-                                            <div class="col col-lg-3 mb-3">
-                                                <div class="average-no bg-white p-3 text-center rounded-4">
-                                                    <p class="mb-1">Market Name</p>
-                                                    <h4 class="fw-bold mb-0">â‚¦889.00</h4>
-                                                </div>
-                                            </div>
-                                            <div class="col col-lg-3 mb-3">
-                                                <div class="average-no bg-white p-3 text-center rounded-4">
-                                                    <p class="mb-1">Market Name</p>
-                                                    <h4 class="fw-bold mb-0">â‚¦889.00</h4>
-                                                </div>
-                                            </div>
-                                            <div class="col col-lg-3 mb-3">
-                                                <div class="average-no bg-white p-3 text-center rounded-4">
-                                                    <p class="mb-1">Market Name</p>
-                                                    <h4 class="fw-bold mb-0">â‚¦889.00</h4>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>                                            
-                            </div>
-                                <!-- pagination -->
-                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-                                <p class="text-black mb-0">Showing 1 to 10 of 57 entries</p>
-                                <div class="pagination ms-auto d-flex justify-content-around flex-wrap" role="group" aria-label="Basic example">
-                                    <a href="#" class="btn btn-outline-primary">Previous</a>
-                                    <a href="#" class="btn btn-outline-primary active">1</a>
-                                    <a href="#" class="btn btn-outline-primary">2</a>
-                                    <a href="#" class="btn btn-outline-primary">3</a>
-                                    <a href="#" class="btn btn-outline-primary">4</a>
-                                    <a href="#" class="btn btn-outline-primary">5</a>
-                                    <a href="#" class="btn btn-outline-primary">Next</a>
-                                    </div>
-                            </div> --}}
+                            <p class="admin-currency-card__name">{{ $item['name'] }}</p>
+                            <p class="admin-currency-card__rate">{{ $item['value'] }}</p>
+                            <p class="admin-currency-card__hint">1 {{ $baseCode }} = {{ $item['value'] }} {{ $item['code'] }}</p>
                         </div>
                     </div>
-                </div> 
+                @endforeach
             </div>
-        </div>
-    </div> 
-
-    <script src="{{ asset('users/assets/js/bootstrap.bundle.js') }}"></script>
-    <script src="{{ asset('users/assets/js/jquery.min.js') }}"></script>
-    <script src="{{ asset('users/assets/js/jquery.validate.min.js') }}"></script>
-    <script src="{{ asset('users/assets/js/jquery.ui.min.js') }}"></script>
-    <script src="{{ asset('users/assets/js/jquery.additional.methods.js') }}"></script>
-
+        @endif
+    </div>
+</div>
 @endsection

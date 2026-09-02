@@ -47,11 +47,6 @@
         .dataTables_wrapper:after {
             display: none;
         }
-
-        .widget-stat .media>span {
-            height: 60px;
-            width: 60px;
-        }
     </style>
     <div class="content-body">
         <div class="container-fluid">
@@ -66,51 +61,28 @@
 
         <div class="row">
             <div class="col-12">
-                <div class="row">
-                    <div class="col-md-9">
-                        <a class="btn <?php if ($filter == '') {
-                            echo 'btn-primary';
-                        } else {
-                            echo 'btn-info';
-                        } ?>" href="swap_offers"
-                            style="color: white; margin-bottom: 20px;">All</a>
-                        <a class="btn <?php if ($filter == 'Pending') {
-                            echo 'btn-primary';
-                        } else {
-                            echo 'btn-info';
-                        } ?>" href="swap_offers?filter=Pending"
-                            style="color: white; margin-bottom: 20px;">Pending</a>
-                        <a class="btn <?php if ($filter == 'Approved') {
-                            echo 'btn-primary';
-                        } else {
-                            echo 'btn-info';
-                        } ?>" href="swap_offers?filter=Approved"
-                            style="color: white; margin-bottom: 20px;">Approved</a>
-                        <a class="btn <?php if ($filter == 'Rejected') {
-                            echo 'btn-primary';
-                        } else {
-                            echo 'btn-info';
-                        } ?>" href="swap_offers?filter=Rejected"
-                            style="ccolor: white; margin-bottom: 20px;">Rejected</a>
+                <div class="admin-filter-bar">
+                    <div class="admin-filter-actions">
+                        <a class="btn {{ $filter == '' ? 'btn-primary' : 'btn-info' }}" href="{{ url('admin/swap_offers') }}">All</a>
+                        <a class="btn {{ $filter == 'Pending' ? 'btn-primary' : 'btn-info' }}" href="{{ url('admin/swap_offers?filter=Pending') }}">Pending</a>
+                        <a class="btn {{ $filter == 'Approved' ? 'btn-primary' : 'btn-info' }}" href="{{ url('admin/swap_offers?filter=Approved') }}">Approved</a>
+                        <a class="btn {{ $filter == 'Rejected' ? 'btn-primary' : 'btn-info' }}" href="{{ url('admin/swap_offers?filter=Rejected') }}">Rejected</a>
                     </div>
-
-                    <div class="col-md-3">
-                        <div class="widget-stat card  bg-success ">
-                            <div class="card-body p-2">
-                                <div class="media">
-                                    <span class="mr-1">
-                                        <i class="flaticon-381-diamond"></i>
-                                    </span>
-                                    <div class="media-body text-white text-right">
-                                        <p class="mb-1">Earning</p>
-                                        <h3 class="text-white">{{ $adminshare->system_currency->code ?? '' }}
-                                            {{ $adminshare->totalAdminShare }}</h3>
-                                    </div>
+                    @if($adminshare && $adminshare->totalAdminShare)
+                    <div class="admin-earnings-card">
+                        <div class="card admin-stat-card admin-stat-card--earnings mb-0">
+                            <div class="card-body">
+                                <div class="admin-stat-icon">
+                                    <i class="fa fa-coins" aria-hidden="true"></i>
+                                </div>
+                                <div>
+                                    <span class="fs-14">Total Earnings</span>
+                                    <h2 class="mb-0">{{ $adminshare->system_currency->code ?? '' }} {{ number_format($adminshare->totalAdminShare, 2) }}</h2>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    {{-- Total Admin Share : {{ $adminshare->system_currency->code ?? '' }} {{ $adminshare->totalAdminShare }} --}}
+                    @endif
                 </div>
 
                 <div class="card transactions_card">
@@ -208,13 +180,13 @@
                                             {{-- Status --}}
                                             <td>
                                                 @if ($data->status == 'Pending')
-                                                    <span class="btn btn-info">Pending</span>
+                                                    <span class="admin-status-badge admin-status-badge--pending">Pending</span>
                                                 @elseif ($data->status == 'Approved')
-                                                    <span class="btn btn-success">Approved</span>
+                                                    <span class="admin-status-badge admin-status-badge--approved">Approved</span>
                                                 @elseif ($data->status == 'Rejected')
-                                                    <span class="btn btn-warning">Rejected</span>
+                                                    <span class="admin-status-badge admin-status-badge--rejected">Rejected</span>
                                                 @else
-                                                    <span class="btn btn-secondary">Unknown</span>
+                                                    <span class="admin-status-badge admin-status-badge--unknown">Unknown</span>
                                                 @endif
                                             </td>
 

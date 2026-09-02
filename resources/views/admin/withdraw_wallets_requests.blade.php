@@ -310,33 +310,47 @@
         { data: "description" },
         {
             data: "status",
-            render: s => {
-            if(s=="Pending") return '<span class="btn btn-info">Pending</span>';
-            if(s=="Accepted") return '<span class="btn btn-success">Accepted</span>';
-            if(s=="Rejected") return '<span class="btn btn-warning">Rejected</span>';
-            return '<span class="btn btn-warning">Deleted</span>';
-            }
+            render: s => window.adminStatusBadge(s)
         },
         {
             data: null,
             orderable:false,
             searchable:false,
             render: d => {
-            let html = `
-                <button class="btn btn-primary view" value="${d.withdraw_wallets_requests_id}">
-                <i class="fa fa-eye"></i>
-                </button>
-            `;
-            if(d.status=="Pending"){
-                html += `
-                <button class="btn btn-warning update" data-id="${d.withdraw_wallets_requests_id}" data-s="Accepted"><i class="fa fa-check"></i></button>
-                <button class="btn btn-success update" data-id="${d.withdraw_wallets_requests_id}" data-s="Rejected"><i class="fa fa-times"></i></button>
-                `;
+            let buttons = [
+                window.adminActionButton('view', {
+                    tag: 'button',
+                    title: 'View',
+                    extraClass: 'view',
+                    attrs: { value: d.withdraw_wallets_requests_id },
+                }),
+            ];
+
+            if (d.status === 'Pending') {
+                buttons.push(window.adminActionButton('activate', {
+                    tag: 'button',
+                    title: 'Accept',
+                    extraClass: 'update',
+                    attrs: { 'data-id': d.withdraw_wallets_requests_id, 'data-s': 'Accepted' },
+                }));
+                buttons.push(window.adminActionButton('deactivate', {
+                    tag: 'button',
+                    title: 'Reject',
+                    extraClass: 'update',
+                    attrs: { 'data-id': d.withdraw_wallets_requests_id, 'data-s': 'Rejected' },
+                }));
             }
-            if(d.status!="Deleted"){
-                html += `<button class="btn btn-danger del" data-id="${d.withdraw_wallets_requests_id}"><i class="fa fa-trash"></i></button>`;
+
+            if (d.status !== 'Deleted') {
+                buttons.push(window.adminActionButton('delete', {
+                    tag: 'button',
+                    title: 'Delete',
+                    extraClass: 'del',
+                    attrs: { 'data-id': d.withdraw_wallets_requests_id },
+                }));
             }
-            return html;
+
+            return window.adminActionGroup(buttons);
             }
         }
         ]
