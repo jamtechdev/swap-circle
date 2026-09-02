@@ -36,21 +36,24 @@
 
         {{-- Form panel --}}
         <main class="flex flex-1 flex-col">
-            <header class="flex items-center justify-between px-4 py-4 sm:px-8 lg:px-12">
-                <a href="{{ url('/') }}" class="inline-flex items-center gap-2 text-sm font-semibold text-forest transition hover:text-lime-hover lg:hidden">
-                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-                    Home
-                </a>
-                @hasSection('back_url')
-                    <a href="@yield('back_url')" class="inline-flex items-center gap-2 text-sm font-semibold text-forest transition hover:text-lime-hover">
+            <header class="flex items-center justify-between gap-4 px-4 py-4 sm:px-8 lg:px-12">
+                <div class="flex min-w-0 items-center gap-3">
+                    <a href="{{ url('/') }}" class="inline-flex items-center gap-2 text-sm font-semibold text-forest transition hover:text-lime-hover lg:hidden">
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-                        @yield('back_label', 'Back')
+                        Home
                     </a>
-                @else
-                    <span class="lg:hidden"></span>
-                @endif
-                @unless(request()->is('login') || View::hasSection('back_url'))
-                    <a href="{{ url('/login') }}" class="ml-auto text-sm font-semibold text-gray-500 hover:text-forest">Already have an account?</a>
+                    @hasSection('back_url')
+                        <a href="@yield('back_url')" class="inline-flex items-center gap-2 text-sm font-semibold text-forest transition hover:text-lime-hover">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                            @yield('back_label', 'Back')
+                        </a>
+                    @endif
+                </div>
+                @unless(request()->is('login', 'admin'))
+                    <div class="flex shrink-0 items-center gap-2 sm:gap-3">
+                        <span class="hidden text-sm font-medium text-gray-600 md:inline">Already have an account?</span>
+                        <a href="{{ url('/login') }}" class="auth-btn-header">Log In</a>
+                    </div>
                 @endunless
             </header>
 

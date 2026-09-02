@@ -12,9 +12,14 @@
 <div id="sidebar-wrapper" class="portal-sidebar">
     <div class="portal-sidebar-inner">
         <div class="sidebar-logo">
-            <a href="{{ url('/users/dashboard') }}" class="portal-sidebar-brand" aria-label="Go to dashboard home">
-                <img src="{{ asset('uploads/system_image/'.$system_image[0]->description) }}" class="img-fluid img-logo" alt="{{ $system_name[0]->description ?? 'Swap Circle' }}">
-            </a>
+            <x-brand-mark
+                :href="url('/users/dashboard')"
+                :label="$system_name[0]->description ?? 'Swap Circle'"
+                :logo="asset('uploads/system_image/'.$system_image[0]->description)"
+                variant="sidebar"
+                tone="dark"
+                class="portal-sidebar-brand"
+            />
         </div>
 
         <nav class="portal-sidebar-nav" aria-label="Portal navigation">

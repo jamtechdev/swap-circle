@@ -1,3 +1,4 @@
+@import "./brand-mark.css";
 @import "tailwindcss";
 
 @theme {
@@ -55,23 +56,15 @@ body.admin-page .nav-header > div {
     filter: none !important;
 }
 
-body.admin-page .nav-header a {
+body.admin-page .nav-header a.admin-brand-link {
     display: flex;
     align-items: center;
     justify-content: center;
     width: 100%;
 }
 
-body.admin-page .nav-header img {
-    width: auto !important;
-    max-width: 100% !important;
-    max-height: 52px !important;
-    margin-top: 0 !important;
-    background: #fff;
-    border-radius: 12px;
-    padding: 6px 12px;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
-    object-fit: contain;
+body.admin-page .nav-header .brand-title {
+    display: none !important;
 }
 
 /* ─── Sidebar ──────────────────────────────────────────── */

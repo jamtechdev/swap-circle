@@ -27,7 +27,7 @@
             <p class="auth-section-title">Company logo</p>
             <label for="profile_pic" class="auth-upload group" id="upload_profile">
                 <img src="{{ asset('users/assets/images/icons/document-upload.png') }}" id="profile_pic_preview" alt="" class="h-10 w-10 opacity-60 group-hover:opacity-100">
-                <span class="mt-2 text-xs font-semibold text-forest/70">Upload logo *</span>
+                <span class="mt-2 text-xs font-semibold text-forest/70">Upload logo <span class="font-normal text-gray-400">(optional)</span></span>
                 <input type="file" accept="image/png,image/jpg,image/jpeg" name="profile_pic" id="profile_pic" class="absolute inset-0 cursor-pointer opacity-0">
             </label>
             <span class="auth-error text-center" id="error_profile_pic"></span>
@@ -148,7 +148,6 @@ $(function () {
     $("#frm_signup").validate({
         ignore: [],
         rules: {
-            profile_pic: { required: true },
             company_name: { required: true },
             representative_name: { required: true, minlength: 3 },
             email: { required: true, email: true },
@@ -161,7 +160,6 @@ $(function () {
             gdpr_consent: { required: true },
         },
         messages: {
-            profile_pic: { required: "Please upload a company logo." },
             company_name: { required: "Company name is required." },
             representative_name: { required: "Representative name is required.", minlength: "At least 3 characters." },
             email: { required: "Email is required.", email: "Enter a valid email." },
@@ -189,13 +187,8 @@ $(function () {
 
         const location = $("#street").val() + ", " + $("#city_state").val() + ", " + $("#country").val();
 
-        $.ajax({
-            url: "{{ rtrim(config('app.api_url'), '/') }}/signup",
-            method: "POST",
-            contentType: "application/json",
-            data: JSON.stringify({
+        const payload = {
                 users_customers_type: "Company",
-                profile_pic: $("#profile_pic_string").val(),
                 company_name: $("#company_name").val(),
                 first_name: $("#representative_name").val(),
                 email: $("#email").val(),
@@ -203,7 +196,17 @@ $(function () {
                 password: $("#password").val(),
                 location: location,
                 gdpr_consent: $("#gdpr_consent").is(":checked") ? "yes" : "",
-            }),
+            };
+        const profilePic = $("#profile_pic_string").val();
+        if (profilePic) {
+            payload.profile_pic = profilePic;
+        }
+
+        $.ajax({
+            url: "{{ rtrim(config('app.api_url'), '/') }}/signup",
+            method: "POST",
+            contentType: "application/json",
+            data: JSON.stringify(payload),
             success: function (response) {
                 if (response.status === "error") {
                     toastr.error(response.message);

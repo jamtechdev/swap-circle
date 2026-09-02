@@ -23,15 +23,21 @@ function initNavbar() {
     if (!nav) return;
 
     const scrolled = [
-        'bg-white/95',
-        'backdrop-blur-md',
-        'shadow-md',
+        'bg-white',
+        'border-b',
+        'border-gray-100',
+        'shadow-sm',
     ];
 
     const onScroll = () => {
         const isScrolled = window.scrollY > 40;
         scrolled.forEach((cls) => nav.classList.toggle(cls, isScrolled));
         nav.classList.toggle('is-scrolled', isScrolled);
+
+        nav.querySelectorAll('.brand-mark').forEach((mark) => {
+            mark.classList.toggle('brand-mark--dark', !isScrolled);
+            mark.classList.toggle('brand-mark--light', isScrolled);
+        });
 
         nav.querySelectorAll('[data-nav-link]').forEach((link) => {
             link.classList.toggle('md:text-gray-800', isScrolled);
@@ -55,11 +61,6 @@ function initNavbar() {
             btn.classList.toggle('border-white/80', !isScrolled);
             btn.classList.toggle('text-white', !isScrolled);
             btn.classList.toggle('hover:bg-white/10', !isScrolled);
-        });
-
-        nav.querySelectorAll('[data-nav-brand]').forEach((el) => {
-            el.classList.toggle('text-forest', isScrolled);
-            el.classList.toggle('text-white', !isScrolled);
         });
 
         const toggle = nav.querySelector('[data-nav-toggle]');

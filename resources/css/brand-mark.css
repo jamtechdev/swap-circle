@@ -1,0 +1,69 @@
+/* Brand mark — full logo, no duplicate text label beside it */
+.brand-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    line-height: 0;
+    flex-shrink: 0;
+}
+
+.brand-mark__img,
+.brand-mark img {
+    display: block;
+    width: auto;
+    max-width: 100%;
+    object-fit: contain;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 0;
+}
+
+/* Dark backgrounds: full wordmark, no white box */
+.brand-mark--dark img {
+    filter: brightness(1.08) drop-shadow(0 2px 10px rgba(0, 0, 0, 0.35));
+    transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.brand-mark--nav.brand-mark--dark img {
+    max-height: 2.75rem;
+}
+
+.brand-mark--sidebar.brand-mark--dark img {
+    max-height: 3rem;
+}
+
+.brand-mark--inline.brand-mark--dark img {
+    max-height: 2.5rem;
+}
+
+.brand-mark--dark:hover img {
+    filter: brightness(1.12) drop-shadow(0 3px 12px rgba(0, 0, 0, 0.4));
+    transform: scale(1.02);
+}
+
+/* Light backgrounds */
+.brand-mark--light img {
+    max-height: 2.25rem;
+    filter: none;
+}
+
+.brand-mark--nav.brand-mark--light img {
+    max-height: 2.75rem;
+}
+
+.brand-mark--inline.brand-mark--light img {
+    max-height: 2.25rem;
+}
+
+@media (max-width: 767px) {
+    .brand-mark--sidebar.brand-mark--dark img {
+        max-height: 2.5rem;
+    }
+
+    .brand-mark--nav.brand-mark--dark img {
+        max-height: 2.35rem;
+    }
+}

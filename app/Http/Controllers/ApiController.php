@@ -384,7 +384,7 @@ public function paymentSuccess(Request $request)
           $saveData['id_back_image'] = 'uploads/users_id_back_image/'.$img_name;
         }
 
-        if(isset($req->profile_pic)){
+        if (!empty($req->profile_pic)){
           $profile_pic = $req->profile_pic;
           $prefix = time();
           $img_name = $prefix . '.jpeg';

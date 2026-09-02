@@ -50,12 +50,14 @@
 	            Nav header start
 	        ***********************************-->
 	       <div class="nav-header">
-				<a href="{{ url('/admin/dashboard') }}" class="admin-brand-link">
-					<img
-						src="{{ asset('uploads/system_image/'.$system_image[0]->description) }}"
-						alt="{{ $system_name[0]->description ?? 'Admin' }}"
-					>
-				</a>
+				<x-brand-mark
+					:href="url('/admin/dashboard')"
+					:label="$system_name[0]->description ?? 'Admin'"
+					:logo="asset('uploads/system_image/'.$system_image[0]->description)"
+					variant="sidebar"
+					tone="dark"
+					class="admin-brand-link"
+				/>
 			</div>
 
 	        <!--**********************************

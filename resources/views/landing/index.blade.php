@@ -8,10 +8,13 @@
 {{-- Navigation --}}
 <nav id="scNav" class="fixed inset-x-0 top-0 z-50 h-20 transition-all duration-300">
     <div class="mx-auto flex h-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <a href="{{ url('/') }}" class="flex items-center gap-3">
-            <img src="{{ asset('uploads/system_image/' . $brand['logo']) }}" alt="{{ $brand['name'] }}" class="h-10 w-auto">
-            <span data-nav-brand class="text-lg font-extrabold text-white transition-colors">{{ $brand['name'] }}</span>
-        </a>
+        <x-brand-mark
+            :href="url('/')"
+            :label="$brand['name']"
+            :logo="asset('uploads/system_image/' . $brand['logo'])"
+            variant="nav"
+            tone="dark"
+        />
 
         <ul id="scNavMenu" class="pointer-events-none absolute left-0 right-0 top-20 max-h-0 overflow-hidden bg-white opacity-0 shadow-lg transition-all duration-300 md:pointer-events-auto md:static md:flex md:max-h-none md:items-center md:gap-8 md:bg-transparent md:opacity-100 md:shadow-none">
             <li class="border-b border-gray-100 md:border-0"><a data-nav-link href="#features" class="block px-6 py-4 text-sm font-semibold text-gray-800 transition hover:text-lime md:px-0 md:py-0">Features</a></li>
@@ -358,10 +361,13 @@
 
         <div class="grid gap-10 py-12 sm:grid-cols-2 lg:grid-cols-4">
             <div>
-                <a href="{{ url('/') }}" class="flex items-center gap-2">
-                    <img src="{{ asset('uploads/system_image/' . $brand['logo']) }}" alt="" class="h-9 w-auto">
-                    <span class="font-extrabold text-white">{{ $brand['name'] }}</span>
-                </a>
+                <x-brand-mark
+                    :href="url('/')"
+                    :label="$brand['name']"
+                    :logo="asset('uploads/system_image/' . $brand['logo'])"
+                    variant="inline"
+                    tone="dark"
+                />
                 <p class="mt-4 text-sm leading-relaxed">{{ $content['footer']['tagline'] }}</p>
             </div>
             <div>

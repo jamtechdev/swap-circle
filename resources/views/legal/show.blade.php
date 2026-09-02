@@ -12,10 +12,14 @@
 
 <header class="legal-nav">
     <div class="legal-nav__inner">
-        <a href="{{ url('/') }}" class="legal-nav__brand">
-            <img src="{{ asset('uploads/system_image/' . $brand['logo']) }}" alt="{{ $brand['name'] }}">
-            <span>{{ $brand['name'] }}</span>
-        </a>
+        <x-brand-mark
+            :href="url('/')"
+            :label="$brand['name']"
+            :logo="asset('uploads/system_image/' . $brand['logo'])"
+            variant="inline"
+            tone="light"
+            class="legal-nav__brand"
+        />
         <div class="legal-nav__actions">
             <a href="{{ url('/') }}" class="legal-btn-ghost">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M15 19l-7-7 7-7"/></svg>

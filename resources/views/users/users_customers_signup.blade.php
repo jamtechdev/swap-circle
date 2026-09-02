@@ -35,10 +35,13 @@
         </a>
     </div>
 
-    <p class="mt-8 text-center text-sm text-gray-500 lg:text-left">
-        Already a user?
-        <a href="{{ url('/login') }}" class="font-bold text-forest hover:text-lime-hover">Sign In</a>
-    </p>
+    <div class="auth-login-banner">
+        <div class="text-center sm:text-left">
+            <p class="text-base font-bold text-forest">Already have an account?</p>
+            <p class="mt-1 text-sm text-gray-500">Log in to access your dashboard, wallets, and messages.</p>
+        </div>
+        <a href="{{ url('/login') }}" class="auth-btn-outline mt-4 w-full sm:mt-0 sm:w-auto sm:min-w-[11rem] sm:px-8">Log In</a>
+    </div>
 @endsection
 
 @section('content_width')

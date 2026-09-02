@@ -1,3 +1,4 @@
+@import "./brand-mark.css";
 @import "tailwindcss";
 
 @theme {
@@ -56,20 +57,7 @@
 .legal-nav__brand {
     display: inline-flex;
     align-items: center;
-    gap: 0.65rem;
     text-decoration: none;
-}
-
-.legal-nav__brand img {
-    height: 2.25rem;
-    width: auto;
-}
-
-.legal-nav__brand span {
-    font-family: var(--font-family-display);
-    font-size: 1.125rem;
-    font-weight: 700;
-    color: var(--color-forest);
 }
 
 .legal-nav__actions {
