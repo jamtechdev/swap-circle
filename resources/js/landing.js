@@ -11,70 +11,12 @@ document.addEventListener('DOMContentLoaded', () => {
         offset: 60,
     });
 
-    initNavbar();
     initMobileMenu();
     initCounters();
     initSmoothScroll();
     initImageFallbacks();
+    initInsightsCarousel();
 });
-
-function initNavbar() {
-    const nav = document.getElementById('scNav');
-    if (!nav) return;
-
-    const scrolled = [
-        'bg-white',
-        'border-b',
-        'border-gray-100',
-        'shadow-sm',
-    ];
-
-    const onScroll = () => {
-        const isScrolled = window.scrollY > 40;
-        scrolled.forEach((cls) => nav.classList.toggle(cls, isScrolled));
-        nav.classList.toggle('is-scrolled', isScrolled);
-
-        nav.querySelectorAll('.brand-mark').forEach((mark) => {
-            mark.classList.toggle('brand-mark--dark', !isScrolled);
-            mark.classList.toggle('brand-mark--light', isScrolled);
-        });
-
-        nav.querySelectorAll('[data-nav-link]').forEach((link) => {
-            link.classList.toggle('md:text-gray-800', isScrolled);
-            link.classList.toggle('md:text-white/90', !isScrolled);
-        });
-
-        nav.querySelectorAll('[data-nav-login]').forEach((btn) => {
-            btn.classList.toggle('border-forest', isScrolled);
-            btn.classList.toggle('text-forest', isScrolled);
-            btn.classList.toggle('hover:bg-lime-soft', isScrolled);
-            btn.classList.toggle('border-white/80', !isScrolled);
-            btn.classList.toggle('text-white', !isScrolled);
-            btn.classList.toggle('hover:bg-white/10', !isScrolled);
-        });
-
-        nav.querySelectorAll('[data-nav-user]').forEach((btn) => {
-            btn.classList.toggle('border-forest', isScrolled);
-            btn.classList.toggle('text-forest', isScrolled);
-            btn.classList.toggle('bg-lime-soft/60', isScrolled);
-            btn.classList.toggle('hover:bg-lime-soft', isScrolled);
-            btn.classList.toggle('border-white/80', !isScrolled);
-            btn.classList.toggle('text-white', !isScrolled);
-            btn.classList.toggle('hover:bg-white/10', !isScrolled);
-        });
-
-        const toggle = nav.querySelector('[data-nav-toggle]');
-        if (toggle) {
-            toggle.querySelectorAll('span').forEach((bar) => {
-                bar.classList.toggle('bg-forest', isScrolled);
-                bar.classList.toggle('bg-white', !isScrolled);
-            });
-        }
-    };
-
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
-}
 
 function initMobileMenu() {
     const toggle = document.getElementById('scNavToggle');
@@ -163,4 +105,115 @@ function initSmoothScroll() {
             });
         });
     });
+}
+
+function initInsightsCarousel() {
+    const root = document.querySelector('[data-insights-carousel]');
+    if (!root) return;
+
+    const track = root.querySelector('[data-carousel-track]');
+    const prevBtn = root.querySelector('[data-carousel-prev]');
+    const nextBtn = root.querySelector('[data-carousel-next]');
+    const dotsWrap = root.querySelector('[data-carousel-dots]');
+    const slides = [...root.querySelectorAll('.sc-insights-carousel__slide')];
+
+    if (!track || slides.length === 0) return;
+
+    let activeIndex = 0;
+
+    const getSlidesPerView = () => {
+        if (window.matchMedia('(min-width: 1024px)').matches) return 3;
+        if (window.matchMedia('(min-width: 768px)').matches) return 2;
+        return 1;
+    };
+
+    const getMaxIndex = () => Math.max(0, slides.length - getSlidesPerView());
+
+    const scrollToIndex = (index) => {
+        const maxIndex = getMaxIndex();
+        activeIndex = Math.max(0, Math.min(index, maxIndex));
+        const slide = slides[activeIndex];
+        if (!slide) return;
+
+        track.scrollTo({
+            left: slide.offsetLeft - track.offsetLeft,
+            behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+        });
+
+        updateUi();
+    };
+
+    const updateUi = () => {
+        const maxIndex = getMaxIndex();
+
+        if (prevBtn) prevBtn.disabled = activeIndex <= 0;
+        if (nextBtn) nextBtn.disabled = activeIndex >= maxIndex;
+
+        dotsWrap?.querySelectorAll('[data-carousel-dot]').forEach((dot, index) => {
+            dot.classList.toggle('is-active', index === activeIndex);
+            dot.setAttribute('aria-selected', index === activeIndex ? 'true' : 'false');
+        });
+    };
+
+    const buildDots = () => {
+        if (!dotsWrap) return;
+
+        dotsWrap.innerHTML = '';
+        const dotCount = getMaxIndex() + 1;
+
+        for (let i = 0; i < dotCount; i += 1) {
+            const dot = document.createElement('button');
+            dot.type = 'button';
+            dot.className = 'sc-insights-carousel__dot';
+            dot.dataset.carouselDot = String(i);
+            dot.setAttribute('role', 'tab');
+            dot.setAttribute('aria-label', `Go to insight ${i + 1}`);
+            dot.addEventListener('click', () => scrollToIndex(i));
+            dotsWrap.appendChild(dot);
+        }
+    };
+
+    const syncFromScroll = () => {
+        const trackLeft = track.scrollLeft;
+        let nearestIndex = 0;
+        let nearestDistance = Number.POSITIVE_INFINITY;
+
+        slides.forEach((slide, index) => {
+            const distance = Math.abs((slide.offsetLeft - track.offsetLeft) - trackLeft);
+            if (distance < nearestDistance) {
+                nearestDistance = distance;
+                nearestIndex = index;
+            }
+        });
+
+        activeIndex = Math.min(nearestIndex, getMaxIndex());
+        updateUi();
+    };
+
+    prevBtn?.addEventListener('click', () => scrollToIndex(activeIndex - 1));
+    nextBtn?.addEventListener('click', () => scrollToIndex(activeIndex + 1));
+
+    track.addEventListener('scroll', () => {
+        window.clearTimeout(track._insightsScrollTimer);
+        track._insightsScrollTimer = window.setTimeout(syncFromScroll, 80);
+    }, { passive: true });
+
+    track.addEventListener('keydown', (event) => {
+        if (event.key === 'ArrowLeft') {
+            event.preventDefault();
+            scrollToIndex(activeIndex - 1);
+        }
+        if (event.key === 'ArrowRight') {
+            event.preventDefault();
+            scrollToIndex(activeIndex + 1);
+        }
+    });
+
+    window.addEventListener('resize', () => {
+        buildDots();
+        scrollToIndex(activeIndex);
+    });
+
+    buildDots();
+    updateUi();
 }

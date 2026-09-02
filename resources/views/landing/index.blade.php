@@ -6,14 +6,14 @@
 @endphp
 
 {{-- Navigation --}}
-<nav id="scNav" class="fixed inset-x-0 top-0 z-50 h-20 transition-all duration-300">
+<nav id="scNav" class="fixed inset-x-0 top-0 z-50 h-20 border-b border-gray-100 bg-white shadow-sm">
     <div class="mx-auto flex h-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <x-brand-mark
             :href="url('/')"
             :label="$brand['name']"
             :logo="asset('uploads/system_image/' . $brand['logo'])"
             variant="nav"
-            tone="dark"
+            tone="light"
         />
 
         <ul id="scNavMenu" class="pointer-events-none absolute left-0 right-0 top-20 max-h-0 overflow-hidden bg-white opacity-0 shadow-lg transition-all duration-300 md:pointer-events-auto md:static md:flex md:max-h-none md:items-center md:gap-8 md:bg-transparent md:opacity-100 md:shadow-none">
@@ -33,9 +33,9 @@
         <div class="flex items-center gap-3">
             @include('landing.partials.nav-actions')
             <button id="scNavToggle" data-nav-toggle type="button" class="relative flex h-10 w-10 flex-col items-center justify-center gap-1.5 md:hidden" aria-label="Toggle menu">
-                <span class="block h-0.5 w-6 rounded bg-white transition-all"></span>
-                <span class="block h-0.5 w-6 rounded bg-white transition-all"></span>
-                <span class="block h-0.5 w-6 rounded bg-white transition-all"></span>
+                <span class="block h-0.5 w-6 rounded bg-forest transition-all"></span>
+                <span class="block h-0.5 w-6 rounded bg-forest transition-all"></span>
+                <span class="block h-0.5 w-6 rounded bg-forest transition-all"></span>
             </button>
         </div>
     </div>
@@ -264,8 +264,18 @@
         <div class="flex w-max animate-ticker items-center gap-5 px-4 sm:gap-6">
             @foreach (array_merge($partners, $partners) as $partner)
                 <div class="group flex shrink-0 items-center gap-3 rounded-2xl border border-gray-100/80 bg-white/90 px-4 py-3 shadow-sm backdrop-blur-sm transition duration-300 hover:-translate-y-1 hover:border-lime/50 hover:shadow-lg hover:shadow-forest/5 sm:px-5 sm:py-3.5">
-                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-[10px] font-extrabold tracking-tight transition group-hover:scale-105 sm:text-xs {{ $partner['badge'] }}">{{ $partner['abbr'] }}</span>
-                    <span class="whitespace-nowrap text-sm font-bold text-forest/75 transition group-hover:text-forest sm:text-base">{{ $partner['name'] }}</span>
+                    @if(!empty($partner['image']))
+                        <img
+                            src="{{ $asset($partner['image']) }}"
+                            alt="{{ $partner['name'] }}"
+                            class="h-10 w-auto max-w-[8.5rem] shrink-0 object-contain transition group-hover:scale-105 sm:h-11 sm:max-w-[9.5rem]"
+                            loading="lazy"
+                            decoding="async"
+                        >
+                    @else
+                        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-[10px] font-extrabold tracking-tight transition group-hover:scale-105 sm:text-xs {{ $partner['badge'] ?? 'bg-forest text-lime' }}">{{ $partner['abbr'] ?? '?' }}</span>
+                        <span class="whitespace-nowrap text-sm font-bold text-forest/75 transition group-hover:text-forest sm:text-base">{{ $partner['name'] }}</span>
+                    @endif
                 </div>
             @endforeach
         </div>
@@ -327,20 +337,51 @@
             <span class="text-xs font-bold uppercase tracking-widest text-forest" data-aos="fade-up">{{ $content['insights']['eyebrow'] }}</span>
             <h2 class="mt-2 font-display text-3xl font-bold text-forest sm:text-4xl" data-aos="fade-up">{{ $content['insights']['title'] }}</h2>
         </div>
-        <div class="mt-14 grid gap-6 md:grid-cols-3">
-            @foreach ($content['insights']['posts'] as $i => $post)
-                <article class="group overflow-hidden rounded-2xl border border-gray-100 bg-white transition hover:-translate-y-1 hover:shadow-lg" data-aos="fade-up" data-aos-delay="{{ $i * 150 }}">
-                    <div class="relative h-44 overflow-hidden bg-forest/5">
-                        <img src="{{ $asset($post['image']) }}" alt="{{ $post['title'] }}" loading="lazy" class="h-full w-full object-cover transition group-hover:scale-105" data-fallback-image>
+
+        @if(count($insightPosts) > 0)
+            <div class="sc-insights-carousel mt-14" data-insights-carousel data-aos="fade-up">
+                <button type="button" class="sc-insights-carousel__nav sc-insights-carousel__nav--prev" data-carousel-prev aria-label="Previous insight">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M12.5 15 7.5 10l5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+
+                <div class="sc-insights-carousel__viewport">
+                    <div class="sc-insights-carousel__track" data-carousel-track tabindex="0" aria-label="Community insights carousel">
+                        @foreach ($insightPosts as $post)
+                            <article class="sc-insights-carousel__slide">
+                                <a href="{{ \App\Support\LandingInsights::articleUrl($auth, $post) }}" class="group flex h-full flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white transition hover:-translate-y-1 hover:border-lime/40 hover:shadow-lg">
+                                    <div class="relative h-44 overflow-hidden bg-forest/5">
+                                        @if(!empty($post['image']))
+                                            <img src="{{ $asset($post['image']) }}" alt="{{ $post['title'] }}" loading="lazy" class="h-full w-full object-cover transition duration-500 group-hover:scale-105" data-fallback-image>
+                                        @else
+                                            <div class="h-full w-full bg-linear-to-br from-forest/20 via-lime/20 to-forest/10"></div>
+                                        @endif
+                                    </div>
+                                    <div class="flex flex-1 flex-col p-5">
+                                        @if(!empty($post['date']))
+                                            <time class="text-xs text-gray-400">{{ $post['date'] }}</time>
+                                        @endif
+                                        <h4 class="mt-2 flex-1 font-bold leading-snug text-forest">{{ $post['title'] }}</h4>
+                                        <span class="mt-3 inline-block text-sm font-bold text-forest transition group-hover:text-lime-hover">Read more →</span>
+                                    </div>
+                                </a>
+                            </article>
+                        @endforeach
                     </div>
-                    <div class="p-5">
-                        <time class="text-xs text-gray-400">{{ $post['date'] }}</time>
-                        <h4 class="mt-2 font-bold leading-snug text-forest">{{ $post['title'] }}</h4>
-                        <a href="{{ \App\Support\LandingAuth::ctaConnect($auth) }}" class="mt-3 inline-block text-sm font-bold text-forest hover:text-lime-hover">Read more →</a>
-                    </div>
-                </article>
-            @endforeach
-        </div>
+                </div>
+
+                <button type="button" class="sc-insights-carousel__nav sc-insights-carousel__nav--next" data-carousel-next aria-label="Next insight">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M7.5 5 12.5 10l-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+
+                <div class="sc-insights-carousel__dots" data-carousel-dots role="tablist" aria-label="Insight slides"></div>
+            </div>
+
+            <div class="mt-10 text-center" data-aos="fade-up">
+                <a href="{{ \App\Support\LandingAuth::ctaConnect($auth) }}" class="inline-flex items-center gap-2 rounded-full border border-forest/15 bg-white px-5 py-2.5 text-sm font-bold text-forest transition hover:border-lime hover:bg-lime/10 hover:text-forest">
+                    {{ $auth['logged_in'] ? 'Explore all in Connect' : 'Log in to read in Connect' }} →
+                </a>
+            </div>
+        @endif
     </div>
 </section>
 

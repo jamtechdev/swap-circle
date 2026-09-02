@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Support\LandingAuth;
 use App\Support\LandingContent;
+use App\Support\LandingInsights;
 use Illuminate\Support\Facades\DB;
 
 class LandingController extends Controller
@@ -29,7 +30,8 @@ class LandingController extends Controller
 
         $auth = LandingAuth::context();
         $content = LandingContent::all();
+        $insightPosts = LandingInsights::posts($auth, $content);
 
-        return view('landing.index', compact('brand', 'auth', 'content'));
+        return view('landing.index', compact('brand', 'auth', 'content', 'insightPosts'));
     }
 }

@@ -108,12 +108,12 @@ class LandingContent
                     'Verified networks',
                 ],
                 'items' => [
-                    ['name' => 'Swap Circle', 'abbr' => 'SC', 'badge' => 'bg-forest text-lime'],
-                    ['name' => 'Allianz', 'abbr' => 'AZ', 'badge' => 'bg-[#003781] text-white'],
-                    ['name' => 'Jubilee', 'abbr' => 'JB', 'badge' => 'bg-[#006747] text-white'],
-                    ['name' => 'Equity Health', 'abbr' => 'EH', 'badge' => 'bg-[#e31837] text-white'],
-                    ['name' => 'Old Mutual', 'abbr' => 'OM', 'badge' => 'bg-[#009677] text-white'],
-                    ['name' => 'AIG', 'abbr' => 'AIG', 'badge' => 'bg-[#007dba] text-white'],
+                    ['name' => 'Swap Circle', 'abbr' => 'SC', 'badge' => 'bg-forest text-lime', 'image' => ''],
+                    ['name' => 'Allianz', 'abbr' => 'AZ', 'badge' => 'bg-[#003781] text-white', 'image' => ''],
+                    ['name' => 'Jubilee', 'abbr' => 'JB', 'badge' => 'bg-[#006747] text-white', 'image' => ''],
+                    ['name' => 'Equity Health', 'abbr' => 'EH', 'badge' => 'bg-[#e31837] text-white', 'image' => ''],
+                    ['name' => 'Old Mutual', 'abbr' => 'OM', 'badge' => 'bg-[#009677] text-white', 'image' => ''],
+                    ['name' => 'AIG', 'abbr' => 'AIG', 'badge' => 'bg-[#007dba] text-white', 'image' => ''],
                 ],
             ],
             'cta' => [

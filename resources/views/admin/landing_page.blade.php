@@ -182,6 +182,7 @@
                         {{-- Partners --}}
                         <div class="landing-cms-section" data-landing-panel="partners">
                             <p class="landing-cms-count mb-3">Homepage: {{ count($content['partners']['items']) }} partner logos · {{ count($content['partners']['trust_badges'] ?? []) }} trust badges</p>
+                            <p class="landing-cms-help mb-3">Upload a logo for each partner. Abbreviation and badge colours are only used as a fallback when no logo is uploaded.</p>
                             <div class="row g-3 mb-3">
                                 <div class="col-md-4"><label class="form-label">Eyebrow</label><input class="form-control" name="partners[eyebrow]" value="{{ $content['partners']['eyebrow'] }}"></div>
                                 <div class="col-md-8"><label class="form-label">Title</label><input class="form-control" name="partners[title]" value="{{ $content['partners']['title'] }}"></div>
@@ -191,9 +192,16 @@
                                 <div class="landing-cms-card">
                                     <h6>Partner {{ $i + 1 }}</h6>
                                     <div class="row g-2">
-                                        <div class="col-md-4"><input class="form-control" name="partners[items][{{ $i }}][name]" value="{{ $item['name'] }}" placeholder="Name"></div>
-                                        <div class="col-md-2"><input class="form-control" name="partners[items][{{ $i }}][abbr]" value="{{ $item['abbr'] }}" placeholder="Abbr"></div>
-                                        <div class="col-md-6"><input class="form-control" name="partners[items][{{ $i }}][badge]" value="{{ $item['badge'] }}" placeholder="Badge classes (Tailwind)"></div>
+                                        <div class="col-md-4"><label class="form-label">Name</label><input class="form-control" name="partners[items][{{ $i }}][name]" value="{{ $item['name'] }}" placeholder="Partner name"></div>
+                                        <div class="col-md-2"><label class="form-label">Abbr</label><input class="form-control" name="partners[items][{{ $i }}][abbr]" value="{{ $item['abbr'] ?? '' }}" placeholder="AZ"></div>
+                                        <div class="col-md-6"><label class="form-label">Fallback badge classes</label><input class="form-control" name="partners[items][{{ $i }}][badge]" value="{{ $item['badge'] ?? '' }}" placeholder="bg-forest text-lime"></div>
+                                        <div class="col-md-8"><label class="form-label">Logo URL</label><input class="form-control" name="partners[items][{{ $i }}][image]" value="{{ $item['image'] ?? '' }}" placeholder="https:// or uploads/landing/..."></div>
+                                        <div class="col-md-4"><label class="form-label">Upload logo</label><input type="file" class="form-control" name="partners__items_{{ $i }}_image" accept="image/*"></div>
+                                        @if(!empty($item['image']))
+                                            <div class="col-12">
+                                                <img src="{{ \App\Support\LandingContent::assetUrl($item['image']) }}" class="landing-cms-preview mt-1" alt="{{ $item['name'] }} logo preview">
+                                            </div>
+                                        @endif
                                     </div>
                                 </div>
                             @endforeach
@@ -232,7 +240,8 @@
 
                         {{-- Insights --}}
                         <div class="landing-cms-section" data-landing-panel="insights">
-                            <p class="landing-cms-count mb-3">Homepage: {{ count($content['insights']['posts']) }} insight articles</p>
+                            <p class="landing-cms-count mb-3">Homepage: eyebrow and title only · article cards load from <a href="{{ url('admin/connect_articles') }}">Connect Articles</a></p>
+                            <p class="landing-cms-help mb-3">Active Connect articles appear in the homepage Insights carousel. When no articles exist, the fallback posts below are shown instead.</p>
                             <div class="row g-3 mb-3">
                                 <div class="col-md-4"><label class="form-label">Eyebrow</label><input class="form-control" name="insights[eyebrow]" value="{{ $content['insights']['eyebrow'] }}"></div>
                                 <div class="col-md-8"><label class="form-label">Title</label><input class="form-control" name="insights[title]" value="{{ $content['insights']['title'] }}"></div>
