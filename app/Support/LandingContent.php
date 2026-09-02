@@ -61,7 +61,7 @@ class LandingContent
                 'steps' => [
                     ['number' => '01', 'icon' => '📋', 'title' => 'Create Your Account', 'text' => 'Sign up as an individual or corporate member. Verify your email in under 2 minutes.'],
                     ['number' => '02', 'icon' => '🔍', 'title' => 'Choose a Product or Offer', 'text' => 'Browse insurance plans, service products, or community swap offers.'],
-                    ['number' => '03', 'icon' => '✅', 'title' => "Pay & They're Covered", 'text' => 'Complete secure payment. Loved ones receive instant coverage confirmation.'],
+                    ['number' => '03', 'icon' => '✅', 'title' => 'Pay and they are covered!', 'text' => 'Complete secure payment. Loved ones receive instant coverage confirmation.'],
                 ],
             ],
             'community' => [
@@ -147,6 +147,9 @@ class LandingContent
             'footer' => [
                 'tagline' => 'A community exchange platform for services. Connect, exchange, and grow together — across borders and generations.',
                 'newsletter_text' => 'Stay updated with product news and community stories.',
+                'instagram_url' => '',
+                'facebook_url' => '',
+                'x_url' => '',
             ],
             'auth' => [
                 'image' => 'users/assets/images/Rocket_Boy_Flatline.png',

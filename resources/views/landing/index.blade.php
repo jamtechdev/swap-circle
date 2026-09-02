@@ -391,8 +391,33 @@
         <div class="border-b border-white/10 pb-12 text-center" data-aos="fade-up">
             <h3 class="font-display text-2xl font-bold text-white">Connect with us</h3>
             <div class="mt-6 flex justify-center gap-3">
-                @foreach (['f', '𝕏', 'in', '◎'] as $icon)
-                    <a href="#" class="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-sm transition hover:-translate-y-1 hover:bg-lime hover:text-forest-deep">{{ $icon }}</a>
+                @php
+                    $socialUrl = fn (?string $url) => filled($url) ? $url : '#';
+                    $socialLinks = [
+                        [
+                            'label' => 'Instagram',
+                            'href' => $socialUrl($content['footer']['instagram_url'] ?? null),
+                            'icon' => '<svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" stroke-width="1.75"/><circle cx="12" cy="12" r="4.25" stroke="currentColor" stroke-width="1.75"/><circle cx="17.2" cy="6.8" r="1.1" fill="currentColor"/></svg>',
+                        ],
+                        [
+                            'label' => 'Facebook',
+                            'href' => $socialUrl($content['footer']['facebook_url'] ?? null),
+                            'icon' => '<svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M14 8.5h2.5l-.5 3H14v9h-3.5v-9H9V8.5h1.5V6.8c0-2.2 1.3-3.8 3.7-3.8H14v3h-1.4c-.8 0-.9.4-.9 1v1.3Z"/></svg>',
+                        ],
+                        [
+                            'label' => 'X',
+                            'href' => $socialUrl($content['footer']['x_url'] ?? null),
+                            'icon' => '<svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.6 4h3.1l-6.8 7.8L21 20h-6.1l-4.8-6.3L4.6 20H1.5l7.3-8.4L3 4h6.2l4.3 5.7L16.6 4Zm-1.1 14.3h1.7L8.7 5.6H6.9l8.6 12.7Z"/></svg>',
+                        ],
+                    ];
+                @endphp
+                @foreach ($socialLinks as $social)
+                    <a
+                        href="{{ $social['href'] }}"
+                        class="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-sm transition hover:-translate-y-1 hover:bg-lime hover:text-forest-deep"
+                        aria-label="{{ $social['label'] }}"
+                        @if($social['href'] !== '#') target="_blank" rel="noopener noreferrer" @endif
+                    >{!! $social['icon'] !!}</a>
                 @endforeach
             </div>
             <div class="mt-6 flex flex-wrap justify-center gap-3">

@@ -264,6 +264,9 @@
                             <div class="row g-3">
                                 <div class="col-12"><label class="form-label">Tagline</label><textarea class="form-control" rows="3" name="footer[tagline]">{{ $content['footer']['tagline'] }}</textarea></div>
                                 <div class="col-12"><label class="form-label">Newsletter text</label><textarea class="form-control" rows="2" name="footer[newsletter_text]">{{ $content['footer']['newsletter_text'] }}</textarea></div>
+                                <div class="col-md-4"><label class="form-label">Instagram URL</label><input class="form-control" name="footer[instagram_url]" value="{{ $content['footer']['instagram_url'] ?? '' }}" placeholder="https://instagram.com/..."></div>
+                                <div class="col-md-4"><label class="form-label">Facebook URL</label><input class="form-control" name="footer[facebook_url]" value="{{ $content['footer']['facebook_url'] ?? '' }}" placeholder="https://facebook.com/..."></div>
+                                <div class="col-md-4"><label class="form-label">X URL</label><input class="form-control" name="footer[x_url]" value="{{ $content['footer']['x_url'] ?? '' }}" placeholder="https://x.com/..."></div>
                             </div>
                         </div>
 
