@@ -28,7 +28,12 @@
         <a href="{{ url('/users/signup_corporate') }}" class="group flex items-center gap-4 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:border-lime hover:shadow-lg">
             <span class="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-forest/10 text-2xl">🏢</span>
             <span class="flex-1 text-left">
-                <strong class="block text-base font-bold text-forest group-hover:text-forest-mid">As a Corporate</strong>
+                <strong class="flex flex-wrap items-center gap-2 text-base font-bold text-forest group-hover:text-forest-mid">
+                    As a Corporate
+                    @unless(config('signup.corporate_enabled'))
+                        <span class="rounded-full bg-lime/30 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-forest">Coming soon</span>
+                    @endunless
+                </strong>
                 <span class="text-sm text-gray-500">For businesses and organisations managing team accounts.</span>
             </span>
             <svg class="h-5 w-5 text-gray-300 transition group-hover:translate-x-1 group-hover:text-lime" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>

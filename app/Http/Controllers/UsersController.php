@@ -62,9 +62,13 @@ class UsersController extends Controller{
     public function users_customers_signup_corporate(){
         if (session()->has('id')) {
             return $this->portalRedirectForSession();
-        } else{
-            return view('users.users_customers_signup_corporate');
         }
+
+        if (!config('signup.corporate_enabled')) {
+            return view('users.users_customers_signup_corporate_soon');
+        }
+
+        return view('users.users_customers_signup_corporate');
     }
     // -------------- SIGNUP CORPORATE ------------- //
     

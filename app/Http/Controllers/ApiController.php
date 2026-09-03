@@ -73,12 +73,12 @@ public function paymentSuccess(Request $request)
   /* SEND NOTIFICATIONS */
 
   /* DECODE IMAGE */
-  public function decode_image($img , $path_url, $prefix, $random, $postfix){                                   
+  public function decode_image($img , $path_url, $prefix, $random, $postfix){
     $data = base64_decode($img);
     $file_name = $prefix.$random.$postfix.'.jpeg';
     $file = $path_url.$file_name;
     $success = file_put_contents($file, $data);
-    return $file_name; 
+    return $file_name;
   }
   /* DECODE IMAGE */
 
@@ -95,17 +95,17 @@ public function paymentSuccess(Request $request)
       $headers  = "MIME-Version: 1.0\r\n";
       $headers .= "Content-type:text/html;charset=UTF-8\r\n";
       $headers .= "From: Swap Circle <info@swapcircle.trade>\r\n";
-  
+
       try {
           // âœ… If SMTP configured â†’ use Laravel Mail
           if (env('MAIL_MAILER') === 'smtp' && env('MAIL_HOST')) {
-  
+
               \Mail::send([], [], function ($mail) use ($to, $subject, $message, $attachments) {
-  
+
                   $mail->to($to)
                        ->subject($subject)
                        ->html($message);
-  
+
                   // âœ… Attach files only if provided
                   if (!empty($attachments)) {
                       foreach ($attachments as $file) {
@@ -115,21 +115,21 @@ public function paymentSuccess(Request $request)
                       }
                   }
               });
-  
+
               return true;
           }
-  
+
       } catch (\Exception $e) {
           \Log::warning('SMTP mail failed, using fallback: ' . $e->getMessage());
       }
-  
+
       // âœ… Fallback (no attachments supported here)
       return mail($to, $subject, $message, $headers);
   }
 
   /* SEND SIMPLE MAIL */
 
-  
+
   /* GENERATE PURCHASE EMAIL HTML FOR PRODUCT TYPES A & B */
   private function generatePurchaseEmailHTML_AB($purchase, $customer, $product, $beneficiary, $purchase_id = null) {
     $productName      = htmlspecialchars($product->name);
@@ -139,11 +139,11 @@ public function paymentSuccess(Request $request)
     $firstName        = htmlspecialchars($beneficiary->first_name);
     $surname          = htmlspecialchars($beneficiary->surname);
     $gender           = htmlspecialchars($beneficiary->gender);
-    $dateOfBirth      = date('d-m-Y', strtotime($beneficiary->date_of_birth)); 
+    $dateOfBirth      = date('d-m-Y', strtotime($beneficiary->date_of_birth));
     $address          = htmlspecialchars($beneficiary->address);
-    $occupation       = htmlspecialchars(DB::table('occupations')->where('occupations_id', $beneficiary->occupations_id)->first()->name); 
-    $relationship     = htmlspecialchars(DB::table('relationships')->where('relationships_id', $beneficiary->relationships_id)->first()->name); 
-    
+    $occupation       = htmlspecialchars(DB::table('occupations')->where('occupations_id', $beneficiary->occupations_id)->first()->name);
+    $relationship     = htmlspecialchars(DB::table('relationships')->where('relationships_id', $beneficiary->relationships_id)->first()->name);
+
     if (!empty($beneficiary->phone_number)) {
       $ninInfo = htmlspecialchars($beneficiary->phone_number);
     } elseif (!empty($beneficiary->nin_document)) {
@@ -180,7 +180,7 @@ public function paymentSuccess(Request $request)
   /* GENERATE PURCHASE EMAIL HTML FOR PRODUCT TYPE C */
   private function generatePurchaseEmailHTML_C($purchase, $customer, $product, $task, $purchase_id = null) {
     $productName          = htmlspecialchars($product->name);
-    $taskType             = htmlspecialchars(DB::table('tasks_types')->where('tasks_types_id', $task->tasks_types_id)->first()->name); 
+    $taskType             = htmlspecialchars(DB::table('tasks_types')->where('tasks_types_id', $task->tasks_types_id)->first()->name);
     $taskName             = htmlspecialchars($task->task);
     $taskDate             = date('d-m-Y', strtotime($task->task_date));
     $description          = htmlspecialchars($task->description);
@@ -320,6 +320,13 @@ public function paymentSuccess(Request $request)
   /* SIGNUP USERS CUSTOMERS */
   public function users_customers_signup(Request $req){
     if (isset($req->first_name) && isset($req->phone) && isset($req->email) && isset($req->password) && isset($req->location)) {
+      if ($req->users_customers_type == 'Company' && !config('signup.corporate_enabled')) {
+        return response()->json([
+          'status' => 'error',
+          'message' => 'Corporate sign up is coming soon. Please register as an individual for now.',
+        ], 422)->header('Content-Type', 'application/json');
+      }
+
       if (!isset($req->gdpr_consent) || !in_array((string) $req->gdpr_consent, ['1', 'true', 'yes', 'on'], true)) {
         return response()->json([
           'status' => 'error',
@@ -374,7 +381,7 @@ public function paymentSuccess(Request $request)
           $saveData['id_front_image'] = 'uploads/users_id_front_image/'.$img_name;
         }
 
-        if(isset($req->id_back_image)){ 
+        if(isset($req->id_back_image)){
           $id_back_image = $req->id_back_image;
           $prefix = time();
           $img_name = $prefix.'.jpeg';
@@ -416,7 +423,7 @@ public function paymentSuccess(Request $request)
             "wallet_amount"=>$receive_amount
           ]);
 	      }
-        
+
         $saveData['notifications']        = 'Yes';
         if(isset($req->account_type)){
 	        $saveData['account_type']     = $req->account_type;
@@ -428,7 +435,7 @@ public function paymentSuccess(Request $request)
         $saveData['date_expiry']       	  = $req->date_expiry;
         $saveData['date_added']           = date('Y-m-d H:i:s');
         $saveData['last_activity']        = Carbon::now();
-        
+
 
         $users_customers_id   = DB::table('users_customers')->insertGetId($saveData);
         $users_customers      = DB::table('users_customers')->where('users_customers_id', $users_customers_id)->first();
@@ -447,7 +454,7 @@ public function paymentSuccess(Request $request)
           $this->send_simple_mail($users_customers->email, 'Verify Your Email - Swap Circle', $otpMessage);
 
 
-        $response["code"]     = 200;   
+        $response["code"]     = 200;
         $response["status"]   = "success";
         $response["data"]     = $users_customers;
       } else {
@@ -460,7 +467,7 @@ public function paymentSuccess(Request $request)
       $response["status"] = "error";
       $response["message"] = "All fields are needed.";
     }
-    
+
     return response()
      ->json(array( 'status' => $response["status"], isset($response["message"]) ? 'message' : 'data' => isset($response["message"]) ? $response["message"] : $response["data"]))
      ->header('Content-Type', 'application/json');
@@ -505,11 +512,11 @@ public function paymentSuccess(Request $request)
      $response["status"] = "error";
      $response["message"] = "All fields are required.";
    }
-   
+
    return response()
     ->json(array( 'status' => $response["status"], isset($response["message"]) ? 'message' : 'data' => isset($response["message"]) ? $response["message"] : $response["data"]))
     ->header('Content-Type', 'application/json');
- }  
+ }
  /* VERIFY SIGNUP USERS CUSTOMERS OTP */
 
   /* RESEND SIGNUP OTP */
@@ -604,7 +611,7 @@ public function paymentSuccess(Request $request)
 
       DB::table('users_customers')->where('users_customers_id', $req->users_customers_id)->update($updateData);
       $updatedData = DB::table('users_customers')->where('users_customers_id', $req->users_customers_id)->get();
- 
+
       $response["code"] = 200;
       $response["status"] = "success";
       $response["data"] = $updatedData;
@@ -664,7 +671,7 @@ public function paymentSuccess(Request $request)
         $response["message"] = "Email does not exists.";
       }
     }
-    
+
     return response()
       ->json(array( 'status' => $response["status"], isset($response["message"]) ? 'message' : 'data' => isset($response["message"]) ? $response["message"] : $response["data"]))
       ->header('Content-Type', 'application/json');
@@ -685,10 +692,10 @@ public function paymentSuccess(Request $request)
            'verify_code'=> null,
            'password' => md5($req->password)
           ];
-          
+
           $UserotpUpdate =DB::table('users_customers')->where('email', $req->email)->update($otpData);
           $users_customer = DB::table('users_customers')->where('email', $req->email)->first();
-          
+
           $response["code"] = 200;
           $response["status"] = "success";
           $response["data"] = $users_customer;
@@ -707,7 +714,7 @@ public function paymentSuccess(Request $request)
       $response["status"] = "error";
       $response["message"] = "All fields are required.";
     }
-    
+
     return response()
      ->json(array( 'status' => $response["status"], isset($response["message"]) ? 'message' : 'data' => isset($response["message"]) ? $response["message"] : $response["data"]))
      ->header('Content-Type', 'application/json');
@@ -721,10 +728,10 @@ public function paymentSuccess(Request $request)
       $old_passwordDB = $old_password->password;
       if ($old_passwordDB == md5($req->old_password)) {
         if ($req->confirm_password == $req->password) {
-          $otpData=array('password' => md5($req->password));          
+          $otpData=array('password' => md5($req->password));
           $UserotpUpdate =DB::table('users_customers')->where('email', $req->email)->update($otpData);
           $users_customers = DB::table('users_customers')->where('email', $req->email)->get();
-          
+
           $response["code"] = 200;
           $response["status"] = "success";
           $response["data"] = $users_customers;
@@ -743,7 +750,7 @@ public function paymentSuccess(Request $request)
       $response["status"] = "error";
       $response["message"] = "All fields are required.";
     }
-    
+
     return response()
      ->json(array( 'status' => $response["status"], isset($response["message"]) ? 'message' : 'data' => isset($response["message"]) ? $response["message"] : $response["data"]))
      ->header('Content-Type', 'application/json');
@@ -756,7 +763,7 @@ public function paymentSuccess(Request $request)
       $users_customers = DB::table('users_customers')->where('email', $req->user_email)->get()->count();
       if ($users_customers>0) {
         $users_customers_delete = DB::table('users_customers_delete')->where('email', $req->user_email)->get()->count();
-        if ($users_customers_delete == 0) { 
+        if ($users_customers_delete == 0) {
           $data = array(
             'email'=>$req->user_email,
             'delete_reason'=> $req->delete_reason,
@@ -784,7 +791,7 @@ public function paymentSuccess(Request $request)
       $response["status"] = "error";
       $response["message"] = "All fields are required.";
     }
-    
+
     return response()
       ->json(array( 'status' => $response["status"], isset($response["message"]) ? 'message' : 'data' => isset($response["message"]) ? $response["message"] : $response["data"]))
       ->header('Content-Type', 'application/json');
@@ -794,7 +801,7 @@ public function paymentSuccess(Request $request)
   /* GET SYSTEM SETTINGS */
   public function system_settings(){
     $fetch_data   =  DB::table('system_settings')->get();
-    
+
     if (!empty($fetch_data)) {
       $response["code"] = 200;
       $response["status"] = "success";
@@ -829,7 +836,7 @@ public function paymentSuccess(Request $request)
       $response["status"] = "error";
       $response["message"] = "All fields are required.";
     }
-    
+
     return response()
       ->json(array( 'status' => $response["status"], isset($response["message"]) ? 'message' : 'data' => isset($response["message"]) ? $response["message"] : $response["data"]))
       ->header('Content-Type', 'application/json');
@@ -852,7 +859,7 @@ public function paymentSuccess(Request $request)
       $response["status"] = "error";
       $response["message"] = "All fields are required.";
     }
-    
+
     return response()
       ->json(array( 'status' => $response["status"], isset($response["message"]) ? 'message' : 'data' => isset($response["message"]) ? $response["message"] : $response["data"]))
       ->header('Content-Type', 'application/json');
@@ -860,7 +867,7 @@ public function paymentSuccess(Request $request)
   /* UNREAD NOTIFICATIONS API */
 
   /*** UNREADED  MESSAGES ***/
-  public function unreaded_messages(Request $req){  
+  public function unreaded_messages(Request $req){
     if (isset($req->users_customers_id)){
       $unread_chat = DB::table('chat_messages')->where(['receiver_id'=>$req->users_customers_id,'status'=>'Unread'])->get()->count();
       $response["code"] = 200;
@@ -871,7 +878,7 @@ public function paymentSuccess(Request $request)
       $response["status"] = "error";
       $response["message"] = "All fields are required.";
     }
-    
+
     return response()
       ->json(array( 'status' => $response["status"], isset($response["message"]) ? 'message' : 'data' => isset($response["message"]) ? $response["message"] : $response["data"]))
       ->header('Content-Type', 'application/json');
@@ -879,7 +886,7 @@ public function paymentSuccess(Request $request)
   /*** UNREADED  MESSAGES ***/
 
   /*** CHAT HEADS ***/
-  public function getAllChat(Request $req){  
+  public function getAllChat(Request $req){
     if (isset($req->users_customers_id)) {
       $final_chat_array = array();
       $chat_list = DB::table('chat_list')->where('sender_id', $req->users_customers_id)->orWhere('receiver_id', $req->users_customers_id)->get();
@@ -888,7 +895,7 @@ public function paymentSuccess(Request $request)
         $chat_array['sender_id'] = $chat->sender_id;
         $chat_array['receiver_id'] = $chat->receiver_id;
 
-        $chat_message = DB::table('chat_messages') 
+        $chat_message = DB::table('chat_messages')
         ->whereIn('sender_id',[$chat->receiver_id,$chat->sender_id])
         ->whereIn('receiver_id',[$chat->receiver_id,$chat->sender_id])
         ->orderBy('chat_message_id', 'desc')
@@ -911,7 +918,7 @@ public function paymentSuccess(Request $request)
           // $chat_message = DB::table('chat_messages')->whereIn('sender_id',  [$chat->receiver_id,$chat->sender_id])->orderBy('chat_message_id','DESC')->first();
           $sender_data = DB::table('users_customers')->where('users_customers_id',$chat->sender_id)->first();
           $chat_array['user_data'] = $sender_data;
-        
+
           // if ($chat_message) {
           //   $date_request = Helper::get_day_difference($chat_message->send_date);
           //   $chat_array['date'] = $date_request;
@@ -958,7 +965,7 @@ public function paymentSuccess(Request $request)
             if($check_request > 0){
               $response["code"] = 200;
               $response["status"] = "success";
-              $response["message"] = 'chat already started';    
+              $response["message"] = 'chat already started';
             } else {
               $data_save = array(
                   'sender_id'=> $req->users_customers_id,
@@ -967,7 +974,7 @@ public function paymentSuccess(Request $request)
                   'created_at' => Carbon::now()
               );
               $requestSend = DB::table('chat_list')->insert($data_save);
-              
+
               if($requestSend){
                   $response["code"] = 200;
                   $response["status"] = "success";
@@ -981,10 +988,10 @@ public function paymentSuccess(Request $request)
           } else {
             $response["code"] = 404;
             $response["status"] = "error";
-            $response["message"] = 'All fields are required';      
+            $response["message"] = 'All fields are required';
           }
-        break;   
-        
+        break;
+
         case "sendMessage":
           if(isset($req->users_customers_id) && isset($req->other_users_customers_id) && $req->has('content') && isset($req->messageType)){
             $message_details = array(
@@ -1005,7 +1012,7 @@ public function paymentSuccess(Request $request)
 
               if ($notif_receiver->notifications == 'Yes') {
                 $notif_sender   = DB::table('users_customers')->where('users_customers_id', $req->users_customers_id)->first();
-                $sender_name    = empty($notif_sender->last_name) 
+                $sender_name    = empty($notif_sender->last_name)
                                   ? $notif_sender->first_name
                                   : $notif_sender->first_name.' '.$notif_sender->last_name;
 
@@ -1036,32 +1043,32 @@ public function paymentSuccess(Request $request)
 
               $response["code"] = 200;
               $response["status"] = "success";
-              $response["message"] = 'Message sent successfully.';  
+              $response["message"] = 'Message sent successfully.';
             } else {
               $response["code"] = 404;
               $response["status"] = "error";
-              $response["message"] = 'Oops! Something went wrong.';  
+              $response["message"] = 'Oops! Something went wrong.';
             }
           } else {
             $response["code"] = 404;
             $response["status"] = "error";
-            $response["message"] = 'All fields are required';  
+            $response["message"] = 'All fields are required';
           }
         break;
-                                       
+
         case "getMessages":
           if(isset($req->users_customers_id) && isset($req->other_users_customers_id)){
             $chat_array   = array();
             $day_array    = array();
-            $result       = DB::table('chat_messages')->where([['sender_id',$req->other_users_customers_id], ['receiver_id', $req->users_customers_id]])->update(array('status' => 'Read'));  
-            
+            $result       = DB::table('chat_messages')->where([['sender_id',$req->other_users_customers_id], ['receiver_id', $req->users_customers_id]])->update(array('status' => 'Read'));
+
             $all_chat = DB::table('chat_messages')
                         ->where([
                           ['sender_id',$req->users_customers_id],
                           ['receiver_id',$req->other_users_customers_id]
                         ])
                         ->orWhere([
-                          ['sender_id',$req->other_users_customers_id], 
+                          ['sender_id',$req->other_users_customers_id],
                           ['receiver_id',$req->users_customers_id]
                         ])
                         ->orderBy('chat_message_id','ASC')
@@ -1079,8 +1086,8 @@ public function paymentSuccess(Request $request)
                 } else {
                   array_push($day_array, $day);
                   $get_data['date']= $day;
-                } 
-                
+                }
+
                 $get_data['time']    =  date('h:i A',strtotime($chat->send_time));
                 $get_data['msgType'] = $chat->message_type;
 
@@ -1092,9 +1099,9 @@ public function paymentSuccess(Request $request)
                 }
                 $sender_data = DB::table('users_customers')->where('users_customers_id',$chat->sender_id)->first();
                 $get_data['user_data'] = $sender_data;
-              
+
                 array_push($chat_array, $get_data);
-                
+
                 if (!empty($chat_array) ) {
                   $result =  DB::table('chat_messages')->where([
                     ['sender_id',$req->other_users_customers_id],
@@ -1106,21 +1113,21 @@ public function paymentSuccess(Request $request)
               if($chat_array){
                 $response["code"] = 200;
                 $response["status"] = "success";
-                $response["data"] = $chat_array; 
+                $response["data"] = $chat_array;
               } else {
                 $response["code"] = 404;
                 $response["status"] = "error";
-                $response["message"] = 'Error in chat array'; 
+                $response["message"] = 'Error in chat array';
               }
             } else {
               $response["code"] = 404;
               $response["status"] = "error";
-              $response["message"] = 'no chat history'; 
-            }                       
+              $response["message"] = 'no chat history';
+            }
           } else {
             $response["code"] = 404;
             $response["status"] = "error";
-            $response["message"] = 'All fields are needed'; 
+            $response["message"] = 'All fields are needed';
           }
         break;
 
@@ -1129,38 +1136,38 @@ public function paymentSuccess(Request $request)
             $user_id = $req->users_customers_id;
             $other_user_id  = $req->other_users_customers_id;
             $chat_array =array();
-  
+
             $all_chat =  DB::table('chat_messages')
               ->where([['sender_id', $other_user_id], ['receiver_id',$user_id],['status','Unread']])
               ->orderBy('chat_message_id', 'ASC')->get();
-            
+
             if(sizeof($all_chat) > 0){
               foreach($all_chat as $chat){
                 $get_data['chat_message_id'] = $chat->chat_message_id;
                 $get_data['sender_type'] = $chat->sender_type;
 
-                $chat->message = json_decode($chat->message);                
+                $chat->message = json_decode($chat->message);
                 $get_data['time'] =  date('h:i A',strtotime($chat->send_date));
                 $get_data['msgType'] = $chat->message_type;
                 if($chat->message_type =='attachment'){
                   $image = config('base_urls.chat_attachments_base_url') . $chat->message;
                   $get_data['message'] = $image;
-                } else { 
+                } else {
                   $get_data['message'] = $chat->message;
-                } 
+                }
 
                 $sender_data = DB::table('users_customers')->where('users_customers_id',$req->other_users_customers_id)->get();
                 $get_data['users_data'] = $sender_data[0];
                 array_push($chat_array, $get_data);
               }
-               
+
               if(!empty($chat_array)){
                 $result =  DB::table('chat_messages')->where([
                   ['sender_id',$other_user_id],
                   ['receiver_id',$user_id]
                   ])->update(array('status'=>'Read'));
               }
-                         
+
               $chat_length   =  DB::table('chat_messages')->where([
                 ['sender_id', $user_id],
                 ['receiver_id',$other_user_id]
@@ -1168,7 +1175,7 @@ public function paymentSuccess(Request $request)
                     ['sender_id', $other_user_id],
                 ['receiver_id',$user_id]
               ])->orderBy('chat_messages_id','ASC')->count();
-            
+
               $finalDataset = array(
                   "chat_length" => $chat_length,
                   "unread_messages" => $chat_array,
@@ -1176,23 +1183,23 @@ public function paymentSuccess(Request $request)
 
               $response["code"] = 200;
               $response["status"] = "success";
-              $response["data"] = $finalDataset; 
+              $response["data"] = $finalDataset;
             } else {
               $response["code"] = 404;
               $response["status"] = "error";
-              $response["message"] = "no chat found"; 
+              $response["message"] = "no chat found";
             }
           } else {
             $response["code"] = 404;
             $response["status"] = "error";
-            $response["message"] = "All fields are needed"; 
+            $response["message"] = "All fields are needed";
           }
-        break;    
+        break;
       }
     } else {
       $response["code"] = 404;
       $response["status"] = "error";
-      $response["message"] = "Request type not Found"; 
+      $response["message"] = "Request type not Found";
     }
 
     return response()
@@ -1214,12 +1221,12 @@ public function paymentSuccess(Request $request)
         $response["status"] = "success";
         $response["message"] = "Email does not exists.";
       }
-    }else{ 
+    }else{
       $response["code"] = 404;
       $response["status"] = "error";
       $response["message"] = "Please enter email address.";
     }
-    
+
     return response()
       ->json(array( 'status' => $response["status"], isset($response["message"]) ? 'message' : 'data' => isset($response["message"]) ? $response["message"] : $response["data"]))
       ->header('Content-Type', 'application/json');
@@ -1232,20 +1239,20 @@ public function paymentSuccess(Request $request)
 	  	$fetch_data   =  DB::table('users_customers')
 	  	->where('users_customers_id','!=',$req->users_customers_id)
 	  	->where('status','Active')->get();
-	    
+
 	    if (count($fetch_data)>0) {
 	      $response["code"] = 200;
 	      $response["status"] = "success";
 	      $response["data"] = $fetch_data;
 	    } else {
 	      $response["code"] = 404;
-	      $response["status"] = "error"; 
+	      $response["status"] = "error";
 	      $response["message"] = "no data found.";
 	    }
     } else {
       $response["code"] = 404;
       $response["status"] = "error";
-      $response["message"] = "All fields are required!"; 
+      $response["message"] = "All fields are required!";
     }
     return response()
     ->json(array( 'status' => $response["status"],isset($response["message"]) ? 'message' : 'data' => isset($response["message"]) ? $response["message"] : $response["data"]))
@@ -1259,12 +1266,12 @@ public function paymentSuccess(Request $request)
       $fetch_data   =  DB::table('users_customers')
       ->where('email','Like', "%" . $req->email. "%")
       ->where('status','Active')->get();
-      
+
       if (count($fetch_data)>0) {
         foreach($fetch_data as $data) {
           $users_customers_wallets = DB::table('users_customers_wallets')
                                     ->where([
-                                      ['users_customers_id', $data->users_customers_id], 
+                                      ['users_customers_id', $data->users_customers_id],
                                       ['status', 'Active']
                                     ])
                                     ->get();
@@ -1279,13 +1286,13 @@ public function paymentSuccess(Request $request)
         $response["data"] = $fetch_data;
       } else {
         $response["code"] = 404;
-        $response["status"] = "error"; 
+        $response["status"] = "error";
         $response["message"] = "no data found.";
       }
     } else {
       $response["code"] = 404;
       $response["status"] = "error";
-      $response["message"] = "All fields are required!"; 
+      $response["message"] = "All fields are required!";
     }
     return response()
     ->json(array( 'status' => $response["status"], isset($response["message"]) ? 'message' : 'data' => isset($response["message"]) ? $response["message"] : $response["data"]))
@@ -1319,7 +1326,7 @@ public function paymentSuccess(Request $request)
 	      $response["status"] = "error";
 	      $response["message"] = "User does not exists.";
 	    }
-    }else{ 
+    }else{
       $response["code"] = 404;
       $response["status"] = "error";
       $response["message"] = "All fields are needed.";
@@ -1333,7 +1340,7 @@ public function paymentSuccess(Request $request)
   /* ALL CURRENCIES */
   public function all_currencies(){
     $fetch_data   =  SystemCurrency::with('country')->where('status', 'Active')->get();
-    
+
     if (count($fetch_data)>0) {
       $response["code"] = 200;
       $response["status"] = "success";
@@ -1353,7 +1360,7 @@ public function paymentSuccess(Request $request)
   public function get_currencies_by_id(Request $req){
     if (isset($req->system_currencies_id)){
       $fetch_data   =  DB::table('system_currencies')->where('system_currencies_id', $req->system_currencies_id)->get();
-      
+
       if (!empty($fetch_data)) {
         $response["code"] = 200;
         $response["status"] = "success";
@@ -1377,7 +1384,7 @@ public function paymentSuccess(Request $request)
   /* ALL COUNTRIES */
   public function all_countries(){
     $fetch_data   =  DB::table('system_countries')->get();
-    
+
     if (!empty($fetch_data)) {
       $response["code"] = 200;
       $response["status"] = "success";
@@ -1420,7 +1427,7 @@ public function paymentSuccess(Request $request)
         $response["status"] = "error";
         $response["message"] = "Your account is in ".$user->status." status. Please contact admin.";
       }
-    }else{ 
+    }else{
       $response["code"] = 404;
       $response["status"] = "error";
       $response["message"] = "All fields are needed.";
@@ -1435,7 +1442,7 @@ public function paymentSuccess(Request $request)
   public function get_wallet(Request $req){
     if (isset($req->users_customers_id)) {
       $fetch_data = UsersCustomersWallet::with('currency')->where('users_customers_id',$req->users_customers_id)->get();
-    
+
       if (!empty($fetch_data)) {
         $response["code"] = 200;
         $response["status"] = "success";
@@ -1445,7 +1452,7 @@ public function paymentSuccess(Request $request)
         $response["status"] = "error";
         $response["message"] = "no data found.";
       }
-    }else{ 
+    }else{
       $response["code"] = 404;
       $response["status"] = "error";
       $response["message"] = "All fields are needed.";
@@ -1460,18 +1467,18 @@ public function paymentSuccess(Request $request)
   /* GET CURRENCY CONVERTER */
   public function currency_converter(Request $req){
     if (isset($req->sender_currency_id) && isset($req->receiver_currency_id) && isset($req->from_amount)) {
-      
+
       $sender_currency    = DB::table('system_currencies')->where('system_currencies_id', $req->sender_currency_id)->get()->first();
       $receiver_currency  = DB::table('system_currencies')->where('system_currencies_id', $req->receiver_currency_id)->get()->first();
 
-      $base_currency   = $sender_currency->code; 
+      $base_currency   = $sender_currency->code;
       $req_url         = "https://api.exchangerate-api.com/v4/latest/$base_currency";
       $response_json   = file_get_contents($req_url, false, stream_context_create(['ssl' => ['verify_peer' => false, 'verify_peer_name' => false]]));
-      $response        = json_decode($response_json, true); 
+      $response        = json_decode($response_json, true);
 
       if ($response && isset($response['rates'])) {
-        $to_currency_code    = $receiver_currency->code; 
-        $amount_to_convert   = $req->from_amount; 
+        $to_currency_code    = $receiver_currency->code;
+        $amount_to_convert   = $req->from_amount;
 
         // calculate converted amount
         $temp_converted_rate = $response['rates'][$to_currency_code];
@@ -1482,16 +1489,16 @@ public function paymentSuccess(Request $request)
 
         $response["code"] = 404;
         $response["status"] = "success";
-        $response['data'] = array('from_amount' => $from_amount, 
-                                  'converted_rate' => $converted_rate, 
+        $response['data'] = array('from_amount' => $from_amount,
+                                  'converted_rate' => $converted_rate,
                                   'converted_amount' => $converted_amount
                                 );
       } else {
         $response["code"] = 404;
         $response["status"] = "error";
         $response["message"] = "Unable to fetch exchange rates.";
-      }   
-    } else { 
+      }
+    } else {
       $response["code"] = 404;
       $response["status"] = "error";
       $response["message"] = "All fields are needed.";
@@ -1505,22 +1512,22 @@ public function paymentSuccess(Request $request)
 
 
   /* TRANSFER CURRENCY */
-  public function transfer_currency(Request $req){ 
+  public function transfer_currency(Request $req){
     if (isset($req->from_users_customers_id) && isset($req->from_system_currencies_id) && isset($req->from_amount) && isset($req->to_users_customers_id) && isset($req->to_system_currencies_id) && isset($req->payment_method_id) && isset($req->system_currencies_id)) {
       $sender = DB::table('users_customers')->where('users_customers_id',$req->from_users_customers_id)->first();
-     
+
       if ($sender->status == 'Active') {
         $receiver = DB::table('users_customers')
                     ->where('users_customers_id', $req->to_users_customers_id)
                     ->orWhere('email',$req->to_users_customers_id)
                     ->first();
-        
+
         if ($receiver->status == 'Active') {
           $sender_currency = DB::table('system_currencies')->where('system_currencies_id',$req->from_system_currencies_id)->first();
 
           if ($sender_currency) {
             $receiver_currency = DB::table('system_currencies')->where('system_currencies_id',$req->to_system_currencies_id)->first();
-           
+
             if ($receiver_currency) {
               $sender_wallet = UsersCustomersWallet::where([
                                 'users_customers_id' => $req->from_users_customers_id,
@@ -1544,7 +1551,7 @@ public function paymentSuccess(Request $request)
                   $system_currencies = DB::table('system_currencies')->where('system_currencies_id',$req->system_currencies_id)->first();
 
                   if ($sender_wallet->wallet_amount >= $req->from_amount) {
-                    $base_currency   = $sender_currency->code; 
+                    $base_currency   = $sender_currency->code;
                     $req_url         = "https://api.exchangerate-api.com/v4/latest/$base_currency";
                     $response_json   = file_get_contents($req_url, false, stream_context_create(['ssl' => ['verify_peer' => false, 'verify_peer_name' => false]]));
 
@@ -1583,7 +1590,7 @@ public function paymentSuccess(Request $request)
                       $response["status"] = "error";
                       $response["message"] = "Something went wrong while fetching the exchange rates.";
                     }
-                    
+
                     $base_currency = $system_currencies->code;
                     $req_url = "https://api.exchangerate-api.com/v4/latest/$base_currency";
                     $response_json = file_get_contents($req_url, false, stream_context_create(['ssl' => ['verify_peer' => false, 'verify_peer_name' => false]]));
@@ -1622,7 +1629,7 @@ public function paymentSuccess(Request $request)
                     $receiver_amount        = $receiver_wallet->wallet_amount + $receiver_amount_result;
                     $receiver_amount_txns   = $receiver_amount_result;
                     // admin_share
-                    
+
                     // $data=[
                     //   'margin' => $receiver_currency->margin,
                     //   'sender_converted_amount' => $sender_converted_amount,
@@ -1644,23 +1651,23 @@ public function paymentSuccess(Request $request)
                                                 "wallet_amount"=>$receiver_amount
                                               ]);
 
-                    $data=UsersCustomersTxns::create([   
+                    $data=UsersCustomersTxns::create([
                       "from_users_customers_id"   => $req->from_users_customers_id,
                       "from_system_currencies_id" => $req->from_system_currencies_id,
-                      "from_amount"               => $req->from_amount, 
+                      "from_amount"               => $req->from_amount,
                       "to_users_customers_id"     => $req->to_users_customers_id,
                       "to_system_currencies_id"   => $req->to_system_currencies_id,
-                      "to_amount"                 => $receiver_amount_txns, 
+                      "to_amount"                 => $receiver_amount_txns,
                       "payment_method_id"         => $req->payment_method_id,
-                      "admin_share"               => $admin_share, 
-                      "admin_share_amount"        => $admin_share_amount, 
-                      // "system_countries_id"       => $req->system_countries_id,          
-                      "system_currencies_id"      => $req->system_currencies_id,          
-                      "base_amount"               => $sender_amount_result,        
+                      "admin_share"               => $admin_share,
+                      "admin_share_amount"        => $admin_share_amount,
+                      // "system_countries_id"       => $req->system_countries_id,
+                      "system_currencies_id"      => $req->system_currencies_id,
+                      "base_amount"               => $sender_amount_result,
                       'status'                    => "Pending",
                     ]);
                     if (isset($req->system_countries_id)) {
-                      $data["system_countries_id"] = $req->system_countries_id;       
+                      $data["system_countries_id"] = $req->system_countries_id;
                     }
 
                     if ($sender_wallet_updated && $receiver_wallet_updated) {
@@ -1668,9 +1675,9 @@ public function paymentSuccess(Request $request)
                         $amount    = $receiver_currency->symbol.''.$receiver_amount_txns;
                         $country   = DB::table('system_countries')->select('code')
                                     ->where('system_countries_id', $receiver_currency->system_countries_id)
-                                    ->first()->code;     
-                                    
-                        $sender_name = empty($sender->last_name) 
+                                    ->first()->code;
+
+                        $sender_name = empty($sender->last_name)
                                         ? $sender->first_name
                                         : $sender->first_name.' '.$sender->last_name;
 
@@ -1693,7 +1700,7 @@ public function paymentSuccess(Request $request)
                         /* notification */
                       }
                     }
-              
+
                     $response["code"] = 200;
                     $response["status"] = "success";
                     $response["data"] = $data;
@@ -1701,7 +1708,7 @@ public function paymentSuccess(Request $request)
                     $response["code"] = 404;
                     $response["status"] = "error";
                     $response["message"] = "You have not sufficient amount in your wallet to transfer.";
-                  } 
+                  }
               }else{
                 $response["code"] = 404;
                 $response["status"] = "error";
@@ -1711,7 +1718,7 @@ public function paymentSuccess(Request $request)
               $response["code"] = 404;
               $response["status"] = "error";
               $response["message"] = "Receiver Currency does not exists.";
-            }  
+            }
           }else{
             $response["code"] = 404;
             $response["status"] = "error";
@@ -1721,13 +1728,13 @@ public function paymentSuccess(Request $request)
           $response["code"] = 404;
           $response["status"] = "error";
           $response["message"] = "Your account is in ".$receiver->status." status. Please contact admin.";
-        }  
+        }
       }else{
         $response["code"] = 404;
         $response["status"] = "error";
         $response["message"] = "Your account is in ".$sender->status." status. Please contact admin.";
       }
-    }else{ 
+    }else{
       $response["code"] = 404;
       $response["status"] = "error";
       $response["message"] = "All fields are needed.";
@@ -1754,7 +1761,7 @@ public function paymentSuccess(Request $request)
         if (!empty($to_system_currencies)) {
           $data->to_system_currencies = $to_system_currencies->symbol;
         }
-        
+
         if($data->to_users_customers_id==$req->users_customers_id){
           $data->from_users_customers=DB::table('users_customers')->where('users_customers_id', $data->from_users_customers_id)->first();
         }
@@ -1769,13 +1776,13 @@ public function paymentSuccess(Request $request)
         $response["data"] = $get_data;
       } else {
         $response["code"] = 404;
-        $response["status"] = "error"; 
+        $response["status"] = "error";
         $response["message"] = "No transactions available.";
       }
     } else {
       $response["code"] = 404;
       $response["status"] = "error";
-      $response["message"] = "All fields are required!"; 
+      $response["message"] = "All fields are required!";
     }
     return response()
     ->json(array( 'status' => $response["status"], isset($response["message"]) ? 'message' : 'data' => isset($response["message"]) ? $response["message"] : $response["data"]))
@@ -1785,10 +1792,10 @@ public function paymentSuccess(Request $request)
 
   /* SWAP WALLET AMOUNT*/
   public function wallet_swap(Request $req){
-    if (isset($req->users_customers_id) && isset($req->from_users_customers_wallets_id) && isset($req->amount_from) && isset($req->to_users_customers_wallets_id) && isset($req->system_currencies_id)) 
+    if (isset($req->users_customers_id) && isset($req->from_users_customers_wallets_id) && isset($req->amount_from) && isset($req->to_users_customers_wallets_id) && isset($req->system_currencies_id))
     {
       $user=DB::table('users_customers')->where(['users_customers_id'=>$req->users_customers_id,'status'=>'Active'])->first();
-      if ($user) 
+      if ($user)
       {
         $sender_wallet = UsersCustomersWallet::where([
                           'users_customers_id' => $req->users_customers_id,
@@ -1806,7 +1813,7 @@ public function paymentSuccess(Request $request)
             if($sender_wallet->wallet_amount != 0 && $sender_wallet->wallet_amount >= $req->amount_from){
               $sender_currency_code = $sender_wallet->currency->code;
 
-              $base_currency   = $sender_currency_code; 
+              $base_currency   = $sender_currency_code;
               $req_url         = "https://api.exchangerate-api.com/v4/latest/$base_currency";
               $response_json   = file_get_contents($req_url, false, stream_context_create(['ssl' => ['verify_peer' => false, 'verify_peer_name' => false]]));
 
@@ -1819,14 +1826,14 @@ public function paymentSuccess(Request $request)
                     $conversion_rate = $url_response->rates->{$system_currencies->code};
 
                     // calculate converted amount
-                    $sender_amount_result = $req->amount_from * $conversion_rate; 
+                    $sender_amount_result = $req->amount_from * $conversion_rate;
 
                     // calculate admin share based on margin
-                    $admin_share_amount = $sender_amount_result * $system_currencies->margin; 
+                    $admin_share_amount = $sender_amount_result * $system_currencies->margin;
 
                     if ($sender_amount_result > $admin_share_amount) {
-                      $sender_converted_amount   = $sender_amount_result - $admin_share_amount; 
-                      $converted_rate            = $conversion_rate; 
+                      $sender_converted_amount   = $sender_amount_result - $admin_share_amount;
+                      $converted_rate            = $conversion_rate;
                     } else {
                       return response()->json([
                         "status" => "error",
@@ -1856,8 +1863,8 @@ public function paymentSuccess(Request $request)
               }
 
               // admin_share
-              $base_currency            = $system_currencies->code; 
-              $receiver_currency_code   = $receiver_wallet->currency->code; 
+              $base_currency            = $system_currencies->code;
+              $receiver_currency_code   = $receiver_wallet->currency->code;
               $req_url                  = "https://api.exchangerate-api.com/v4/latest/$base_currency";
               $response_json            = file_get_contents($req_url, false, stream_context_create(['ssl' => ['verify_peer' => false, 'verify_peer_name' => false]]));
 
@@ -1867,10 +1874,10 @@ public function paymentSuccess(Request $request)
 
                   // check if API response contains required rates
                   if (isset($url_response->rates) && isset($url_response->rates->{$receiver_currency_code})) {
-                    $conversion_rate = $url_response->rates->{$receiver_currency_code}; 
+                    $conversion_rate = $url_response->rates->{$receiver_currency_code};
 
                     // calculate converted amount for receiver
-                    $receiver_amount_result = $sender_converted_amount * $conversion_rate;  
+                    $receiver_amount_result = $sender_converted_amount * $conversion_rate;
                   } else {
                     return response()->json([
                       "status" => "error",
@@ -1913,17 +1920,17 @@ public function paymentSuccess(Request $request)
                 "wallet_amount"=>$receiver_amount
               ]);
 
-              $data=SwapWallet::create([   
+              $data=SwapWallet::create([
                 "users_customers_id"              => $req->users_customers_id,
                 "from_users_customers_wallets_id" => $req->from_users_customers_wallets_id,
                 "to_users_customers_wallets_id"   => $req->to_users_customers_wallets_id,
-                "amount_from"                     => $req->amount_from, 
-                "amount_to"                       => $receiver_amount_txns, 
-                "exchange_rate"                   => $converted_rate, 
-                "admin_share"                     => $admin_share, 
-                "admin_share_amount"              => $admin_share_amount,          
-                "system_currencies_id"            => $req->system_currencies_id,          
-                "base_amount"                     => $sender_amount_result,        
+                "amount_from"                     => $req->amount_from,
+                "amount_to"                       => $receiver_amount_txns,
+                "exchange_rate"                   => $converted_rate,
+                "admin_share"                     => $admin_share,
+                "admin_share_amount"              => $admin_share_amount,
+                "system_currencies_id"            => $req->system_currencies_id,
+                "base_amount"                     => $sender_amount_result,
                 "status"                          => "Successful",
               ]);
 
@@ -1939,18 +1946,18 @@ public function paymentSuccess(Request $request)
             $response["code"] = 404;
             $response["status"] = "error";
             $response["message"] = "Wallet not exist.";
-          }    
+          }
         }else{
           $response["code"] = 404;
           $response["status"] = "error";
           $response["message"] = "Wallet not exist.";
-        }  
+        }
       }else{
         $response["code"] = 404;
         $response["status"] = "error";
         $response["message"] = "Your account is in ".$user->status." status. Please contact admin.";
       }
-    }else{ 
+    }else{
       $response["code"] = 404;
       $response["status"] = "error";
       $response["message"] = "All fields are needed.";
@@ -1963,10 +1970,10 @@ public function paymentSuccess(Request $request)
 
   /* SWAP OFFER*/
   public function swap_offer(Request $req){
-    if (isset($req->users_customers_id) && isset($req->from_system_currencies_id) && isset($req->to_system_currencies_id) && isset($req->from_amount) && isset($req->exchange_rate) && isset($req->system_currencies_id) && isset($req->expiry_time)) 
+    if (isset($req->users_customers_id) && isset($req->from_system_currencies_id) && isset($req->to_system_currencies_id) && isset($req->from_amount) && isset($req->exchange_rate) && isset($req->system_currencies_id) && isset($req->expiry_time))
     {
       $user=DB::table('users_customers')->where(['users_customers_id'=>$req->users_customers_id,'status'=>'Active'])->first();
-      if ($user) 
+      if ($user)
       {
         $sender_currency = UsersCustomersWallet::where([
             'users_customers_id' => $req->users_customers_id,
@@ -1983,7 +1990,7 @@ public function paymentSuccess(Request $request)
               $converted_amount   = $temp_converted_rate * $req->from_amount;
               // $converted_rate   = number_format($temp_converted_rate,2);
               $converted_rate   = $temp_converted_rate;
-                      
+
 
               // admin_share
               $admin_share = DB::table('system_settings')->where('type', 'admin_share')->first()->description;
@@ -1992,9 +1999,9 @@ public function paymentSuccess(Request $request)
               $sender_amount = $sender_currency->wallet_amount - $req->from_amount;
               // $receiver_amount_txns = $converted_amount - $admin_share_amount;
 
-              
+
               // admin_share
-              
+
               //GET BASE CURRENCY CONVERSION
               $base_amount = 0;
               $system_currencies = DB::table('system_currencies')->where('system_currencies_id',$req->system_currencies_id)->first();
@@ -2017,23 +2024,23 @@ public function paymentSuccess(Request $request)
                 $response["code"] = 404;
                 $response["status"] = "error";
                 $response["message"] = "Something Wrong";
-              } 
-              
+              }
+
               // Add hours to the current time
               // $new_time = Carbon::now()->addHours($req->expiry_time);
-              $save_data=[   
+              $save_data=[
                 "users_customers_id"              => $req->users_customers_id,
                 "from_system_currencies_id"       => $req->from_system_currencies_id,
                 "to_system_currencies_id"         => $req->to_system_currencies_id,
-                "from_amount"                     => $req->from_amount, 
-                "to_amount"                       => $converted_amount, 
-                "exchange_rate"                   => $req->exchange_rate, 
-                "admin_share"                     => $admin_share, 
-                "admin_share_amount"              => $admin_share_amount,          
-                "system_currencies_id"            => $req->system_currencies_id,          
-                "base_amount"                     => $base_amount,        
-                "expiry_date_time"                => $req->expiry_time, 
-                'date_added'                      => Carbon::now(),      
+                "from_amount"                     => $req->from_amount,
+                "to_amount"                       => $converted_amount,
+                "exchange_rate"                   => $req->exchange_rate,
+                "admin_share"                     => $admin_share,
+                "admin_share_amount"              => $admin_share_amount,
+                "system_currencies_id"            => $req->system_currencies_id,
+                "base_amount"                     => $base_amount,
+                "expiry_date_time"                => $req->expiry_time,
+                'date_added'                      => Carbon::now(),
                 "status"                          => "Pending",
               ];
               $swap_offers_id   = DB::table('swap_offers')->insertGetId($save_data);
@@ -2051,18 +2058,18 @@ public function paymentSuccess(Request $request)
             $response["code"] = 404;
             $response["status"] = "error";
             $response["message"] = "Receiver currency not exist.";
-          }    
+          }
         }else{
           $response["code"] = 404;
           $response["status"] = "error";
           $response["message"] = "You wallet with that currency not exist.";
-        }  
+        }
       }else{
         $response["code"] = 404;
         $response["status"] = "error";
         $response["message"] = "Your account is in ".$user->status." status. Please contact admin.";
       }
-    }else{ 
+    }else{
       $response["code"] = 404;
       $response["status"] = "error";
       $response["message"] = "All fields are needed.";
@@ -2075,25 +2082,25 @@ public function paymentSuccess(Request $request)
 
   /* SWAP OFFER REQUEST*/
   public function swap_offer_request(Request $req){
-    if (isset($req->from_users_customers_id) && isset($req->swap_offers_id)) 
+    if (isset($req->from_users_customers_id) && isset($req->swap_offers_id))
     {
       $user=DB::table('users_customers')->where(['users_customers_id'=>$req->from_users_customers_id,'status'=>'Active'])->first();
-      if ($user) 
+      if ($user)
       {
-        $swap_offer = SwapOffer::where(['swap_offers_id'=>$req->swap_offers_id,'status'=>'Pending'])->first(); 
+        $swap_offer = SwapOffer::where(['swap_offers_id'=>$req->swap_offers_id,'status'=>'Pending'])->first();
         if($swap_offer){
           $request_exist = DB::table('swap_offers_requests')
                             ->where([
-                              ['swap_offers_id', $req->swap_offers_id], 
-                              ['from_users_customers_id', $req->from_users_customers_id], 
+                              ['swap_offers_id', $req->swap_offers_id],
+                              ['from_users_customers_id', $req->from_users_customers_id],
                               ['status', 'Pending']
                             ])
-                            ->count(); 
+                            ->count();
 
           if ($request_exist == 0) {
             $user_wallet = DB::table('users_customers_wallets')
                           ->where([
-                            ['users_customers_id', $req->from_users_customers_id], 
+                            ['users_customers_id', $req->from_users_customers_id],
                             ['system_currencies_id', $swap_offer->to_system_currencies_id],
                             ['status', 'Active']
                           ])
@@ -2103,14 +2110,14 @@ public function paymentSuccess(Request $request)
               if ($user_wallet->wallet_amount >= $swap_offer->to_amount) {
                 $data = [
                   "from_users_customers_id"  => $req->from_users_customers_id,
-                  "swap_offers_id"           => $req->swap_offers_id,      
+                  "swap_offers_id"           => $req->swap_offers_id,
                   "status"                   => "Pending",
                 ];
                 $inserted = DB::table('swap_offers_requests')->insertGetId($data);
 
                 $notif_receiver = DB::table('users_customers')->where('users_customers_id', $swap_offer->users_customers_id)->first();
 
-                if ($notif_receiver->notifications == 'Yes') { 
+                if ($notif_receiver->notifications == 'Yes') {
                   /* notification */
                   $msg_text        = ucfirst($user->first_name).' sent you a request for swap offer.';
                   $one_signal_id   = $notif_receiver->one_signal_id;
@@ -2134,7 +2141,7 @@ public function paymentSuccess(Request $request)
                 }
                 $response["code"] = 200;
                 $response["status"] = "success";
-                $response["data"] = $data; 
+                $response["data"] = $data;
               } else {
                 $response["code"] = 404;
                 $response["status"] = "error";
@@ -2160,7 +2167,7 @@ public function paymentSuccess(Request $request)
         $response["status"] = "error";
         $response["message"] = "Your account is in ".$user->status." status. Please contact admin.";
       }
-    }else{ 
+    }else{
       $response["code"] = 404;
       $response["status"] = "error";
       $response["message"] = "All fields are needed.";
@@ -2211,13 +2218,13 @@ public function paymentSuccess(Request $request)
         $response["data"] = $get_data;
       } else {
         $response["code"] = 404;
-        $response["status"] = "error"; 
+        $response["status"] = "error";
         $response["message"] = "no data found.";
       }
     } else {
       $response["code"] = 404;
       $response["status"] = "error";
-      $response["message"] = "All fields are required!"; 
+      $response["message"] = "All fields are required!";
     }
     return response()
     ->json(array( 'status' => $response["status"], isset($response["message"]) ? 'message' : 'data' => isset($response["message"]) ? $response["message"] : $response["data"]))
@@ -2294,7 +2301,7 @@ public function paymentSuccess(Request $request)
                                                         "wallet_amount"=>$receiver_send_amount
                                                       ]);
                         // detect amount from receiver wallet
-                        
+
                         // add amount to sender wallet
                         $sender_receive_amount         = $sender_receive_wallet->wallet_amount + $swap_offer->to_amount;
                         $sender_receive_wallet_updated = UsersCustomersWallet::where([
@@ -2322,7 +2329,7 @@ public function paymentSuccess(Request $request)
                         ->json(array( 'status' => $response["status"], isset($response["message"]) ? 'message' : 'data' => isset($response["message"]) ? $response["message"] : $response["data"]))
                         ->header('Content-Type', 'application/json');
                       }
-                      
+
                       $data           = SwapOfferRequest::where("swap_offers_requests_id",$req->swap_offers_requests_id)->update(["status"=>"Accepted"]);
                       $pending_offers = SwapOfferRequest::where(["swap_offers_id"=>$req->swap_offers_id,"status"=>"Pending"])->get();
                       foreach ($pending_offers as $key => $offer) {
@@ -2334,11 +2341,11 @@ public function paymentSuccess(Request $request)
                       if ($user->notifications == 'Yes') {
                         $notif_sender = DB::table('users_customers')->select('first_name', 'last_name')
                         ->where('users_customers_id', $swap_offer->users_customers_id)
-                        ->first(); 
-                        $sender_name = empty($notif_sender->last_name) 
+                        ->first();
+                        $sender_name = empty($notif_sender->last_name)
                         ? $notif_sender->first_name
                         : $notif_sender->first_name.' '.$notif_sender->last_name;
-                        
+
                         /* notification */
                         $msg_text        = 'accepted your swap offer request.';
                         $one_signal_id   = $user->one_signal_id;
@@ -2367,22 +2374,22 @@ public function paymentSuccess(Request $request)
                       $response["code"] = 404;
                       $response["status"] = "error";
                       $response["message"] = "Something Wrong";
-                    } 
+                    }
                   } else {
                     $response["code"] = 404;
                     $response["status"] = "error";
                     $response["message"] = "Receiver sending wallet does not exist.";
-                  }    
+                  }
                 } else {
                   $response["code"] = 404;
                   $response["status"] = "error";
                   $response["message"] = "Receiver receiving wallet does not exist.";
-                }    
+                }
               } else {
                 $response["code"] = 404;
                 $response["status"] = "error";
                 $response["message"] = "Sender receiving wallet does not exist.";
-              }    
+              }
             } else {
               $response["code"] = 404;
               $response["status"] = "error";
@@ -2392,18 +2399,18 @@ public function paymentSuccess(Request $request)
             $response["code"] = 404;
             $response["status"] = "error";
             $response["message"] = "Swap offer request does not exist or processed.";
-          }    
+          }
         }else{
           $response["code"] = 404;
           $response["status"] = "error";
           $response["message"] = "Swap offer does not exist.";
-        }  
+        }
       } else {
         $response["code"] = 404;
         $response["status"] = "error";
         $response["message"] = "Your account is in ".$user->status." status. Please contact admin.";
       }
-    } else { 
+    } else {
       $response["code"] = 404;
       $response["status"] = "error";
       $response["message"] = "All fields are needed.";
@@ -2420,11 +2427,11 @@ public function paymentSuccess(Request $request)
     if(isset($req->swap_offers_id)){
       $get_data = SwapOfferRequest::where(["swap_offers_id"=>$req->swap_offers_id,'status'=>'Pending'])->get();
 
-      $final_list = []; 
+      $final_list = [];
       foreach ($get_data as $key => $data) {
         $data->user_data = DB::table('users_customers')->where(['users_customers_id'=>$data->from_users_customers_id])->first();
         $final_list[] = $data;
-      } 
+      }
 
       if (count($final_list) > 0) {
         $response["code"] = 200;
@@ -2432,13 +2439,13 @@ public function paymentSuccess(Request $request)
         $response["data"] = $final_list;
       } else {
         $response["code"] = 404;
-        $response["status"] = "error"; 
+        $response["status"] = "error";
         $response["message"] = "no data found.";
       }
     } else {
       $response["code"] = 404;
       $response["status"] = "error";
-      $response["message"] = "All fields are required!"; 
+      $response["message"] = "All fields are required!";
     }
     return response()
     ->json(array( 'status' => $response["status"], isset($response["message"]) ? 'message' : 'data' => isset($response["message"]) ? $response["message"] : $response["data"]))
@@ -2454,12 +2461,12 @@ public function paymentSuccess(Request $request)
                     ->where('expiry_date_time', '>', date('Y-m-d H:i:s'))
                     ->orderBy('swap_offers_id','DESC')
                     ->get();
-      $get_data = []; 
+      $get_data = [];
       foreach ($fetch_data as $key => $data) {
         $data->time_ago       = Carbon::parse($data->date_added)->diffForHumans();
         $data->total_requests = DB::table('swap_offers_requests')
                                 ->where([
-                                  ['swap_offers_id', $data->swap_offers_id], 
+                                  ['swap_offers_id', $data->swap_offers_id],
                                   ['status', 'Pending']
                                 ])
                                 ->count();
@@ -2471,13 +2478,13 @@ public function paymentSuccess(Request $request)
         $response["data"] = $get_data;
       } else {
         $response["code"] = 404;
-        $response["status"] = "error"; 
+        $response["status"] = "error";
         $response["message"] = "no data found.";
       }
     } else {
       $response["code"] = 404;
       $response["status"] = "error";
-      $response["message"] = "All fields are required!"; 
+      $response["message"] = "All fields are required!";
     }
     return response()
     ->json(array( 'status' => $response["status"], isset($response["message"]) ? 'message' : 'data' => isset($response["message"]) ? $response["message"] : $response["data"]))
@@ -2487,38 +2494,38 @@ public function paymentSuccess(Request $request)
 
   /* SELL CURRENCY RATE */
   public function sell_currency_rate(Request $req){
-    if (isset($req->from_system_currencies_id) && isset($req->to_system_currencies_id) && isset($req->from_amount)) 
+    if (isset($req->from_system_currencies_id) && isset($req->to_system_currencies_id) && isset($req->from_amount))
     {
       $from_currency=DB::table('system_currencies')->where(['system_currencies_id'=>$req->from_system_currencies_id,'status'=>'Active'])->first();
-      if ($from_currency) 
+      if ($from_currency)
       {
         $to_currency=DB::table('system_currencies')->where(['system_currencies_id'=>$req->to_system_currencies_id,'status'=>'Active'])->first();
-        if ($to_currency) 
-        {   
-          $base_currency   = $from_currency->code; 
+        if ($to_currency)
+        {
+          $base_currency   = $from_currency->code;
           $req_url         = "https://api.exchangerate-api.com/v4/latest/$base_currency";
           $response_json   = file_get_contents($req_url, false, stream_context_create(['ssl' => ['verify_peer' => false, 'verify_peer_name' => false]]));
-          $response        = json_decode($response_json, true); 
-          
+          $response        = json_decode($response_json, true);
+
           if ($response && isset($response['rates'])) {
-            $to_currency_code    = $to_currency->code; 
-            $amount_to_convert   = $req->from_amount; 
-        
+            $to_currency_code    = $to_currency->code;
+            $amount_to_convert   = $req->from_amount;
+
             // calculate converted amount
             $conversion_rate    = $response['rates'][$to_currency_code];
             $converted_amount   = $amount_to_convert * $conversion_rate;
-        
+
             // apply margin
-            $margin   = $to_currency->margin; 
+            $margin   = $to_currency->margin;
             $value    = $converted_amount - ($converted_amount * $margin);
-                   
+
             if ($value > 0) {
               $converted_amount   = $value;
             } else {
               $converted_amount   = 0;
             }
             $admin_rate_amount = $to_currency->admin_rate * $req->from_amount;
-            $data = new \stdClass(); 
+            $data = new \stdClass();
 
             $data->converte_rate       = $conversion_rate;
             $data->converted_amount    = $converted_amount;
@@ -2531,7 +2538,7 @@ public function paymentSuccess(Request $request)
             $response["code"] = 404;
             $response["status"] = "error";
             $response["message"] = "Unable to fetch exchange rates.";
-          }   
+          }
         }else{
           $response["code"] = 404;
           $response["status"] = "error";
@@ -2542,7 +2549,7 @@ public function paymentSuccess(Request $request)
         $response["status"] = "error";
         $response["message"] = "To Currency does not exists.";
       }
-    }else{ 
+    }else{
       $response["code"] = 404;
       $response["status"] = "error";
       $response["message"] = "All fields are needed.";
@@ -2555,23 +2562,23 @@ public function paymentSuccess(Request $request)
 
   /* BUY CURRENCY RATE */
   public function buy_currency_rate(Request $req){
-    if (isset($req->from_system_currencies_id) && isset($req->to_system_currencies_id) && isset($req->from_amount)) 
+    if (isset($req->from_system_currencies_id) && isset($req->to_system_currencies_id) && isset($req->from_amount))
     {
       $from_currency=DB::table('system_currencies')->where(['system_currencies_id'=>$req->from_system_currencies_id,'status'=>'Active'])->first();
-      if ($from_currency) 
-      {  
+      if ($from_currency)
+      {
         $to_currency=DB::table('system_currencies')->where(['system_currencies_id'=>$req->to_system_currencies_id,'status'=>'Active'])->first();
-        if ($to_currency) 
-        {    
-          $base_currency   = $from_currency->code; 
+        if ($to_currency)
+        {
+          $base_currency   = $from_currency->code;
           $req_url         = "https://api.exchangerate-api.com/v4/latest/$base_currency";
            $ctx           = stream_context_create(['ssl' => ['verify_peer' => false, 'verify_peer_name' => false]]);
            $response_json   = file_get_contents($req_url, false, $ctx);
           $response        = json_decode($response_json, true);
 
           if ($response && isset($response['rates'])) {
-            $to_currency_code    = $to_currency->code; 
-            $amount_to_convert   = $req->from_amount; 
+            $to_currency_code    = $to_currency->code;
+            $amount_to_convert   = $req->from_amount;
 
             // calculate converted amount
             $conversion_rate    = $response['rates'][$to_currency_code];
@@ -2579,7 +2586,7 @@ public function paymentSuccess(Request $request)
             $converted_amount   = $conversion_rate * $req->from_amount;
 
             $admin_rate_amount = $to_currency->admin_rate * $req->from_amount;
-            $data = new \stdClass(); 
+            $data = new \stdClass();
 
             $data->converte_rate       = $conversion_rate;
             $data->converted_amount    = $converted_amount;
@@ -2592,7 +2599,7 @@ public function paymentSuccess(Request $request)
             $response["code"] = 404;
             $response["status"] = "error";
             $response["message"] = "Unable to fetch exchange rates.";
-          }   
+          }
         }else{
           $response["code"] = 404;
           $response["status"] = "error";
@@ -2603,7 +2610,7 @@ public function paymentSuccess(Request $request)
         $response["status"] = "error";
         $response["message"] = "To Currency does not exists.";
       }
-    }else{ 
+    }else{
       $response["code"] = 404;
       $response["status"] = "error";
       $response["message"] = "All fields are needed.";
@@ -2625,10 +2632,10 @@ public function paymentSuccess(Request $request)
           $saveData['name']                 = $req->name;
           $saveData['email']                = $req->email;
           $saveData['subject']              = $req->subject;
-        
+
           $feedback      = Feedback::updateOrCreate(['users_customers_id' => $req->users_customers_id],$saveData);
 
-          $response["code"]     = 200;   
+          $response["code"]     = 200;
           $response["status"]   = "success";
           $response["data"]     = $feedback;
         }else{
@@ -2646,7 +2653,7 @@ public function paymentSuccess(Request $request)
       $response["status"] = "error";
       $response["message"] = "All fields are needed.";
     }
-    
+
     return response()
      ->json(array( 'status' => $response["status"], isset($response["message"]) ? 'message' : 'data' => isset($response["message"]) ? $response["message"] : $response["data"]))
      ->header('Content-Type', 'application/json');
@@ -2656,7 +2663,7 @@ public function paymentSuccess(Request $request)
   /* ALL FAQs*/
   public function all_faqs(){
     $faqs = FAQ::where('status','Active')->get();
-    
+
     if (count($faqs)>0) {
       $response["code"] = 200;
       $response["status"] = "success";
@@ -2671,7 +2678,7 @@ public function paymentSuccess(Request $request)
       ->header('Content-Type', 'application/json');
   }
   /* ALL FAQs*/
-  
+
   /* ALL FAVORITE SWAP OFFERS*/
   public function all_favorite_swaps_offers(Request $req){
     if (isset($req->users_customers_id)) {
@@ -2683,16 +2690,16 @@ public function paymentSuccess(Request $request)
         foreach ($favorites as $key => $favorite) {
           $swap_offer = SwapOffer::where(['swap_offers_id'=>$favorite->swap_offers_id,'status'=>'Pending'])
                         ->where('expiry_date_time', '>', date('Y-m-d H:i:s'))
-                        ->first(); 
+                        ->first();
 
           if (!empty($swap_offer)) {
             $data_string = $swap_offer;
             $data_string->from_currency = DB::table('system_currencies')->where(['system_currencies_id'=>$data_string->from_system_currencies_id])->first();
             $data_string->from_currency->country = DB::table('system_countries')->where(['code'=>$data_string->from_currency->code])->first();
-  
+
             $data_string->to_currency = DB::table('system_currencies')->where(['system_currencies_id'=>$data_string->to_system_currencies_id])->first();
             $data_string->to_currency->country = DB::table('system_countries')->where(['code'=>$data_string->to_currency->code])->first();
-  
+
             $data_string->base_currency = DB::table('system_currencies')->where(['system_currencies_id'=>$data_string->system_currencies_id])->first();
             $data_string->base_currency->country = DB::table('system_countries')->where(['code'=>$data_string->base_currency->code])->first();
             $data[] = $data_string;
@@ -2718,7 +2725,7 @@ public function paymentSuccess(Request $request)
         $response["status"] = "error";
         $response["message"] = "User does not exists.";
       }
-    }else{ 
+    }else{
       $response["code"] = 404;
       $response["status"] = "error";
       $response["message"] = "All fields are needed.";
@@ -2728,7 +2735,7 @@ public function paymentSuccess(Request $request)
       ->header('Content-Type', 'application/json');
   }
   /* ALL FAVORITE SWAP OFFERS*/
-  
+
   /* ADD FAVORITE SWAP OFFERS*/
   public function add_favorite_swaps_offers(Request $req){
     if (isset($req->users_customers_id) && isset($req->swap_offers_id)) {
@@ -2749,7 +2756,7 @@ public function paymentSuccess(Request $request)
             $favorite_offer = FavoriteSwapOffer::firstOrCreate(
               ['users_customers_id' => $req->users_customers_id,'swap_offers_id' => $req->swap_offers_id],
               ['users_customers_id' => $req->users_customers_id,'swap_offers_id' => $req->swap_offers_id]);;
-  
+
             $response["code"] = 200;
             $response["status"] = "success";
             $response["data"] = $favorite_offer;
@@ -2764,7 +2771,7 @@ public function paymentSuccess(Request $request)
         $response["status"] = "error";
         $response["message"] = "User does not exists.";
       }
-    }else{ 
+    }else{
       $response["code"] = 404;
       $response["status"] = "error";
       $response["message"] = "All fields are needed.";
@@ -2774,7 +2781,7 @@ public function paymentSuccess(Request $request)
       ->header('Content-Type', 'application/json');
   }
   /* ADD FAVORITE SWAP OFFERS*/
-  
+
   /* REMOVE FAVORITE SWAP OFFERS*/
   public function remove_favorite_swaps_offers(Request $req){
     if (isset($req->users_customers_id) && isset($req->swap_offers_id)) {
@@ -2803,7 +2810,7 @@ public function paymentSuccess(Request $request)
         $response["status"] = "error";
         $response["message"] = "User does not exists.";
       }
-    }else{ 
+    }else{
       $response["code"] = 404;
       $response["status"] = "error";
       $response["message"] = "All fields are needed.";
@@ -2819,7 +2826,7 @@ public function paymentSuccess(Request $request)
     if (isset($req->swap_offers_requests_id))
     {
       $pending_offer=SwapOfferRequest::where(["swap_offers_requests_id"=>$req->swap_offers_requests_id,"status"=>"Pending"])->get();
-      if ($pending_offer) 
+      if ($pending_offer)
       {
         $offer_update=SwapOfferRequest::where("swap_offers_requests_id",$req->swap_offers_requests_id)->update(["status"=>"Rejected"]);
         if($offer_update){
@@ -2835,8 +2842,8 @@ public function paymentSuccess(Request $request)
         $response["code"] = 404;
         $response["status"] = "error";
         $response["message"] = "Swap offer request not exist.";
-      } 
-    }else{ 
+      }
+    }else{
       $response["code"] = 404;
       $response["status"] = "error";
       $response["message"] = "All fields are needed.";
@@ -2852,7 +2859,7 @@ public function paymentSuccess(Request $request)
     if (isset($req->users_customers_wallets_id) && isset($req->users_customers_id)) {
       $fetch_data  =UsersCustomersWallet::with('currency')->where(
         ['users_customers_id'=>$req->users_customers_id,'users_customers_wallets_id'=>$req->users_customers_wallets_id])->first();
-    
+
       if ($fetch_data) {
         $response["code"] = 200;
         $response["status"] = "success";
@@ -2862,7 +2869,7 @@ public function paymentSuccess(Request $request)
         $response["status"] = "error";
         $response["message"] = "no data found.";
       }
-    }else{ 
+    }else{
       $response["code"] = 404;
       $response["status"] = "error";
       $response["message"] = "All fields are needed.";
@@ -2874,7 +2881,7 @@ public function paymentSuccess(Request $request)
   }
   /* GET USER WALLET DETAIL*/
 
-  
+
   /* ALL CONNECT CATEGORIES*/
   public function connect_categories(){
     $connect_categories = DB::table('connect_categories')->where('status','Active')->get()->map(function ($category) {
@@ -2885,7 +2892,7 @@ public function paymentSuccess(Request $request)
 
       return $category;
     });
-    
+
     if (count($connect_categories)>0) {
       $response["code"] = 200;
       $response["status"] = "success";
@@ -2915,7 +2922,7 @@ public function paymentSuccess(Request $request)
           }
           $get_data[]=$data;
         }
-      
+
       if (count($get_data)>0) {
         $response["code"] = 200;
         $response["status"] = "success";
@@ -2925,7 +2932,7 @@ public function paymentSuccess(Request $request)
         $response["status"] = "error";
         $response["message"] = "no data found.";
       }
-    }else{ 
+    }else{
       $response["code"] = 404;
       $response["status"] = "error";
       $response["message"] = "All fields are needed.";
@@ -2956,7 +2963,7 @@ public function paymentSuccess(Request $request)
             $favorite_article = FavoriteConnectArticle::firstOrCreate(
               ['users_customers_id' => $req->users_customers_id,'connect_articles_id' => $req->connect_articles_id],
               ['users_customers_id' => $req->users_customers_id,'connect_articles_id' => $req->connect_articles_id]);;
-  
+
             $response["code"] = 200;
             $response["status"] = "success";
             $response["data"] = $favorite_article;
@@ -2971,7 +2978,7 @@ public function paymentSuccess(Request $request)
         $response["status"] = "error";
         $response["message"] = "User does not exists.";
       }
-    }else{ 
+    }else{
       $response["code"] = 404;
       $response["status"] = "error";
       $response["message"] = "All fields are needed.";
@@ -3010,7 +3017,7 @@ public function paymentSuccess(Request $request)
         $response["status"] = "error";
         $response["message"] = "User does not exists.";
       }
-    }else{ 
+    }else{
       $response["code"] = 404;
       $response["status"] = "error";
       $response["message"] = "All fields are needed.";
@@ -3030,8 +3037,8 @@ public function paymentSuccess(Request $request)
           if ($article) {
           DB::beginTransaction();
           try {
-            $userid = ['users_customers_id'=>$req->users_customers_id,'connect_articles_id'=>$req->connect_articles_id]; 
-                                
+            $userid = ['users_customers_id'=>$req->users_customers_id,'connect_articles_id'=>$req->connect_articles_id];
+
                   $viewed=ConnectArticleView::firstOrCreate($userid,[
                       'users_customers_id'=>$req->users_customers_id,
                       'connect_articles_id'=>$req->connect_articles_id,
@@ -3050,12 +3057,12 @@ public function paymentSuccess(Request $request)
               $response["status"] = "error";
               $response['message'] = $ex->getMessage();
           }
-        }else{  
+        }else{
           $response["code"] = 404;
           $response["status"] = "error";
           $response["message"] = "Connect Article does not exists.";
-        }    
-      }else{  
+        }
+      }else{
         $response["code"] = 404;
         $response["status"] = "error";
         $response["message"] = "User does not exists.";
@@ -3077,7 +3084,7 @@ public function paymentSuccess(Request $request)
       $articles= DB::table('connect_articles')->where('status','Active')->get();
       $views=ConnectArticleView::all();
       $array=[];
-      
+
       foreach ($articles as $key => $article) {
         foreach ($views as $key => $view) {
           // Articles views like
@@ -3108,7 +3115,7 @@ public function paymentSuccess(Request $request)
         $response["status"] = "error";
         $response["message"] = "no data found.";
       }
-    }else{ 
+    }else{
       $response["code"] = 404;
       $response["status"] = "error";
       $response["message"] = "All fields are needed.";
@@ -3148,7 +3155,7 @@ public function paymentSuccess(Request $request)
         $response["status"] = "error";
         $response["message"] = "User does not exists.";
       }
-    }else{ 
+    }else{
       $response["code"] = 404;
       $response["status"] = "error";
       $response["message"] = "All fields are needed.";
@@ -3197,7 +3204,7 @@ public function paymentSuccess(Request $request)
         $response["status"] = "error";
         $response["message"] = "User does not exists.";
       }
-    }else{ 
+    }else{
       $response["code"] = 404;
       $response["status"] = "error";
       $response["message"] = "All fields are needed.";
@@ -3233,7 +3240,7 @@ public function paymentSuccess(Request $request)
         $response["status"] = "error";
         $response["message"] = "User does not exists.";
       }
-    }else{ 
+    }else{
       $response["code"] = 404;
       $response["status"] = "error";
       $response["message"] = "All fields are needed.";
@@ -3258,7 +3265,7 @@ public function paymentSuccess(Request $request)
           }
           $get_data[]=$data;
         }
-      
+
       if (count($get_data)>0) {
         $response["code"] = 200;
         $response["status"] = "success";
@@ -3268,7 +3275,7 @@ public function paymentSuccess(Request $request)
         $response["status"] = "error";
         $response["message"] = "no data found.";
       }
-    }else{ 
+    }else{
       $response["code"] = 404;
       $response["status"] = "error";
       $response["message"] = "All fields are needed.";
@@ -3285,7 +3292,7 @@ public function paymentSuccess(Request $request)
       $articles=DB::table('connect_articles')->where(['connect_categories_id'=>$req->connect_categories_id,'status'=>'Active'])->get();
       $views=ConnectArticleView::all();
       $array=[];
-      
+
       foreach ($articles as $key => $article) {
         foreach ($views as $key => $view) {
           // Articles views like
@@ -3316,7 +3323,7 @@ public function paymentSuccess(Request $request)
         $response["status"] = "error";
         $response["message"] = "no data found.";
       }
-    }else{ 
+    }else{
       $response["code"] = 404;
       $response["status"] = "error";
       $response["message"] = "All fields are needed.";
@@ -3366,7 +3373,7 @@ public function paymentSuccess(Request $request)
     if (isset($req->users_customers_id)) {
       $user = DB::table('users_customers')->where('users_customers_id', $req->users_customers_id)->first();
       if ($user) {
-        
+
         $start = Carbon::parse($user->last_activity);
         $end = Carbon::parse(Carbon::now());
         $diffInMinutes = $end->diffInMinutes($start);
@@ -3400,12 +3407,12 @@ public function paymentSuccess(Request $request)
   /* UPDATE PROFILE */
    public function update_activity_interval(Request $req){
     if(isset($req->users_customers_id) && isset($req->activity_interval)) {
-      
+
       $updateData['activity_interval']              = $req->activity_interval;
 
       DB::table('users_customers')->where('users_customers_id', $req->users_customers_id)->update($updateData);
       $updatedData = DB::table('users_customers')->where('users_customers_id', $req->users_customers_id)->get();
- 
+
       $response["code"] = 200;
       $response["status"] = "success";
       $response["data"] = $updatedData;
@@ -3446,11 +3453,11 @@ public function paymentSuccess(Request $request)
         $fund_wallet_id   = DB::table('fund_wallets')->insertGetId($saveData);
 
         $data = DB::table('fund_wallets')->where('fund_wallets_id', $fund_wallet_id)->first();
-  
+
         $response["code"] = 200;
         $response["status"] = "success";
         $response["data"] = $data;
-        
+
       } else {
         $response["code"] = 404;
         $response["status"] = "error";
@@ -3474,7 +3481,7 @@ public function paymentSuccess(Request $request)
 
     $user_wallet = DB::table('users_customers_wallets')->where(['users_customers_wallets_id'=>$req->users_customers_wallets_id,"users_customers_id"=>$req->users_customers_id])->first();
     if($user_wallet){
-      
+
       $user_account = DB::table('users_customers_accounts')->where(['users_customers_accounts_id'=>$req->users_customers_accounts_id,"users_customers_id"=>$req->users_customers_id])->first();
         if($user_account->system_currencies_id==$user_wallet->system_currencies_id){
 
@@ -3487,11 +3494,11 @@ public function paymentSuccess(Request $request)
           $withdraw_wallets_request_id   = DB::table('withdraw_wallets_requests')->insertGetId($saveData);
 
           $data = DB::table('withdraw_wallets_requests')->where('withdraw_wallets_requests_id', $withdraw_wallets_request_id)->first();
-    
+
           $response["code"] = 200;
           $response["status"] = "success";
           $response["data"] = $data;
-          
+
         } else {
           $response["code"] = 404;
           $response["status"] = "error";
@@ -3598,9 +3605,9 @@ public function paymentSuccess(Request $request)
   //           file_put_contents($image_path, base64_decode($identity_document));
   //           $data2['nin_document'] = 'uploads/identity_documents/'.$img_name;
   //         }
-          
+
   //         DB::table('products_purchases_beneficiaries')->insertGetId($data2);
-  //       } 
+  //       }
   //       if ($type === 'C') {
   //         $data2 = [
   //           'products_purchases_id'   => $products_purchases_id,
@@ -3757,18 +3764,18 @@ public function paymentSuccess(Request $request)
 
       $this->send_simple_mail($to, $subject, $this->generatePurchaseEmailHTML_AB($prod_purchased, $customer, $product, $prod_purchased->products_purchases_beneficiaries));
 
-    
+
     }
     /* handle product type A & B */
     /* handle product type C */
     if ($type === 'C') {
       $prod_valid = DB::table('products_purchases as pp')
                     ->join('products_purchases_tasks as ppt', 'pp.products_purchases_id', '=', 'ppt.products_purchases_id')
-                    ->where('pp.users_customers_id', $req->users_customers_id) 
-                    ->where('pp.product_type', $type)                          
-                    ->whereColumn('ppt.delivery_requests_consumed', '<', 'ppt.delivery_request_limit') 
-                    ->select('pp.*', 'ppt.*') 
-                    ->first();  
+                    ->where('pp.users_customers_id', $req->users_customers_id)
+                    ->where('pp.product_type', $type)
+                    ->whereColumn('ppt.delivery_requests_consumed', '<', 'ppt.delivery_request_limit')
+                    ->select('pp.*', 'ppt.*')
+                    ->first();
 
       if ($prod_valid) {
         $data2 = [
@@ -3793,7 +3800,7 @@ public function paymentSuccess(Request $request)
           'payment_message'      => 'Waiting for payment',
           'date_added'           => date('Y-m-d H:i:s')
         ];
-        $products_purchases_id = DB::table('products_purchases')->insertGetId($data); 
+        $products_purchases_id = DB::table('products_purchases')->insertGetId($data);
         if (!$products_purchases_id) {
           return response()->json(['status' => 'error', 'message' => 'Something went wrong. Please try again.'], 500);
         }
@@ -3811,20 +3818,20 @@ public function paymentSuccess(Request $request)
           'delivery_requests_consumed'   => 1,
           'date_added'                   => date('Y-m-d H:i:s')
         ];
-        $products_purchases_tasks_id               = DB::table('products_purchases_tasks')->insertGetId($data2);    
+        $products_purchases_tasks_id               = DB::table('products_purchases_tasks')->insertGetId($data2);
         $prod_purchased                            = DB::table('products_purchases')->where('products_purchases_id', $products_purchases_id)->first();
         $prod_purchased->products_purchases_tasks  = DB::table('products_purchases_tasks')->where('products_purchases_id', $products_purchases_id)->first();
       }
 
       $customer   = DB::table('users_customers')->where('users_customers_id', $req->users_customers_id)->first();
       $product    = DB::table('products')->where('products_id', $req->products_id)->first();
-     
+
       /* send mail */
       $to      = $customer->email;
       $subject = 'Purchase Confirmation';
 
       $this->send_simple_mail($to, $subject, $this->generatePurchaseEmailHTML_C($prod_purchased, $customer, $product, $prod_purchased->products_purchases_tasks));
-       
+
       /* send mail */
     }
     /* handle product type C  */
@@ -3923,8 +3930,8 @@ public function paymentSuccess(Request $request)
           $purchased_product   = DB::table('products_purchases')->where('products_purchases_id', $req->products_purchases_id)->first();
           $customer            = DB::table('users_customers')->where('users_customers_id', $purchased_product->users_customers_id)->first();
           $product             = DB::table('products')->where('products_id', $purchased_product->products_id)->first();
-          
-          /* send mail */ 
+
+          /* send mail */
           $to             = $customer->email;
           $subject        = 'Claim Submission Confirmation';
           $productName    = htmlspecialchars($product->name);
@@ -3932,8 +3939,8 @@ public function paymentSuccess(Request $request)
           $description    = nl2br(htmlspecialchars($req->description));
 
           $docs = [
-            $data['image1'] ?? null, 
-            $data['image2'] ?? null, 
+            $data['image1'] ?? null,
+            $data['image2'] ?? null,
             $data['image3'] ?? null
           ];
 
@@ -4048,14 +4055,14 @@ public function initiateStripePayment(Request $req)
     ]);
 
     $purchase = DB::table('products_purchases')->where('products_purchases_id', $req->products_purchases_id)->first();
-    
+
     if (!$purchase) {
         return response()->json(['status' => 'error', 'message' => 'Invalid purchase'], 400);
     }
 
     // Get product details to get the price
     $product = DB::table('products')->where('products_id', $purchase->products_id)->first();
-    
+
     if (!$product) {
         return response()->json(['status' => 'error', 'message' => 'Product not found'], 400);
     }
@@ -4206,7 +4213,7 @@ public function handleStripeSuccess(Request $req)
 
         // Get purchase details
         $purchase = DB::table('products_purchases')->where('products_purchases_id', $req->purchase_id)->first();
-        
+
         if (!$purchase) {
             return response()->json([
                 'status' => 'error',
@@ -4240,25 +4247,25 @@ public function handleStripeSuccess(Request $req)
             if ($user && $product) {
                 $to = $user->email;
                 $subject = 'Purchase Confirmation - ' . $product->name;
-                
+
                 \Log::info('Email Sending Attempt:', [
                     'user_email' => $to,
                     'product_type' => $purchase->product_type,
                     'purchase_id' => $purchase->products_purchases_id
                 ]);
-                
+
                 if ($purchase->product_type === 'A' || $purchase->product_type === 'B') {
                     // Get beneficiary details for product types A & B
                     $beneficiary = DB::table('products_purchases_beneficiaries')
                         ->where('products_purchases_id', $purchase->products_purchases_id)
                         ->first();
-                    
+
                     \Log::info('Beneficiary Data:', ['beneficiary_found' => $beneficiary ? 'yes' : 'no']);
-                    
+
                     if ($beneficiary) {
                         $message = $this->generatePurchaseEmailHTML_AB($purchase, $user, $product, $beneficiary, $purchase->products_purchases_id);
                         $mailResult = $this->send_simple_mail($to, $subject, $message);
-                        
+
                         \Log::info('Email Sent Result:', [
                             'mail_result' => $mailResult,
                             'to' => $to,
@@ -4272,13 +4279,13 @@ public function handleStripeSuccess(Request $req)
                     $task = DB::table('products_purchases_tasks')
                         ->where('products_purchases_id', $purchase->products_purchases_id)
                         ->first();
-                    
+
                     \Log::info('Task Data:', ['task_found' => $task ? 'yes' : 'no']);
-                    
+
                     if ($task) {
                         $message = $this->generatePurchaseEmailHTML_C($purchase, $user, $product, $task, $purchase->products_purchases_id);
                         $mailResult = $this->send_simple_mail($to, $subject, $message);
-                        
+
                         \Log::info('Email Sent Result:', [
                             'mail_result' => $mailResult,
                             'to' => $to,
@@ -4318,7 +4325,7 @@ public function handleStripeSuccess(Request $req)
             'session_id' => $req->session_id,
             'purchase_id' => $req->purchase_id
         ]);
-        
+
         return response()->json([
             'status' => 'error',
             'message' => 'Payment verification failed: ' . $e->getMessage()
@@ -4418,4 +4425,4 @@ private function triggerInsuretechPurchaseSync(?int $purchaseId, string $source)
         ]);
     }
 }
-} 
+}

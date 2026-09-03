@@ -8,6 +8,8 @@
     --color-forest: #1a472a;
     --color-forest-mid: #245c38;
     --color-forest-deep: #0f2e1c;
+    --font-display: "Fraunces", Georgia, serif;
+    --font-sans: "DM Sans", system-ui, sans-serif;
     --font-family-display: "Fraunces", Georgia, serif;
     --font-family-sans: "DM Sans", system-ui, sans-serif;
 }

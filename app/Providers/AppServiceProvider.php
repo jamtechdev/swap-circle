@@ -32,6 +32,7 @@ class AppServiceProvider extends ServiceProvider
             'users.users_customers_signup',
             'users.users_customers_signup_individual',
             'users.users_customers_signup_corporate',
+            'users.users_customers_signup_corporate_soon',
             'users.users_customers_forgot_password',
             'users.users_customers_reset_password',
             'users.users_customers_verification_code',

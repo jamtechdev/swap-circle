@@ -7,13 +7,13 @@
     --color-forest: #1a472a;
     --color-forest-mid: #245c38;
     --color-forest-deep: #0f2e1c;
-    --font-family-display: "Fraunces", Georgia, serif;
-    --font-family-sans: "DM Sans", system-ui, sans-serif;
+    --font-display: "Fraunces", Georgia, serif;
+    --font-sans: "DM Sans", system-ui, sans-serif;
 }
 
 @layer base {
     html { scroll-behavior: smooth; }
-    body.auth-page { font-family: var(--font-family-sans); }
+    body.auth-page { font-family: var(--font-sans); }
 }
 
 @layer components {
@@ -84,6 +84,30 @@
 
     .auth-success-card {
         @apply rounded-2xl border border-lime/30 bg-lime-soft/40 p-6 text-center;
+    }
+
+    .auth-coming-soon {
+        @apply mx-auto max-w-md text-center;
+    }
+
+    .auth-coming-soon__badge {
+        @apply inline-block rounded-full border border-lime/40 bg-lime/20 px-3 py-1 text-xs font-bold uppercase tracking-widest text-forest;
+    }
+
+    .auth-coming-soon__logo {
+        @apply mx-auto mt-6 h-16 w-auto sm:h-20;
+    }
+
+    .auth-coming-soon__title {
+        @apply mt-6 font-display text-3xl font-bold leading-tight text-forest;
+    }
+
+    .auth-coming-soon__text {
+        @apply mt-3 text-sm leading-relaxed text-gray-500;
+    }
+
+    .auth-coming-soon__actions {
+        @apply mt-8 space-y-3;
     }
 }
 
