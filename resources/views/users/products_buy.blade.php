@@ -45,6 +45,7 @@
 .ui-datepicker-title {
     display: flex;
     gap: 6px;
+    align-items: center;
 }
 
 .ui-datepicker select.ui-datepicker-month,
@@ -54,6 +55,16 @@
     padding: 2px 6px;
     font-size: 14px;
     border-radius: 4px;
+    color: #212529 !important;
+    background-color: #fff !important;
+    -webkit-text-fill-color: #212529 !important;
+}
+
+.ui-datepicker select.ui-datepicker-month option,
+.ui-datepicker select.ui-datepicker-year option {
+    color: #212529 !important;
+    background-color: #fff !important;
+    -webkit-text-fill-color: #212529 !important;
 }
 
 /* ===== SELECT2 FIX FOR SWAP CIRCLE UI ===== */
