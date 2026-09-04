@@ -18,7 +18,13 @@
                             <div>
                                 <span class="portal-claims-intro__label">Product protection</span>
                                 <h1 class="portal-claims-intro__title">Submit a claim</h1>
-                                <p class="portal-claims-intro__text">Claims open {{ $claimWaitingDays }} days after a successful purchase. Upload supporting documents if you have them.</p>
+                                <p class="portal-claims-intro__text">
+                                    @if((int) $claimWaitingDays === 0)
+                                        Claims are available immediately after a successful purchase. Upload supporting documents if you have them.
+                                    @else
+                                        Claims open {{ $claimWaitingDays }} days after a successful purchase. Upload supporting documents if you have them.
+                                    @endif
+                                </p>
                             </div>
                         </div>
 
@@ -164,8 +170,8 @@
                                     <path d="M3 6h18M16 10a4 4 0 0 1-8 0" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
                                 </svg>
                             </div>
-                            <h2 class="portal-claims-empty__title">No purchases yet</h2>
-                            <p class="portal-claims-empty__text">You haven't bought any products yet. Once you make a purchase, you can submit a claim here.</p>
+                            <h2 class="portal-claims-empty__title">No paid purchases yet</h2>
+                            <p class="portal-claims-empty__text">Claims are available only after a successful product payment. Buy a product, complete Stripe checkout, then return here.</p>
                             <a href="{{ url('/users/products') }}" class="portal-claims-empty__cta">Browse products</a>
                         </div>
                     @endif

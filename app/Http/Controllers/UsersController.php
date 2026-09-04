@@ -13,6 +13,7 @@ use App\Support\UserPortal;
 use App\User;
 use Carbon\Carbon;
 use DB;
+use Illuminate\Support\Facades\Log;
 
 use Artisan;
 use Session;
@@ -42,9 +43,10 @@ class UsersController extends Controller{
 	public function users_customers_signup(){
         if (session()->has('id')) {
             return $this->portalRedirectForSession();
-        } else{
-            return view('users.users_customers_signup');
         }
+
+        // Corporate signup hidden — send everyone to individual signup.
+        return redirect('/users/signup_individual');
     }
     // -------------- SIGNUP ------------- //
     
@@ -64,8 +66,9 @@ class UsersController extends Controller{
             return $this->portalRedirectForSession();
         }
 
+        // Corporate signup paused — redirect to individual path.
         if (!config('signup.corporate_enabled')) {
-            return view('users.users_customers_signup_corporate_soon');
+            return redirect('/users/signup_individual');
         }
 
         return view('users.users_customers_signup_corporate');
@@ -261,9 +264,10 @@ class UsersController extends Controller{
     public function users_customers_wallets(){
         if (!session()->has('id')) {
             return redirect('/login');
-        } else{
-            return view('users.users_customers_wallets');
         }
+
+        // Wallet operations paused — keep route for compatibility but block UI.
+        return redirect('/users/dashboard');
     }
     // -------------- WALLETS ------------- //
     
@@ -497,27 +501,34 @@ class UsersController extends Controller{
             return redirect('/users/products')->with('error', 'Invalid payment session.');
         }
 
-        // Call API to handle success
+        // Call API to handle success (pass buyer id explicitly for in-process auth)
         $apiController = new ApiController();
         $apiRequest = new Request();
         $apiRequest->merge([
             'session_id' => $session_id,
-            'purchase_id' => $purchase_id
+            'purchase_id' => $purchase_id,
+            'users_customers_id' => (int) session('id'),
         ]);
 
         $response = $apiController->handleStripeSuccess($apiRequest);
         $responseData = json_decode($response->getContent(), true);
 
-        if ($responseData['status'] === 'success') {
+        if (($responseData['status'] ?? '') === 'success') {
             $portalHomeUrl = UserPortal::postAuthRedirectUrl((int) session('id'));
 
             return view('users.stripe_payment_success', [
                 'purchase_id' => $purchase_id,
                 'portalHomeUrl' => $portalHomeUrl,
             ])->with('success', 'Payment completed successfully! Your purchase has been confirmed.');
-        } else {
-            return redirect('/users/products')->with('error', $responseData['message'] ?? 'Payment verification failed.');
         }
+
+        \Log::warning('Stripe success page verification failed', [
+            'purchase_id' => $purchase_id,
+            'session_id' => $session_id,
+            'response' => $responseData,
+        ]);
+
+        return redirect('/users/products')->with('error', $responseData['message'] ?? 'Payment verification failed.');
     }
     // -------------- STRIPE PAYMENT SUCCESS ------------- //
 

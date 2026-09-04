@@ -20,7 +20,7 @@
             <span class="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-lime-soft text-2xl">👤</span>
             <span class="flex-1 text-left">
                 <strong class="block text-base font-bold text-forest group-hover:text-forest-mid">As an Individual</strong>
-                <span class="text-sm text-gray-500">For personal use — wallets, products, and community swaps.</span>
+                <span class="text-sm text-gray-500">For personal use — products, community, and support.</span>
             </span>
             <svg class="h-5 w-5 text-gray-300 transition group-hover:translate-x-1 group-hover:text-lime" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
         </a>
@@ -43,7 +43,7 @@
     <div class="auth-login-banner">
         <div class="text-center sm:text-left">
             <p class="text-base font-bold text-forest">Already have an account?</p>
-            <p class="mt-1 text-sm text-gray-500">Log in to access your dashboard, wallets, and messages.</p>
+            <p class="mt-1 text-sm text-gray-500">Log in to access your dashboard, products, and messages.</p>
         </div>
         <a href="{{ url('/login') }}" class="auth-btn-outline mt-4 w-full sm:mt-0 sm:w-auto sm:min-w-[11rem] sm:px-8">Log In</a>
     </div>

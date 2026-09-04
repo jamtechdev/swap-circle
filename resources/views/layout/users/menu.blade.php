@@ -25,7 +25,7 @@
         <nav class="portal-sidebar-nav" aria-label="Portal navigation">
             <p class="portal-sidebar-nav__label">Menu</p>
             <div class="list-group list-group-flush portal-sidebar-menu">
-                <a href="{{ url('/users/dashboard') }}" class="list-group-item list-group-item-action {{ (request()->is('users/dashboard') || request()->is('users/wallets')) ? 'active' : '' }}">
+                <a href="{{ url('/users/dashboard') }}" class="list-group-item list-group-item-action {{ request()->is('users/dashboard') ? 'active' : '' }}">
                     <span class="portal-nav-icon" aria-hidden="true">
                         <svg class="portal-nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5L12 3l9 7.5V20a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1v-9.5z"/></svg>
                     </span>

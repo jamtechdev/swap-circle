@@ -3110,13 +3110,9 @@ function enableBuyNow(btn) {
                                         <div>\
                                             <p class="mb-0 fw-bolder">'+ item.full_name +'</p>\
                                             <small class="text-primary">'+ item.account_currency.symbol + ' ' + item.iban +'</small>\
+                                            <div class="small text-muted mt-1">'+ (item.bank_name || '') +' · '+ (item.account_no || '') +'</div>\
                                         </div>\
                                     </div>\
-                                    <a href="javascript:void(0);" onclick="view_account_detail('+ item.users_customers_accounts_id +', \'' + item.bank_name + '\', \'' + item.account_no + '\')" class="p-2">\
-                                        <svg width="12" height="20" viewBox="0 0 12 20" fill="none" xmlns="http://www.w3.org/2000/svg">\
-                                            <path d="M2 20L12 10L2 0L0.225 1.775L8.45 10L0.225 18.225L2 20Z" fill="#4BD16F"/>\
-                                        </svg>\
-                                    </a>\
                                 </div>\
                             </div>\
                         </div>\
@@ -4230,7 +4226,7 @@ function enableBuyNow(btn) {
                       headers: { "Content-Type": "application/json" },
                       data: JSON.stringify({
                           products_purchases_id: response.data.products_purchases_id,
-                          users_customers_id: users_customers_id
+                          users_customers_id: parseInt(users_customers_id, 10) || users_customers_id
                       }),
                       success: function (stripeRes) {
                           if (stripeRes.status === 'success' && stripeRes.already_paid) {
@@ -4246,7 +4242,7 @@ function enableBuyNow(btn) {
                       },
                       error: function (xhr) {
                           var msg = (xhr.responseJSON && xhr.responseJSON.message)
-                              ? xhr.responseJSON.message
+                              ? (typeof xhr.responseJSON.message === 'string' ? xhr.responseJSON.message : 'Payment setup failed. Please try again.')
                               : 'Payment service unavailable. Please try again later.';
                           toastr.error(msg);
                           enableBuyNow($buyBtn);
@@ -4334,7 +4330,7 @@ function enableBuyNow(btn) {
                       headers: { "Content-Type": "application/json" },
                       data: JSON.stringify({
                           products_purchases_id: response.data.products_purchases_id,
-                          users_customers_id: users_customers_id
+                          users_customers_id: parseInt(users_customers_id, 10) || users_customers_id
                       }),
                       success: function (stripeRes) {
                           if (stripeRes.status === 'success' && stripeRes.already_paid) {
@@ -4350,7 +4346,7 @@ function enableBuyNow(btn) {
                       },
                       error: function (xhr) {
                           var msg = (xhr.responseJSON && xhr.responseJSON.message)
-                              ? xhr.responseJSON.message
+                              ? (typeof xhr.responseJSON.message === 'string' ? xhr.responseJSON.message : 'Payment setup failed. Please try again.')
                               : 'Payment service unavailable. Please try again later.';
                           toastr.error(msg);
                           enableBuyNow($buyBtn);
@@ -4415,7 +4411,7 @@ function enableBuyNow(btn) {
                       headers: { "Content-Type": "application/json" },
                       data: JSON.stringify({
                           products_purchases_id: response.data.products_purchases_id,
-                          users_customers_id: users_customers_id
+                          users_customers_id: parseInt(users_customers_id, 10) || users_customers_id
                       }),
                       success: function (stripeRes) {
                           if (stripeRes.status === 'success' && stripeRes.already_paid) {
@@ -4431,7 +4427,7 @@ function enableBuyNow(btn) {
                       },
                       error: function (xhr) {
                           var msg = (xhr.responseJSON && xhr.responseJSON.message)
-                              ? xhr.responseJSON.message
+                              ? (typeof xhr.responseJSON.message === 'string' ? xhr.responseJSON.message : 'Payment setup failed. Please try again.')
                               : 'Payment service unavailable. Please try again later.';
                           toastr.error(msg);
                           enableBuyNow($buyBtn);

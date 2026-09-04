@@ -62,7 +62,8 @@
                                 <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2" stroke="currentColor" stroke-width="1.75"/><path d="M3 10h18M7 15h4" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg>
                             </div>
                             <div class="portal-profile-card__content">
-                                <h3 class="portal-profile-card__title">Payout methods</h3>
+                                <h3 class="portal-profile-card__title">Bank accounts</h3>
+                                <p class="portal-profile-card__desc">Manage linked payout bank accounts</p>
                             </div>
                             <span class="portal-profile-card__chevron" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m9 6 6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
                         </a>

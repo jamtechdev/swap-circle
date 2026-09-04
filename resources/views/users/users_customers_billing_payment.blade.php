@@ -35,57 +35,6 @@
         </div>
     </div>
 
-    {{-- Withdraw modal --}}
-    <div class="modal fade modal-lg" id="mdl_withdraw_amount" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content portal-profile-modal">
-                <div class="modal-body p-4 p-md-5">
-                    <div class="d-flex align-items-center mb-4">
-                        <button type="button" class="portal-modal-back" data-bs-dismiss="modal" aria-label="Close">
-                            <svg viewBox="0 0 24 24" fill="none"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                        </button>
-                        <h2 class="portal-profile-modal__title flex-grow-1 text-center mb-0">Withdraw funds</h2>
-                        <span class="portal-profile-modal__spacer" aria-hidden="true"></span>
-                    </div>
-                    <form id="frm_withdraw_amount">
-                        @csrf
-                        <input type="hidden" id="wa_accounts_id" value="" readonly>
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="form-label" for="wa_currency">Currency</label>
-                                <select class="form-select" name="wa_currency" id="wa_currency"></select>
-                                <span class="error_msg" id="error_wa_currency"></span>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label" for="wa_bank_name">Bank name</label>
-                                <input type="text" name="wa_bank_name" id="wa_bank_name" class="form-control" readonly>
-                                <span class="error_msg" id="error_wa_bank_name"></span>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label" for="wa_account_number">Account number</label>
-                                <input type="text" name="wa_account_number" id="wa_account_number" class="form-control" readonly>
-                                <span class="error_msg" id="wa_account_number"></span>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label" for="wa_amount">Amount</label>
-                                <input type="text" name="wa_amount" id="wa_amount" placeholder="Enter amount" class="form-control" min="1" step="0.01">
-                                <span class="error_msg" id="error_wa_amount"></span>
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label" for="wa_account_notes">Account notes</label>
-                                <textarea name="wa_account_notes" id="wa_account_notes" placeholder="Optional notes" class="form-control" rows="3"></textarea>
-                                <span class="error_msg" id="error_wa_account_notes"></span>
-                            </div>
-                        </div>
-                        <div class="portal-modal-actions">
-                            <button type="submit" class="btn btn-login btn-primary portal-profile-edit-save">Withdraw</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
     {{-- Add account modal --}}
     <div class="modal fade modal-lg" id="mdl_add_account" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">

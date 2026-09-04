@@ -1,12 +1,12 @@
 @extends('layout.auth.master')
 
 @section('title', ($brandName ?? 'Swap Circle') . ' — Individual Sign Up')
-@section('back_url', url('/users/signup'))
-@section('back_label', 'Back to account type')
+@section('back_url', url('/login'))
+@section('back_label', 'Back to sign in')
 
 @php
     $heroTitle = 'Create your<br>individual account.';
-    $heroText = 'Join thousands of members exchanging services, managing wallets, and protecting loved ones across borders.';
+    $heroText = 'Join thousands of members buying products, managing cover, and protecting loved ones across borders.';
 @endphp
 
 @section('content_width')

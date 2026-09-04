@@ -25,6 +25,11 @@ class UserPortal
 
     public static function claimWaitingDays(): int
     {
+        // Optional QA override: CLAIM_WAITING_DAYS=0 opens claims immediately after payment.
+        if (env('CLAIM_WAITING_DAYS') !== null && env('CLAIM_WAITING_DAYS') !== '') {
+            return max(0, (int) env('CLAIM_WAITING_DAYS'));
+        }
+
         try {
             $value = DB::table('system_settings')
                 ->where('type', 'claim_waiting_days')

@@ -4078,9 +4078,15 @@ public function initiateStripePayment(Request $req)
 
     \Stripe\Stripe::setApiKey($stripeSecret);
 
-    $currency = strtolower((string) ($product->currency_code ?? 'ngn'));
+    $currency = strtolower(trim((string) ($product->currency_code ?? '')));
     if (!preg_match('/^[a-z]{3}$/', $currency)) {
-        $currency = 'ngn';
+        // Prefer EUR for this catalog when currency is missing; avoid defaulting to NGN
+        // which has a much higher Stripe minimum and breaks EUR-priced products.
+        $currency = 'eur';
+        \Log::warning('Stripe initiate: product missing currency_code, defaulting to EUR', [
+            'products_id' => $product->products_id ?? null,
+            'products_purchases_id' => $purchase->products_purchases_id ?? null,
+        ]);
     }
     $price = (isset($product->custom_price) && is_numeric($product->custom_price))
         ? $product->custom_price
@@ -4103,8 +4109,11 @@ public function initiateStripePayment(Request $req)
         return response()->json(['status' => 'error', 'message' => 'Amount below Stripe minimum'], 400);
     }
 
+    $customer = DB::table('users_customers')->where('users_customers_id', $purchase->users_customers_id)->first();
+    $customerEmail = is_string($customer->email ?? null) ? trim($customer->email) : '';
+
     try {
-        $session = \Stripe\Checkout\Session::create([
+        $sessionPayload = [
             'payment_method_types' => ['card'],
             'line_items' => [[
                 'price_data' => [
@@ -4125,7 +4134,13 @@ public function initiateStripePayment(Request $req)
                 'users_customers_id' => (string) $purchase->users_customers_id,
                 'products_id' => (string) $purchase->products_id,
             ],
-        ]);
+        ];
+
+        if ($customerEmail !== '' && filter_var($customerEmail, FILTER_VALIDATE_EMAIL)) {
+            $sessionPayload['customer_email'] = $customerEmail;
+        }
+
+        $session = \Stripe\Checkout\Session::create($sessionPayload);
 
         $update = [
             'stripe_payment_intent' => $session->id,
@@ -4140,12 +4155,24 @@ public function initiateStripePayment(Request $req)
             ->where('products_purchases_id', $purchase->products_purchases_id)
             ->update($update);
 
+        \Log::info('Stripe Checkout session created', [
+            'products_purchases_id' => $purchase->products_purchases_id,
+            'session_id' => $session->id,
+            'currency' => $currency,
+            'amount' => $amount,
+        ]);
+
         return response()->json([
             'status' => 'success',
             'checkout_url' => $session->url,
             'session_id' => $session->id,
         ]);
     } catch (\Exception $e) {
+        \Log::error('Stripe Checkout session create failed', [
+            'products_purchases_id' => $purchase->products_purchases_id ?? null,
+            'error' => $e->getMessage(),
+        ]);
+
         return response()->json([
             'status' => 'error',
             'message' => 'Failed to create Stripe Checkout session: ' . $e->getMessage(),
@@ -4357,12 +4384,14 @@ private function isBeneficiaryAgeAllowed(string $dateOfBirth): bool
 
 private function resolveStripeBuyerId(Request $req): ?int
 {
-    if ($req->filled('users_customers_id')) {
-        return (int) $req->users_customers_id;
+    if ($req->filled('users_customers_id') && is_numeric($req->users_customers_id)) {
+        $id = (int) $req->users_customers_id;
+        return $id > 0 ? $id : null;
     }
 
-    if (session()->has('id')) {
-        return (int) session('id');
+    if (session()->has('id') && is_numeric(session('id'))) {
+        $id = (int) session('id');
+        return $id > 0 ? $id : null;
     }
 
     return null;
