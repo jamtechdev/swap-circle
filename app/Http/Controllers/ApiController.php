@@ -2182,18 +2182,17 @@ public function paymentSuccess(Request $request)
   public function all_swap_offers(Request $req){
     if(isset($req->users_customers_id)){
       $swap_offer_expire = DB::table('system_settings')->where('type', 'swap_offer_expire')->first()->description; // return day like 7,4,5
-      $expiryDate = Carbon::now()->addDays($swap_offer_expire)->format('Y-m-d');
+      // Show offers created within the last N days (not a future cutoff)
+      $oldestAllowed = Carbon::now()->subDays((int) $swap_offer_expire)->format('Y-m-d');
       $fetch_data = SwapOffer::with(['from_currency', 'to_currency'])
                     ->where('status', 'Pending')
                     ->where('users_customers_id', '!=', $req->users_customers_id)
                     ->where('expiry_date_time', '>', date('Y-m-d H:i:s'))
-                    ->whereDate('date_added', '<=', $expiryDate) // Apply expiry date filter
+                    ->whereDate('date_added', '>=', $oldestAllowed)
                     ->orderBy('swap_offers_id', 'DESC')
                     ->get();
 
-      $users_wallets   =  UsersCustomersWallet::where(['users_customers_id'=>$req->users_customers_id,'status'=>'Active'])->get();
       $get_data=[];
-      $get_data_time_check=[];
       foreach ($fetch_data as $key => $data) {
         $data->time_ago=Carbon::parse($data->date_added)->diffForHumans();
 
@@ -2203,14 +2202,7 @@ public function paymentSuccess(Request $request)
         } else {
           $data->liked = 'No';
         }
-        $get_data_time_check[]=$data;
-      }
-      foreach ($get_data_time_check as $key => $data) {
-        foreach($users_wallets as $key => $wallet){
-          if($data->to_system_currencies_id==$wallet->system_currencies_id){
-            $get_data[]=$data;
-          }
-        }
+        $get_data[]=$data;
       }
       if (count($get_data)>0) {
         $response["code"] = 200;
