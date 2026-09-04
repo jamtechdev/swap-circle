@@ -52,7 +52,8 @@ let dataSet = [
             return $(selector).DataTable();
         }
 
-        return $(selector).DataTable(options || {});
+        var defaults = { autoWidth: false };
+        return $(selector).DataTable($.extend(true, {}, defaults, options || {}));
     }
 
     //example 1

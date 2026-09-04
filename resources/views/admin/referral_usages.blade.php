@@ -40,7 +40,7 @@
                             <table id="example" class="table dt-responsive nowrap display min-w850">
                                 <thead>
                                     <tr>
-                                        <th>#</th>
+                                        <th>Sr No</th>
                                         <th>Referrer</th>
                                         <th>Referrer Email</th>
                                         <th>Refer Code</th>

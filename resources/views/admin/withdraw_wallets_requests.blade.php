@@ -244,7 +244,7 @@
                             <table id="example" class="table dt-responsive nowrap display min-w850">
                                 <thead>
                                     <tr>
-                                        <th>#</th>
+                                        <th>Sr No</th>
                                         <th>User</th>
                                         <th>Wallet</th>
                                         <th>Amount</th>

@@ -33,7 +33,7 @@
             </div>
             <div class="admin-filter-cta">
                 <a class="btn btn-primary btn-sm" href="{{ url('/admin/users_system_roles_add') }}">
-                    Add Role <i class="fas fa-plus" aria-hidden="true"></i>
+                    @include('partials.admin.icon-plus') Add Role
                 </a>
             </div>
         </div>
@@ -44,7 +44,7 @@
                     <table id="example" class="table table-striped display w-100 admin-roles-table">
                         <thead>
                             <tr>
-                                <th>#</th>
+                                <th>Sr No</th>
                                 <th>Status</th>
                                 <th>Name</th>
                                 @foreach ($permissionColumns as $label)

@@ -147,7 +147,7 @@
                             <table id="example" class="table dt-responsive nowrap display min-w850">
                                 <thead>
                                     <tr>
-                                        <th>#</th>
+                                        <th>Sr No</th>
                                         <th>Name</th>
                                         <th>Code</th>
                                         <th>Symbol</th>

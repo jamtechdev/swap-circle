@@ -123,6 +123,7 @@
 	    <script>
 	        if ($.fn.dataTable) {
 	            $.extend(true, $.fn.dataTable.defaults, {
+	                autoWidth: false,
 	                language: {
 	                    lengthMenu: '_MENU_ Entries per page',
 	                },
@@ -134,8 +135,23 @@
 	    <script>
 	        $(document).ready(function () {
 	    		if ($('#example').length && !$.fn.DataTable.isDataTable('#example')) {
-	    			$('#example').DataTable();
+	    			$('#example').DataTable({ autoWidth: false });
 	    		}
+
+	            // Keep admin table headers full-width after layout settles
+	            setTimeout(function () {
+	                if (!$.fn.DataTable) {
+	                    return;
+	                }
+	                $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
+	            }, 80);
+
+	            $(window).on('resize', function () {
+	                if (!$.fn.DataTable) {
+	                    return;
+	                }
+	                $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
+	            });
 
                 var globalSyncBtn = document.getElementById('swap-global-insuretech-sync');
                 if (globalSyncBtn) {

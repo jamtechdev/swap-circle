@@ -129,7 +129,7 @@
                                 <table id="example" class="table dt-responsive nowrap display min-w850">
                                     <thead>
                                         <tr>
-                                            <th>#</th>
+                                            <th>Sr No</th>
                                             <th>Initiator's Name</th>
                                             <th>Product</th>
                                             <!-- <th>Beneficiary's Name</th> -->

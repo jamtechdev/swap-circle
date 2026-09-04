@@ -26,12 +26,12 @@
 
                     <div class="card">
                         <div class="card-body">
-                        <legend style="float: right;"><a style="float: right;" class="btn btn-primary" href="{{url('/admin/payment_methods_add')}}"> Add Payment Method </a></legend>
+                        <legend style="float: right;"><a style="float: right;" class="btn btn-primary" href="{{url('/admin/payment_methods_add')}}">@include('partials.admin.icon-plus') Add Payment Method</a></legend>
                             <div class="table-responsive">
                                 <table id="example" class="table dt-responsive nowrap display min-w850">
                                     <thead>
                                         <tr>
-                                            <th>#</th>
+                                            <th>Sr No</th>
                                             <th>Name</th>
                                             <th>Type</th>
                                             <th>Status</th>

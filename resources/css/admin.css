@@ -709,6 +709,23 @@ body.admin-page .admin-filter-bar .admin-filter-cta .btn {
     white-space: nowrap;
 }
 
+body.admin-page .admin-btn-plus {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    display: inline-block;
+    vertical-align: -0.1em;
+}
+
+body.admin-page legend .btn.btn-primary,
+body.admin-page .card-body > .btn.btn-primary,
+body.admin-page .admin-products-toolbar__actions .btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0.4rem;
+}
+
 body.admin-page .admin-user-cell {
     display: flex;
     align-items: center;
@@ -1007,7 +1024,9 @@ body.admin-page table.dataTable tbody td.selected {
 }
 
 body.admin-page table.dataTable {
-    border-collapse: separate !important;
+    width: 100% !important;
+    margin: 0 !important;
+    border-collapse: collapse !important;
     border-spacing: 0;
 }
 
@@ -1020,12 +1039,14 @@ body.admin-page table.dataTable thead th {
     letter-spacing: 0.04em;
     border-bottom: 2px solid rgba(200, 230, 53, 0.4) !important;
     padding: 0.85rem 1rem !important;
+    box-sizing: border-box;
 }
 
 body.admin-page table.dataTable tbody td {
     padding: 0.75rem 1rem !important;
     vertical-align: middle;
     border-color: #f1f5f0 !important;
+    box-sizing: border-box;
 }
 
 body.admin-page table.dataTable tbody tr:hover {
@@ -1040,7 +1061,9 @@ body.admin-page .admin-table-card .card-body {
     padding: 1.25rem 1.5rem 1.5rem !important;
 }
 
-body.admin-page .admin-table-card .table-responsive {
+body.admin-page .admin-table-card .table-responsive,
+body.admin-page .table-responsive {
+    width: 100%;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     border-radius: 12px;

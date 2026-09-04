@@ -102,7 +102,7 @@
                 </div>
                 <div class="admin-filter-cta">
                     <a href="{{ url('admin/connect_articles') }}" class="btn btn-outline-primary btn-sm mr-2">Manage articles</a>
-                    <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#exampleModalAddConnectCategory">Add category</button>
+                    <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#exampleModalAddConnectCategory">@include('partials.admin.icon-plus') Add category</button>
                 </div>
             </div>
 
@@ -112,7 +112,7 @@
                         <table id="example" class="table table-striped display w-100">
                             <thead>
                                 <tr>
-                                    <th>#</th>
+                                    <th>Sr No</th>
                                     <th>Name</th>
                                     <th>Icon</th>
                                     <th>Status</th>

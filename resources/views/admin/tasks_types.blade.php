@@ -170,12 +170,12 @@
                         <div class="card">
                             <div class="card-body">
                                 <div class="basic-form" style="width: 100%;">
-                                    <legend style="float: right;"><a style="float: right;" class="btn btn-primary" data-toggle="modal" data-target="#modal_add">Add Task Type</a></legend>
+                                    <legend style="float: right;"><a style="float: right;" class="btn btn-primary" data-toggle="modal" data-target="#modal_add">@include('partials.admin.icon-plus') Add Task Type</a></legend>
                                     <div class="table-responsive">
                                         <table id="example" class="table dt-responsive nowrap display min-w850">
                                             <thead>
                                                 <tr>
-                                                    <th>#</th>
+                                                    <th>Sr No</th>
                                                     <th style="min-width: 300px;">Task Type</th>
                                                     <th style="min-width: 300px;">Status</th>
                                                     <th>Action</th>

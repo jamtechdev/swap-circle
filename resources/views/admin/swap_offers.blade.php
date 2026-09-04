@@ -37,7 +37,7 @@
                     <table id="example" class="table table-striped display w-100">
                         <thead>
                             <tr>
-                                <th>#</th>
+                                <th>Sr No</th>
                                 <th>Sender</th>
                                 <th>Send Amount</th>
                                 <th>Receiver</th>
@@ -74,7 +74,7 @@
                                                         <table class="table table-sm mb-0">
                                                             <thead>
                                                                 <tr>
-                                                                    <th>#</th>
+                                                                    <th>Sr No</th>
                                                                     <th>From User</th>
                                                                     <th>Status</th>
                                                                 </tr>

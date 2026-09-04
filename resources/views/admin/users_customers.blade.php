@@ -20,7 +20,7 @@
             </div>
             <div class="admin-filter-cta">
                 <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modal_add_customer">
-                    Add User <i class="fas fa-plus" aria-hidden="true"></i>
+                    @include('partials.admin.icon-plus') Add User
                 </button>
             </div>
         </div>
@@ -96,7 +96,7 @@
                     <table id="example" class="table table-striped display w-100">
                         <thead>
                             <tr>
-                                <th>#</th>
+                                <th>Sr No</th>
                                 <th>Account Type</th>
                                 <th>Name</th>
                                 <th>Email</th>

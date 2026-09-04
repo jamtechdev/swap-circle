@@ -92,25 +92,46 @@
 
                                     <div class="modal fade portal-product-modal" id="{{ $productInfoModalId }}" tabindex="-1" aria-labelledby="{{ $productInfoModalId }}Label" aria-hidden="true">
                                         <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
-                                            <div class="modal-content">
+                                            <div class="modal-content portal-product-modal__content-shell">
                                                 <div class="modal-header portal-product-modal__header">
-                                                    <div>
+                                                    <div class="portal-product-modal__heading">
                                                         <h5 class="modal-title" id="{{ $productInfoModalId }}Label">{{ $item->name }}</h5>
-                                                        <p class="portal-product-modal__subtitle mb-0">Product information & details</p>
+                                                        <p class="portal-product-modal__subtitle mb-0">Product information &amp; details</p>
                                                     </div>
                                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                 </div>
                                                 <div class="modal-body portal-product-modal__body">
-                                                    <div class="portal-product-modal__image-wrap">
-                                                        <img src="{{ $productImageUrl }}" alt="{{ $item->name }}" onerror="this.onerror=null;this.src='{{ $defaultProductImage }}';">
+                                                    <div class="portal-product-modal__layout">
+                                                        <div class="portal-product-modal__media{{ $isPlaceholder ? ' portal-product-modal__media--placeholder' : '' }}">
+                                                            @if(!$isPlaceholder)
+                                                                <img src="{{ $productImageUrl }}" alt="{{ $item->name }}" onerror="this.onerror=null;this.src='{{ $defaultProductImage }}';this.parentElement.classList.add('portal-product-modal__media--placeholder');">
+                                                            @else
+                                                                <span class="portal-product-modal__media-initial" aria-hidden="true">{{ $productInitial }}</span>
+                                                            @endif
+                                                        </div>
+                                                        <div class="portal-product-modal__main">
+                                                            <div class="portal-product-modal__meta">
+                                                                <span class="portal-product-modal__chip">Type {{ $item->type }}</span>
+                                                                @if($displayPrice !== null && $displayPrice !== '')
+                                                                    <span class="portal-product-modal__price">{{ $currencySymbol }}{{ number_format((float) $displayPrice, 2) }}@if(in_array($item->type, ['A', 'B'], true))<small>/month</small>@endif</span>
+                                                                @endif
+                                                                <span class="portal-product-modal__chip portal-product-modal__chip--status">{{ $item->status ?? 'Active' }}</span>
+                                                            </div>
+
+                                                            @if($productInfo !== '')
+                                                                <div class="portal-product-modal__content">{!! $productInfo !!}</div>
+                                                            @elseif($item->description)
+                                                                <div class="portal-product-modal__content portal-product-modal__content--summary">
+                                                                    <p class="portal-product-modal__summary-label">Summary</p>
+                                                                    <p class="mb-0">{{ \Illuminate\Support\Str::limit(strip_tags((string) $item->description), 320) }}</p>
+                                                                </div>
+                                                            @else
+                                                                <div class="portal-product-modal__empty">
+                                                                    <p class="mb-0">No detailed product information has been added yet.</p>
+                                                                </div>
+                                                            @endif
+                                                        </div>
                                                     </div>
-                                                    @if($productInfo !== '')
-                                                        <div class="portal-product-modal__content">{!! $productInfo !!}</div>
-                                                    @elseif($item->description)
-                                                        <p class="mb-0">{{ $item->description }}</p>
-                                                    @else
-                                                        <p class="text-muted mb-0">No product information available.</p>
-                                                    @endif
                                                 </div>
                                                 <div class="modal-footer portal-product-modal__footer">
                                                     <button type="button" class="btn btn-outline-primary" data-bs-dismiss="modal">Close</button>

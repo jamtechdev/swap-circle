@@ -91,7 +91,7 @@
                             <table id="example" class="table  nowrap display min-w850">
                                 <thead>
                                     <tr>
-                                        <th>#</th>
+                                        <th>Sr No</th>
                                         <th>Sender</th>
                                         <th>Send Amount</th>
                                         <th>Receiver</th>

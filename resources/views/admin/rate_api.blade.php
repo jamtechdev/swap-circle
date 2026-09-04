@@ -87,7 +87,7 @@
                 <div class="admin-filter-cta">
                     <a href="{{ url('admin/currency_rate') }}" class="btn btn-outline-primary btn-sm mr-2">View live rates</a>
                     <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#exampleModalAddRateApi">
-                        Add Rate API
+                        @include('partials.admin.icon-plus') Add Rate API
                     </button>
                 </div>
             </div>
@@ -98,7 +98,7 @@
                         <table id="example" class="table table-striped display w-100">
                             <thead>
                                 <tr>
-                                    <th>#</th>
+                                    <th>Sr No</th>
                                     <th>Name</th>
                                     <th>URL</th>
                                     <th>Status</th>

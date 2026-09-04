@@ -300,12 +300,12 @@
 
                     <div class="card">
                         <div class="card-body">                                    
-                        <legend style="float: right;"><a style="float: right;" class="btn btn-primary"  data-toggle="modal" data-target="#exampleModalAddFaq"> Add FAQ </a></legend>
+                        <legend style="float: right;"><a style="float: right;" class="btn btn-primary"  data-toggle="modal" data-target="#exampleModalAddFaq">@include('partials.admin.icon-plus') Add FAQ</a></legend>
                             <div class="table-responsive">
                                 <table id="example" class="table dt-responsive nowrap display min-w850">
                                     <thead>
                                         <tr>
-                                            <th>#</th>
+                                            <th>Sr No</th>
                                             <th>Question</th>
                                             <th>Answer</th>
                                             <th>Status</th>

@@ -17,7 +17,7 @@
             </div>
             <div class="admin-filter-cta">
                 <a class="btn btn-primary btn-sm" href="{{ url('/admin/users_system_add') }}">
-                    Add User <i class="fas fa-plus" aria-hidden="true"></i>
+                    @include('partials.admin.icon-plus') Add User
                 </a>
             </div>
         </div>
@@ -28,7 +28,7 @@
                     <table id="example" class="table table-striped display w-100">
                         <thead>
                             <tr>
-                                <th>#</th>
+                                <th>Sr No</th>
                                 <th>Status</th>
                                 <th>ID</th>
                                 <th>Role</th>

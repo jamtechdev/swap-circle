@@ -1326,13 +1326,27 @@ body.portal-page .portal-product-modal__header {
     background: linear-gradient(135deg, #1a472a, #245c38);
     color: #fff;
     border-bottom: none;
-    padding: 1.25rem 1.5rem;
+    padding: 1.15rem 1.35rem;
+    align-items: flex-start;
+}
+
+body.portal-page .portal-product-modal__content-shell {
+    border: none;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.22);
+}
+
+body.portal-page .portal-product-modal__heading {
+    padding-right: 0.75rem;
 }
 
 body.portal-page .portal-product-modal__header .modal-title {
     font-family: var(--font-family-display);
     font-weight: 700;
     color: #fff;
+    font-size: 1.2rem;
+    line-height: 1.3;
 }
 
 body.portal-page .portal-product-modal__subtitle {
@@ -1344,32 +1358,134 @@ body.portal-page .portal-product-modal__subtitle {
 body.portal-page .portal-product-modal__header .btn-close {
     filter: invert(1);
     opacity: 0.85;
+    margin-top: 0.15rem;
 }
 
 body.portal-page .portal-product-modal__body {
-    max-height: 65vh;
+    max-height: min(68vh, 640px);
     overflow-y: auto;
+    padding: 1.25rem 1.35rem;
+    background: #fbfcf9;
 }
 
-body.portal-page .portal-product-modal__image-wrap {
-    text-align: center;
-    margin-bottom: 1.25rem;
+body.portal-page .portal-product-modal__layout {
+    display: grid;
+    grid-template-columns: minmax(0, 220px) minmax(0, 1fr);
+    gap: 1.25rem;
+    align-items: start;
+}
+
+body.portal-page .portal-product-modal__media {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 180px;
     padding: 1rem;
-    background: #f4f7ef;
-    border-radius: 14px;
+    background: #fff;
+    border: 1px solid rgba(26, 71, 42, 0.1);
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
 }
 
-body.portal-page .portal-product-modal__image-wrap img {
-    max-width: 100%;
+body.portal-page .portal-product-modal__media--placeholder {
+    background: linear-gradient(160deg, #edf4ea, #f7faf5);
+}
+
+body.portal-page .portal-product-modal__media img {
+    width: 100%;
     max-height: 200px;
     object-fit: contain;
     border-radius: 10px;
 }
 
+body.portal-page .portal-product-modal__media-initial {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: rgba(26, 71, 42, 0.1);
+    color: #1a472a;
+    font-size: 1.75rem;
+    font-weight: 700;
+}
+
+body.portal-page .portal-product-modal__main {
+    min-width: 0;
+}
+
+body.portal-page .portal-product-modal__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+body.portal-page .portal-product-modal__chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.3rem 0.65rem;
+    border-radius: 999px;
+    background: #eef5ea;
+    color: #1a472a;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+body.portal-page .portal-product-modal__chip--status {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+body.portal-page .portal-product-modal__price {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.25rem;
+    margin-left: auto;
+    color: #1a472a;
+    font-size: 1.35rem;
+    font-weight: 750;
+    letter-spacing: -0.02em;
+}
+
+body.portal-page .portal-product-modal__price small {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #64748b;
+}
+
 body.portal-page .portal-product-modal__content {
     font-size: 0.9375rem;
     line-height: 1.7;
-    color: #475569;
+    color: #334155;
+    background: #fff;
+    border: 1px solid rgba(26, 71, 42, 0.08);
+    border-radius: 14px;
+    padding: 1rem 1.1rem;
+}
+
+body.portal-page .portal-product-modal__content p:last-child {
+    margin-bottom: 0;
+}
+
+body.portal-page .portal-product-modal__summary-label {
+    margin-bottom: 0.4rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #64748b;
+}
+
+body.portal-page .portal-product-modal__empty {
+    padding: 1.1rem 1.15rem;
+    border-radius: 14px;
+    border: 1px dashed rgba(26, 71, 42, 0.2);
+    background: #f8faf6;
+    color: #64748b;
+    font-size: 0.9rem;
 }
 
 body.portal-page .portal-product-modal__content img {
@@ -1380,7 +1496,24 @@ body.portal-page .portal-product-modal__content img {
 
 body.portal-page .portal-product-modal__footer {
     border-top: 1px solid rgba(26, 71, 42, 0.08);
-    padding: 1rem 1.5rem;
+    background: #fff;
+    padding: 0.95rem 1.35rem;
+    gap: 0.65rem;
+}
+
+@media (max-width: 767.98px) {
+    body.portal-page .portal-product-modal__layout {
+        grid-template-columns: 1fr;
+    }
+
+    body.portal-page .portal-product-modal__media {
+        min-height: 140px;
+    }
+
+    body.portal-page .portal-product-modal__price {
+        margin-left: 0;
+        width: 100%;
+    }
 }
 
 @media (max-width: 575px) {

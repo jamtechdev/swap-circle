@@ -102,7 +102,7 @@
                                 <table id="example" class="table dt-responsive nowrap display min-w850">
                                     <thead>
                                         <tr>
-                                            <th>#</th>
+                                            <th>Sr No</th>
                                             <th>Product</th>
                                             <th>Claimed By</th>
                                             <th>Date of Incident</th>

@@ -98,7 +98,7 @@
                         <table id="example" class="table table-striped display w-100">
                             <thead>
                                 <tr>
-                                    <th>#</th>
+                                    <th>Sr No</th>
                                     <th>Bank Name</th>
                                     <th>Amount</th>
                                     <th>Description</th>
