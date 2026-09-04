@@ -4,69 +4,133 @@
 @section('page_subtitle', 'Submit and track product claims')
 
 @section('content')
+    @php
+        $totalProducts = count($purchased_products);
+        $eligibleCount = $eligiblePurchases->count();
+        $submittedCount = collect($purchased_products)->filter(fn ($item) => !empty($item->existing_claim))->count();
+        $waitingCount = max(0, $totalProducts - $eligibleCount - $submittedCount);
+    @endphp
+
     <div class="page-content-wrapper">
         <div class="page-content-tab">
             <div class="container-fluid px-4 pb-4">
                 <div class="portal-claims-panel">
-                    @if(count($purchased_products) > 0)
-                        <div class="portal-claims-intro">
-                            <div class="portal-claims-intro__icon" aria-hidden="true">
-                                <svg viewBox="0 0 24 24" fill="none">
-                                    <path d="M9 12h6M12 9v6M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
-                                </svg>
+                    @if($totalProducts > 0)
+                        <div class="portal-claims-hero">
+                            <div class="portal-claims-intro">
+                                <div class="portal-claims-intro__icon" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" fill="none">
+                                        <path d="M12 3 4 6v6c0 5 3.4 8.4 8 9 4.6-.6 8-4 8-9V6l-8-3Z" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/>
+                                        <path d="m9 12 2 2 4-4" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <span class="portal-claims-intro__label">Product protection</span>
+                                    <h1 class="portal-claims-intro__title">Submit a claim</h1>
+                                    <p class="portal-claims-intro__text">
+                                        @if((int) $claimWaitingDays === 0)
+                                            Claims are available immediately after a successful purchase. Upload supporting documents if you have them.
+                                        @else
+                                            Claims open {{ $claimWaitingDays }} days after a successful purchase. Upload supporting documents if you have them.
+                                        @endif
+                                    </p>
+                                </div>
                             </div>
-                            <div>
-                                <span class="portal-claims-intro__label">Product protection</span>
-                                <h1 class="portal-claims-intro__title">Submit a claim</h1>
-                                <p class="portal-claims-intro__text">
-                                    @if((int) $claimWaitingDays === 0)
-                                        Claims are available immediately after a successful purchase. Upload supporting documents if you have them.
-                                    @else
-                                        Claims open {{ $claimWaitingDays }} days after a successful purchase. Upload supporting documents if you have them.
-                                    @endif
-                                </p>
+
+                            <div class="portal-claims-stats" aria-label="Claims summary">
+                                <div class="portal-claims-stat">
+                                    <span class="portal-claims-stat__value">{{ $totalProducts }}</span>
+                                    <span class="portal-claims-stat__label">Products</span>
+                                </div>
+                                <div class="portal-claims-stat portal-claims-stat--ready">
+                                    <span class="portal-claims-stat__value">{{ $eligibleCount }}</span>
+                                    <span class="portal-claims-stat__label">Eligible</span>
+                                </div>
+                                <div class="portal-claims-stat portal-claims-stat--wait">
+                                    <span class="portal-claims-stat__value">{{ $waitingCount }}</span>
+                                    <span class="portal-claims-stat__label">Waiting</span>
+                                </div>
+                                <div class="portal-claims-stat">
+                                    <span class="portal-claims-stat__value">{{ $submittedCount }}</span>
+                                    <span class="portal-claims-stat__label">Submitted</span>
+                                </div>
                             </div>
                         </div>
 
                         @if($eligiblePurchases->isEmpty())
-                        <div class="alert alert-warning border-0 rounded-3 mb-4" role="status">
-                            None of your products are eligible for claims yet. Check the dates below or contact support if you need help.
+                        <div class="portal-claims-banner portal-claims-banner--wait" role="status">
+                            <span class="portal-claims-banner__icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none">
+                                    <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.75"/>
+                                    <path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+                                </svg>
+                            </span>
+                            <div>
+                                <p class="portal-claims-banner__title">No products eligible yet</p>
+                                <p class="portal-claims-banner__text">Check the waiting dates below, or contact support if you need help sooner.</p>
+                            </div>
+                        </div>
+                        @else
+                        <div class="portal-claims-banner portal-claims-banner--ready" role="status">
+                            <span class="portal-claims-banner__icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none">
+                                    <path d="M20 6 9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </span>
+                            <div>
+                                <p class="portal-claims-banner__title">{{ $eligibleCount }} {{ \Illuminate\Support\Str::plural('product', $eligibleCount) }} ready to claim</p>
+                                <p class="portal-claims-banner__text">Choose an eligible product in the form below to continue.</p>
+                            </div>
                         </div>
                         @endif
 
-                        <div class="card mb-4 border-0 shadow-sm">
-                            <div class="card-body">
-                                <h2 class="h6 mb-3 text-forest">Your products</h2>
-                                <div class="table-responsive">
-                                    <table class="table table-sm mb-0 align-middle">
-                                        <thead>
-                                            <tr>
-                                                <th>Product</th>
-                                                <th>Purchased</th>
-                                                <th>Claim status</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach($purchased_products as $item)
-                                            <tr>
-                                                <td>{{ $item->product->name ?? 'Product' }}</td>
-                                                <td>{{ \Carbon\Carbon::parse($item->date_added)->format('d M Y') }}</td>
-                                                <td>
-                                                    @if($item->existing_claim ?? false)
-                                                        <span class="badge bg-secondary">Claim submitted</span>
-                                                    @elseif($item->claim_eligibility['eligible'] ?? false)
-                                                        <span class="badge bg-success">Eligible now</span>
-                                                    @else
-                                                        <span class="badge bg-warning text-dark">{{ $item->claim_eligibility['reason'] ?? 'Not eligible yet' }}</span>
-                                                    @endif
-                                                </td>
-                                            </tr>
-                                            @endforeach
-                                        </tbody>
-                                    </table>
-                                </div>
+                        <section class="portal-claims-list" aria-labelledby="claims-products-heading">
+                            <div class="portal-claims-list__head">
+                                <h2 id="claims-products-heading" class="portal-claims-list__title">Your products</h2>
+                                <p class="portal-claims-list__sub">Status for each paid purchase</p>
                             </div>
-                        </div>
+
+                            <div class="portal-claims-product-grid">
+                                @foreach($purchased_products as $item)
+                                    @php
+                                        $isSubmitted = !empty($item->existing_claim);
+                                        $isEligible = !$isSubmitted && ($item->claim_eligibility['eligible'] ?? false);
+                                        $statusClass = $isSubmitted ? 'is-submitted' : ($isEligible ? 'is-eligible' : 'is-waiting');
+                                        $statusLabel = $isSubmitted
+                                            ? 'Claim submitted'
+                                            : ($isEligible ? 'Eligible now' : ($item->claim_eligibility['reason'] ?? 'Not eligible yet'));
+                                        $eligibleAt = $item->claim_eligibility['eligible_at'] ?? null;
+                                        $daysRemaining = $item->claim_eligibility['days_remaining'] ?? null;
+                                    @endphp
+                                    <article class="portal-claims-product {{ $statusClass }}">
+                                        <div class="portal-claims-product__top">
+                                            <div class="portal-claims-product__icon" aria-hidden="true">
+                                                <svg viewBox="0 0 24 24" fill="none">
+                                                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" stroke="currentColor" stroke-width="1.75"/>
+                                                    <path d="M3.3 7.7 12 12.5l8.7-4.8M12 22.5V12.5" stroke="currentColor" stroke-width="1.75"/>
+                                                </svg>
+                                            </div>
+                                            <div class="portal-claims-product__meta">
+                                                <h3 class="portal-claims-product__name">{{ $item->product->name ?? 'Product' }}</h3>
+                                                <p class="portal-claims-product__date">Purchased {{ \Carbon\Carbon::parse($item->date_added)->format('d M Y') }}</p>
+                                            </div>
+                                        </div>
+                                        <div class="portal-claims-product__status">
+                                            <span class="portal-claims-pill">{{ $statusLabel }}</span>
+                                            @if(!$isSubmitted && !$isEligible && $eligibleAt)
+                                                <span class="portal-claims-product__hint">
+                                                    @if($daysRemaining !== null && $daysRemaining > 0)
+                                                        {{ $daysRemaining }} {{ \Illuminate\Support\Str::plural('day', $daysRemaining) }} remaining
+                                                    @else
+                                                        Opens {{ \Carbon\Carbon::parse($eligibleAt)->format('d M Y') }}
+                                                    @endif
+                                                </span>
+                                            @endif
+                                        </div>
+                                    </article>
+                                @endforeach
+                            </div>
+                        </section>
 
                         <div class="portal-claims-alert d-none" id="claim_success_banner" role="status">
                             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -76,6 +140,13 @@
                         </div>
 
                         <div class="portal-claims-card">
+                            <div class="portal-claims-card__head">
+                                <div>
+                                    <h2 class="portal-claims-card__title">Claim details</h2>
+                                    <p class="portal-claims-card__sub">Tell us what happened and attach documents if available.</p>
+                                </div>
+                            </div>
+
                             <form id="frm_claim_product" class="portal-claims-form portal-purchase-form" @if($eligiblePurchases->isEmpty()) data-claims-disabled="1" @endif>
                                 @csrf
 
