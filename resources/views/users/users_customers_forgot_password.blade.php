@@ -16,7 +16,7 @@
         <div class="mx-auto mt-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-lime-soft lg:mx-0">
             <svg class="h-7 w-7 text-forest" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
         </div>
-        <h1 class="mt-5 font-display text-3xl font-bold text-forest">Forgot Password?</h1>
+        <h1 class="mt-5 text-3xl font-bold text-forest">Forgot Password?</h1>
         <p class="mt-2 text-sm text-gray-500">Enter your registered email and we'll send a secure reset link.</p>
     </div>
 

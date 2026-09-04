@@ -171,6 +171,7 @@ Route::post('/claim_purchased_product', [ApiController::class, 'claim_purchased_
 Route::post('/stripe/initiate-payment', [ApiController::class, 'initiateStripePayment']);
 Route::post('/stripe/handle-success', [ApiController::class, 'handleStripeSuccess']);
 Route::post('/stripe/handle-cancel', [ApiController::class, 'handleStripeCancel']);
+Route::post('/stripe/webhook', [ApiController::class, 'handleStripeWebhook']);
 Route::get('/download-invoice/{purchase_id}', [UsersController::class, 'download_invoice']);
 // PRODUCTS
 

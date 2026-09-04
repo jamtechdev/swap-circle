@@ -17,7 +17,7 @@
         <div class="mx-auto mt-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-lime-soft lg:mx-0">
             <svg class="h-7 w-7 text-forest" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
         </div>
-        <h1 class="mt-5 font-display text-3xl font-bold text-forest">Verification Code</h1>
+        <h1 class="mt-5 text-3xl font-bold text-forest">Verification Code</h1>
         <p class="mt-2 text-sm text-gray-500">Enter the 4-digit code sent to your registered email address.</p>
     </div>
 

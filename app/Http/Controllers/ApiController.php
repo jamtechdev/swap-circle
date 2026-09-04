@@ -3754,17 +3754,7 @@ public function paymentSuccess(Request $request)
 
       $prod_purchased                                    = DB::table('products_purchases')->where('products_purchases_id', $products_purchases_id)->first();
       $prod_purchased->products_purchases_beneficiaries  = DB::table('products_purchases_beneficiaries')->where('products_purchases_id', $products_purchases_id)->first();
-
-      $customer   = DB::table('users_customers')->where('users_customers_id', $req->users_customers_id)->first();
-      $product    = DB::table('products')->where('products_id', $req->products_id)->first();
-
-      /* send mail */
-      $to      = $customer->email;
-      $subject = 'Purchase Confirmation';
-
-      $this->send_simple_mail($to, $subject, $this->generatePurchaseEmailHTML_AB($prod_purchased, $customer, $product, $prod_purchased->products_purchases_beneficiaries));
-
-
+      // Confirmation email is sent only after Stripe confirms payment.
     }
     /* handle product type A & B */
     /* handle product type C */
@@ -3822,17 +3812,7 @@ public function paymentSuccess(Request $request)
         $prod_purchased                            = DB::table('products_purchases')->where('products_purchases_id', $products_purchases_id)->first();
         $prod_purchased->products_purchases_tasks  = DB::table('products_purchases_tasks')->where('products_purchases_id', $products_purchases_id)->first();
       }
-
-      $customer   = DB::table('users_customers')->where('users_customers_id', $req->users_customers_id)->first();
-      $product    = DB::table('products')->where('products_id', $req->products_id)->first();
-
-      /* send mail */
-      $to      = $customer->email;
-      $subject = 'Purchase Confirmation';
-
-      $this->send_simple_mail($to, $subject, $this->generatePurchaseEmailHTML_C($prod_purchased, $customer, $product, $prod_purchased->products_purchases_tasks));
-
-      /* send mail */
+      // Confirmation email is sent only after Stripe confirms payment (new paid purchases).
     }
     /* handle product type C  */
     $user_tag_updated   = DB::table('users_customers')->where('users_customers_id', $req->users_customers_id)->update(['users_customers_tag' => 'Community Member']);
@@ -4051,7 +4031,8 @@ public function paymentSuccess(Request $request)
 public function initiateStripePayment(Request $req)
 {
     $req->validate([
-        'products_purchases_id' => 'required|integer'
+        'products_purchases_id' => 'required|integer',
+        'users_customers_id' => 'nullable|integer',
     ]);
 
     $purchase = DB::table('products_purchases')->where('products_purchases_id', $req->products_purchases_id)->first();
@@ -4060,7 +4041,20 @@ public function initiateStripePayment(Request $req)
         return response()->json(['status' => 'error', 'message' => 'Invalid purchase'], 400);
     }
 
-    // Get product details to get the price
+    $buyerId = $this->resolveStripeBuyerId($req);
+    if (!$buyerId || (int) $purchase->users_customers_id !== $buyerId) {
+        return response()->json(['status' => 'error', 'message' => 'Unauthorized purchase access'], 403);
+    }
+
+    if (($purchase->payment_status ?? '') === 'Successful') {
+        return response()->json([
+            'status' => 'success',
+            'already_paid' => true,
+            'message' => 'This purchase is already paid.',
+            'redirect_url' => url('/users/dashboard'),
+        ]);
+    }
+
     $product = DB::table('products')->where('products_id', $purchase->products_id)->first();
 
     if (!$product) {
@@ -4084,42 +4078,40 @@ public function initiateStripePayment(Request $req)
 
     \Stripe\Stripe::setApiKey($stripeSecret);
 
-     $currency = strtolower((string) ($product->currency_code ?? 'ngn'));
-     if (!preg_match('/^[a-z]{3}$/', $currency)) {
-         $currency = 'ngn';
-     }
-     $price = (isset($product->custom_price) && is_numeric($product->custom_price))
-         ? $product->custom_price
-         : ($product->price ?? null);
-     if (!is_numeric($price)) {
-         return response()->json(['status' => 'error', 'message' => 'Invalid product price'], 400);
-     }
-     $price = (float) $price;
-     $minimumPrice = $this->stripeMinimumPriceForCurrency($currency);
-     if ($minimumPrice !== null && $price < $minimumPrice) {
-         return response()->json([
-             'status' => 'error',
-             'message' => 'Product price is below Stripe minimum. Please update this product price on SWAP admin before checkout.',
-             'minimum_price' => $minimumPrice,
-             'currency' => strtoupper($currency),
-         ], 400);
-     }
-     $amount = (int) round($price * 100);
-     if ($amount < 30) {
-         return response()->json(['status' => 'error', 'message' => 'Amount below Stripe minimum'], 400);
-     }
-
+    $currency = strtolower((string) ($product->currency_code ?? 'ngn'));
+    if (!preg_match('/^[a-z]{3}$/', $currency)) {
+        $currency = 'ngn';
+    }
+    $price = (isset($product->custom_price) && is_numeric($product->custom_price))
+        ? $product->custom_price
+        : ($product->price ?? null);
+    if (!is_numeric($price)) {
+        return response()->json(['status' => 'error', 'message' => 'Invalid product price'], 400);
+    }
+    $price = (float) $price;
+    $minimumPrice = $this->stripeMinimumPriceForCurrency($currency);
+    if ($minimumPrice !== null && $price < $minimumPrice) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Product price is below Stripe minimum. Please update this product price on SWAP admin before checkout.',
+            'minimum_price' => $minimumPrice,
+            'currency' => strtoupper($currency),
+        ], 400);
+    }
+    $amount = (int) round($price * 100);
+    if ($amount < 30) {
+        return response()->json(['status' => 'error', 'message' => 'Amount below Stripe minimum'], 400);
+    }
 
     try {
-        // ðŸ”¹ Create Stripe Checkout Session
         $session = \Stripe\Checkout\Session::create([
             'payment_method_types' => ['card'],
             'line_items' => [[
                 'price_data' => [
                     'currency' => $currency,
                     'product_data' => [
-                         'name' => $product->name,
-                         'description' => $product->description ?? 'Swap Circle Product',
+                        'name' => $product->name,
+                        'description' => $product->description ?? 'Swap Circle Product',
                     ],
                     'unit_amount' => $amount,
                 ],
@@ -4129,30 +4121,34 @@ public function initiateStripePayment(Request $req)
             'success_url' => url('/users/stripe/success?session_id={CHECKOUT_SESSION_ID}&purchase_id=' . $purchase->products_purchases_id),
             'cancel_url' => url('/users/stripe/cancel?purchase_id=' . $purchase->products_purchases_id),
             'metadata' => [
-                'products_purchases_id' => $purchase->products_purchases_id,
-                'users_customers_id' => $purchase->users_customers_id,
-                'products_id' => $purchase->products_id,
+                'products_purchases_id' => (string) $purchase->products_purchases_id,
+                'users_customers_id' => (string) $purchase->users_customers_id,
+                'products_id' => (string) $purchase->products_id,
             ],
         ]);
 
-        // ðŸ”¹ Save Stripe session data
+        $update = [
+            'stripe_payment_intent' => $session->id,
+            'payment_message' => 'Stripe Checkout session created',
+            'date_modified' => date('Y-m-d H:i:s'),
+        ];
+        if (\Schema::hasColumn('products_purchases', 'stripe_checkout_session_id')) {
+            $update['stripe_checkout_session_id'] = $session->id;
+        }
+
         DB::table('products_purchases')
             ->where('products_purchases_id', $purchase->products_purchases_id)
-            ->update([
-                'stripe_payment_intent' => $session->id, // Using existing column to store session ID
-                'payment_message' => 'Stripe Checkout session created'
-            ]);
+            ->update($update);
 
         return response()->json([
             'status' => 'success',
             'checkout_url' => $session->url,
-            'session_id' => $session->id
+            'session_id' => $session->id,
         ]);
-
     } catch (\Exception $e) {
         return response()->json([
             'status' => 'error',
-            'message' => 'Failed to create Stripe Checkout session: ' . $e->getMessage()
+            'message' => 'Failed to create Stripe Checkout session: ' . $e->getMessage(),
         ], 500);
     }
 }
@@ -4161,16 +4157,21 @@ public function handleStripeSuccess(Request $req)
 {
     $req->validate([
         'session_id' => 'required|string',
-        'purchase_id' => 'required|integer'
-    ]);
-
-    // Log incoming request for debugging
-    \Log::info('Stripe Success Request:', [
-        'session_id' => $req->session_id,
-        'purchase_id' => $req->purchase_id
+        'purchase_id' => 'required|integer',
+        'users_customers_id' => 'nullable|integer',
     ]);
 
     try {
+        $purchase = DB::table('products_purchases')->where('products_purchases_id', $req->purchase_id)->first();
+        if (!$purchase) {
+            return response()->json(['status' => 'error', 'message' => 'Purchase not found'], 404);
+        }
+
+        $buyerId = $this->resolveStripeBuyerId($req);
+        if (!$buyerId || (int) $purchase->users_customers_id !== $buyerId) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized purchase access'], 403);
+        }
+
         if (!class_exists(\Stripe\Stripe::class)) {
             return response()->json([
                 'status' => 'error',
@@ -4187,148 +4188,50 @@ public function handleStripeSuccess(Request $req)
         }
 
         \Stripe\Stripe::setApiKey($stripeSecret);
-        // Retrieve the Checkout Session from Stripe
         $session = \Stripe\Checkout\Session::retrieve($req->session_id);
 
-        \Log::info('Stripe Session Retrieved:', [
-            'session_id' => $session->id,
-            'payment_status' => $session->payment_status,
-            'status' => $session->status
-        ]);
-
         if (!$session) {
+            return response()->json(['status' => 'error', 'message' => 'Invalid Stripe session'], 400);
+        }
+
+        if ((string) ($session->metadata->products_purchases_id ?? '') !== (string) $req->purchase_id) {
+            return response()->json(['status' => 'error', 'message' => 'Purchase ID mismatch'], 400);
+        }
+
+        $storedSessionId = $purchase->stripe_checkout_session_id
+            ?? ((str_starts_with((string) ($purchase->stripe_payment_intent ?? ''), 'cs_'))
+                ? $purchase->stripe_payment_intent
+                : null);
+        if ($storedSessionId && (string) $storedSessionId !== (string) $session->id) {
+            return response()->json(['status' => 'error', 'message' => 'Stripe session mismatch'], 400);
+        }
+
+        if ($session->payment_status !== 'paid') {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Invalid Stripe session'
+                'message' => 'Payment not completed. Status: ' . $session->payment_status,
             ], 400);
         }
 
-        // Verify the purchase matches
-        if ($session->metadata->products_purchases_id != $req->purchase_id) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Purchase ID mismatch'
-            ], 400);
-        }
+        $result = $this->finalizePaidPurchase($purchase, $session, 'stripe_handle_success');
 
-        // Get purchase details
-        $purchase = DB::table('products_purchases')->where('products_purchases_id', $req->purchase_id)->first();
-
-        if (!$purchase) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Purchase not found'
-            ], 404);
-        }
-
-        // Check payment status
-        if ($session->payment_status === 'paid') {
-            // Update purchase record
-            DB::table('products_purchases')
-                ->where('products_purchases_id', $req->purchase_id)
-                ->update([
-                    'payment_status' => 'Successful',
-                    'stripe_payment_status' => 'succeeded',
-                    'payment_message' => 'Payment completed successfully',
-                    'stripe_payment_intent' => $session->payment_intent,
-                    'date_modified' => date('Y-m-d H:i:s')
-                ]);
-
-            \Log::info('Payment Status Updated to Paid', [
-                'purchase_id' => $req->purchase_id,
-                'payment_intent' => $session->payment_intent
-            ]);
-
-            // Get user and product details for email
-            $user = DB::table('users_customers')->where('users_customers_id', $purchase->users_customers_id)->first();
-            $product = DB::table('products')->where('products_id', $purchase->products_id)->first();
-
-            // Send confirmation email based on product type
-            if ($user && $product) {
-                $to = $user->email;
-                $subject = 'Purchase Confirmation - ' . $product->name;
-
-                \Log::info('Email Sending Attempt:', [
-                    'user_email' => $to,
-                    'product_type' => $purchase->product_type,
-                    'purchase_id' => $purchase->products_purchases_id
-                ]);
-
-                if ($purchase->product_type === 'A' || $purchase->product_type === 'B') {
-                    // Get beneficiary details for product types A & B
-                    $beneficiary = DB::table('products_purchases_beneficiaries')
-                        ->where('products_purchases_id', $purchase->products_purchases_id)
-                        ->first();
-
-                    \Log::info('Beneficiary Data:', ['beneficiary_found' => $beneficiary ? 'yes' : 'no']);
-
-                    if ($beneficiary) {
-                        $message = $this->generatePurchaseEmailHTML_AB($purchase, $user, $product, $beneficiary, $purchase->products_purchases_id);
-                        $mailResult = $this->send_simple_mail($to, $subject, $message);
-
-                        \Log::info('Email Sent Result:', [
-                            'mail_result' => $mailResult,
-                            'to' => $to,
-                            'subject' => $subject
-                        ]);
-                    } else {
-                        \Log::warning('No beneficiary found for purchase', ['purchase_id' => $purchase->products_purchases_id]);
-                    }
-                } elseif ($purchase->product_type === 'C') {
-                    // Get task details for product type C
-                    $task = DB::table('products_purchases_tasks')
-                        ->where('products_purchases_id', $purchase->products_purchases_id)
-                        ->first();
-
-                    \Log::info('Task Data:', ['task_found' => $task ? 'yes' : 'no']);
-
-                    if ($task) {
-                        $message = $this->generatePurchaseEmailHTML_C($purchase, $user, $product, $task, $purchase->products_purchases_id);
-                        $mailResult = $this->send_simple_mail($to, $subject, $message);
-
-                        \Log::info('Email Sent Result:', [
-                            'mail_result' => $mailResult,
-                            'to' => $to,
-                            'subject' => $subject
-                        ]);
-                    } else {
-                        \Log::warning('No task found for purchase', ['purchase_id' => $purchase->products_purchases_id]);
-                    }
-                } else {
-                    \Log::warning('Unknown product type', ['product_type' => $purchase->product_type]);
-                }
-            } else {
-                \Log::warning('User or Product not found', [
-                    'user_found' => $user ? 'yes' : 'no',
-                    'product_found' => $product ? 'yes' : 'no',
-                    'purchase_id' => $purchase->products_purchases_id
-                ]);
-            }
-
-            $this->triggerInsuretechPurchaseSync((int) $purchase->products_purchases_id, 'stripe_handle_success');
-
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Payment verified and purchase confirmed successfully'
-            ]);
-
-        } else {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Payment not completed. Status: ' . $session->payment_status
-            ], 400);
-        }
-
+        return response()->json([
+            'status' => 'success',
+            'already_confirmed' => $result['already_confirmed'],
+            'message' => $result['already_confirmed']
+                ? 'Payment already confirmed'
+                : 'Payment verified and purchase confirmed successfully',
+        ]);
     } catch (\Exception $e) {
         \Log::error('Stripe Success Handler Error:', [
             'error' => $e->getMessage(),
             'session_id' => $req->session_id,
-            'purchase_id' => $req->purchase_id
+            'purchase_id' => $req->purchase_id,
         ]);
 
         return response()->json([
             'status' => 'error',
-            'message' => 'Payment verification failed: ' . $e->getMessage()
+            'message' => 'Payment verification failed: ' . $e->getMessage(),
         ], 500);
     }
 }
@@ -4336,29 +4239,100 @@ public function handleStripeSuccess(Request $req)
 public function handleStripeCancel(Request $req)
 {
     $req->validate([
-        'purchase_id' => 'required|integer'
+        'purchase_id' => 'required|integer',
+        'users_customers_id' => 'nullable|integer',
     ]);
 
     try {
-        // Update purchase record to reflect cancellation
-        DB::table('products_purchases')
-            ->where('products_purchases_id', $req->purchase_id)
-            ->update([
-                'payment_message' => 'Payment cancelled by user',
-                'date_modified' => date('Y-m-d H:i:s')
-            ]);
+        $purchase = DB::table('products_purchases')->where('products_purchases_id', $req->purchase_id)->first();
+        if (!$purchase) {
+            return response()->json(['status' => 'error', 'message' => 'Purchase not found'], 404);
+        }
+
+        $buyerId = $this->resolveStripeBuyerId($req);
+        if (!$buyerId || (int) $purchase->users_customers_id !== $buyerId) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized purchase access'], 403);
+        }
+
+        if (($purchase->payment_status ?? '') !== 'Successful') {
+            DB::table('products_purchases')
+                ->where('products_purchases_id', $req->purchase_id)
+                ->update([
+                    'payment_message' => 'Payment cancelled by user',
+                    'date_modified' => date('Y-m-d H:i:s'),
+                ]);
+        }
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Payment was cancelled. You can try purchasing again.'
+            'message' => 'Payment was cancelled. You can try purchasing again.',
         ]);
-
     } catch (\Exception $e) {
         return response()->json([
             'status' => 'error',
-            'message' => 'Failed to process cancellation: ' . $e->getMessage()
+            'message' => 'Failed to process cancellation: ' . $e->getMessage(),
         ], 500);
     }
+}
+
+public function handleStripeWebhook(Request $req)
+{
+    if (!class_exists(\Stripe\Stripe::class) || !class_exists(\Stripe\Webhook::class)) {
+        return response()->json(['status' => 'error', 'message' => 'Stripe SDK is not installed'], 500);
+    }
+
+    $stripeSecret = (string) config('services.stripe.secret');
+    $webhookSecret = (string) config('services.stripe.webhook_secret');
+    if ($stripeSecret === '' || $webhookSecret === '') {
+        \Log::error('Stripe webhook rejected: missing STRIPE_SECRET or STRIPE_WEBHOOK_SECRET');
+        return response()->json(['status' => 'error', 'message' => 'Stripe webhook is not configured'], 500);
+    }
+
+    \Stripe\Stripe::setApiKey($stripeSecret);
+
+    $payload = $req->getContent();
+    $signature = $req->header('Stripe-Signature');
+
+    try {
+        $event = \Stripe\Webhook::constructEvent($payload, $signature, $webhookSecret);
+    } catch (\UnexpectedValueException $e) {
+        return response()->json(['status' => 'error', 'message' => 'Invalid payload'], 400);
+    } catch (\Stripe\Exception\SignatureVerificationException $e) {
+        return response()->json(['status' => 'error', 'message' => 'Invalid signature'], 400);
+    }
+
+    if (!in_array($event->type, ['checkout.session.completed', 'checkout.session.async_payment_succeeded'], true)) {
+        return response()->json(['status' => 'success', 'message' => 'Ignored event'], 200);
+    }
+
+    $session = $event->data->object;
+    $purchaseId = (int) ($session->metadata->products_purchases_id ?? 0);
+    if ($purchaseId <= 0) {
+        \Log::warning('Stripe webhook missing products_purchases_id metadata', ['event' => $event->id]);
+        return response()->json(['status' => 'error', 'message' => 'Missing purchase metadata'], 400);
+    }
+
+    if (($session->payment_status ?? '') !== 'paid') {
+        return response()->json(['status' => 'success', 'message' => 'Session not paid yet'], 200);
+    }
+
+    $purchase = DB::table('products_purchases')->where('products_purchases_id', $purchaseId)->first();
+    if (!$purchase) {
+        return response()->json(['status' => 'error', 'message' => 'Purchase not found'], 404);
+    }
+
+    try {
+        $this->finalizePaidPurchase($purchase, $session, 'stripe_webhook:' . $event->type);
+    } catch (\Throwable $e) {
+        \Log::error('Stripe webhook finalize failed', [
+            'event' => $event->id,
+            'purchase_id' => $purchaseId,
+            'error' => $e->getMessage(),
+        ]);
+        return response()->json(['status' => 'error', 'message' => 'Failed to finalize purchase'], 500);
+    }
+
+    return response()->json(['status' => 'success'], 200);
 }
 
 
@@ -4379,6 +4353,111 @@ private function isBeneficiaryAgeAllowed(string $dateOfBirth): bool
     $age = $dob->age;
 
     return $age >= 18 && $age <= 65;
+}
+
+private function resolveStripeBuyerId(Request $req): ?int
+{
+    if ($req->filled('users_customers_id')) {
+        return (int) $req->users_customers_id;
+    }
+
+    if (session()->has('id')) {
+        return (int) session('id');
+    }
+
+    return null;
+}
+
+/**
+ * Mark purchase paid, send confirmation once, sync Insuretech.
+ * Safe to call from browser success redirect and Stripe webhooks.
+ *
+ * @param  object  $purchase
+ * @param  object  $session  Stripe Checkout Session
+ * @return array{already_confirmed: bool}
+ */
+private function finalizePaidPurchase(object $purchase, object $session, string $source): array
+{
+    $purchaseId = (int) $purchase->products_purchases_id;
+
+    if (($purchase->payment_status ?? '') === 'Successful') {
+        return ['already_confirmed' => true];
+    }
+
+    $paymentIntentId = is_string($session->payment_intent ?? null)
+        ? $session->payment_intent
+        : (is_object($session->payment_intent ?? null) ? ($session->payment_intent->id ?? null) : null);
+
+    $update = [
+        'payment_status' => 'Successful',
+        'stripe_payment_status' => 'succeeded',
+        'payment_message' => 'Payment completed successfully',
+        'date_modified' => date('Y-m-d H:i:s'),
+    ];
+
+    if ($paymentIntentId) {
+        $update['stripe_payment_intent'] = $paymentIntentId;
+    }
+
+    if (\Schema::hasColumn('products_purchases', 'stripe_checkout_session_id') && !empty($session->id)) {
+        $update['stripe_checkout_session_id'] = $session->id;
+    }
+
+    $affected = DB::table('products_purchases')
+        ->where('products_purchases_id', $purchaseId)
+        ->where('payment_status', '!=', 'Successful')
+        ->update($update);
+
+    if ($affected === 0) {
+        return ['already_confirmed' => true];
+    }
+
+    $freshPurchase = DB::table('products_purchases')->where('products_purchases_id', $purchaseId)->first();
+    $this->sendPaidPurchaseConfirmation($freshPurchase ?: $purchase);
+    $this->triggerInsuretechPurchaseSync($purchaseId, $source);
+
+    \Log::info('Stripe purchase finalized', [
+        'source' => $source,
+        'purchase_id' => $purchaseId,
+        'payment_intent' => $paymentIntentId,
+        'session_id' => $session->id ?? null,
+    ]);
+
+    return ['already_confirmed' => false];
+}
+
+private function sendPaidPurchaseConfirmation(object $purchase): void
+{
+    $user = DB::table('users_customers')->where('users_customers_id', $purchase->users_customers_id)->first();
+    $product = DB::table('products')->where('products_id', $purchase->products_id)->first();
+
+    if (!$user || !$product || empty($user->email)) {
+        return;
+    }
+
+    $to = $user->email;
+    $subject = 'Purchase Confirmation - ' . $product->name;
+
+    if ($purchase->product_type === 'A' || $purchase->product_type === 'B') {
+        $beneficiary = DB::table('products_purchases_beneficiaries')
+            ->where('products_purchases_id', $purchase->products_purchases_id)
+            ->first();
+        if ($beneficiary) {
+            $message = $this->generatePurchaseEmailHTML_AB($purchase, $user, $product, $beneficiary, $purchase->products_purchases_id);
+            $this->send_simple_mail($to, $subject, $message);
+        }
+        return;
+    }
+
+    if ($purchase->product_type === 'C') {
+        $task = DB::table('products_purchases_tasks')
+            ->where('products_purchases_id', $purchase->products_purchases_id)
+            ->first();
+        if ($task) {
+            $message = $this->generatePurchaseEmailHTML_C($purchase, $user, $product, $task, $purchase->products_purchases_id);
+            $this->send_simple_mail($to, $subject, $message);
+        }
+    }
 }
 
 private function stripeMinimumPriceForCurrency(string $currency): ?float

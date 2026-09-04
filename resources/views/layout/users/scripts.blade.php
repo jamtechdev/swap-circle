@@ -4228,8 +4228,15 @@ function enableBuyNow(btn) {
                       method: "POST",
                       timeout: 0,
                       headers: { "Content-Type": "application/json" },
-                      data: JSON.stringify({ products_purchases_id: response.data.products_purchases_id }),
+                      data: JSON.stringify({
+                          products_purchases_id: response.data.products_purchases_id,
+                          users_customers_id: users_customers_id
+                      }),
                       success: function (stripeRes) {
+                          if (stripeRes.status === 'success' && stripeRes.already_paid) {
+                              window.location.href = stripeRes.redirect_url || "{{ url('/users/dashboard') }}";
+                              return;
+                          }
                           if (stripeRes.status === 'success' && stripeRes.checkout_url) {
                               window.location.href = stripeRes.checkout_url;
                           } else {
@@ -4237,8 +4244,11 @@ function enableBuyNow(btn) {
                               enableBuyNow($buyBtn);
                           }
                       },
-                      error: function () {
-                          toastr.error('Payment service unavailable. Please try again later.');
+                      error: function (xhr) {
+                          var msg = (xhr.responseJSON && xhr.responseJSON.message)
+                              ? xhr.responseJSON.message
+                              : 'Payment service unavailable. Please try again later.';
+                          toastr.error(msg);
                           enableBuyNow($buyBtn);
                       }
                   });
@@ -4322,8 +4332,15 @@ function enableBuyNow(btn) {
                       method: "POST",
                       timeout: 0,
                       headers: { "Content-Type": "application/json" },
-                      data: JSON.stringify({ products_purchases_id: response.data.products_purchases_id }),
+                      data: JSON.stringify({
+                          products_purchases_id: response.data.products_purchases_id,
+                          users_customers_id: users_customers_id
+                      }),
                       success: function (stripeRes) {
+                          if (stripeRes.status === 'success' && stripeRes.already_paid) {
+                              window.location.href = stripeRes.redirect_url || "{{ url('/users/dashboard') }}";
+                              return;
+                          }
                           if (stripeRes.status === 'success' && stripeRes.checkout_url) {
                               window.location.href = stripeRes.checkout_url;
                           } else {
@@ -4331,8 +4348,11 @@ function enableBuyNow(btn) {
                               enableBuyNow($buyBtn);
                           }
                       },
-                      error: function () {
-                          toastr.error('Payment service unavailable. Please try again later.');
+                      error: function (xhr) {
+                          var msg = (xhr.responseJSON && xhr.responseJSON.message)
+                              ? xhr.responseJSON.message
+                              : 'Payment service unavailable. Please try again later.';
+                          toastr.error(msg);
                           enableBuyNow($buyBtn);
                       }
                   });
@@ -4393,8 +4413,15 @@ function enableBuyNow(btn) {
                       method: "POST",
                       timeout: 0,
                       headers: { "Content-Type": "application/json" },
-                      data: JSON.stringify({ products_purchases_id: response.data.products_purchases_id }),
+                      data: JSON.stringify({
+                          products_purchases_id: response.data.products_purchases_id,
+                          users_customers_id: users_customers_id
+                      }),
                       success: function (stripeRes) {
+                          if (stripeRes.status === 'success' && stripeRes.already_paid) {
+                              window.location.href = stripeRes.redirect_url || "{{ url('/users/dashboard') }}";
+                              return;
+                          }
                           if (stripeRes.status === 'success' && stripeRes.checkout_url) {
                               window.location.href = stripeRes.checkout_url;
                           } else {
@@ -4402,8 +4429,11 @@ function enableBuyNow(btn) {
                               enableBuyNow($buyBtn);
                           }
                       },
-                      error: function () {
-                          toastr.error('Payment service unavailable. Please try again later.');
+                      error: function (xhr) {
+                          var msg = (xhr.responseJSON && xhr.responseJSON.message)
+                              ? xhr.responseJSON.message
+                              : 'Payment service unavailable. Please try again later.';
+                          toastr.error(msg);
                           enableBuyNow($buyBtn);
                       }
                   });

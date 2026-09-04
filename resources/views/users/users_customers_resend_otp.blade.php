@@ -16,7 +16,7 @@
         <div class="mx-auto mt-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-lime-soft lg:mx-0">
             <svg class="h-7 w-7 text-forest" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
         </div>
-        <h1 class="mt-5 font-display text-3xl font-bold text-forest">Resend OTP</h1>
+        <h1 class="mt-5 text-3xl font-bold text-forest">Resend OTP</h1>
         <p class="mt-2 text-sm text-gray-500">Request a new verification code to be sent to your email.</p>
     </div>
 

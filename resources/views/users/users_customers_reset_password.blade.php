@@ -16,7 +16,7 @@
         <div class="mx-auto mt-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-lime-soft lg:mx-0">
             <svg class="h-7 w-7 text-forest" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
         </div>
-        <h1 class="mt-5 font-display text-3xl font-bold text-forest">Reset Password</h1>
+        <h1 class="mt-5 text-3xl font-bold text-forest">Reset Password</h1>
         <p class="mt-2 text-sm text-gray-500">Create a new password for your {{ $brandName }} account.</p>
     </div>
 

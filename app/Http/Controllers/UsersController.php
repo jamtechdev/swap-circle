@@ -544,10 +544,23 @@ class UsersController extends Controller{
 
     // -------------- DOWNLOAD INVOICE ------------- //
     public function download_invoice($purchase_id) {
-        $purchase    = DB::table('products_purchases')->where('products_purchases_id', $purchase_id)->first();
+        if (!session()->has('id')) {
+            return redirect('/login');
+        }
+
+        $purchase = DB::table('products_purchases')->where('products_purchases_id', $purchase_id)->first();
         if (!$purchase) {
             abort(404);
         }
+
+        if ((int) $purchase->users_customers_id !== (int) session('id')) {
+            abort(403);
+        }
+
+        if (($purchase->payment_status ?? '') !== 'Successful') {
+            abort(403, 'Invoice is available only after successful payment.');
+        }
+
         $product     = DB::table('products')->where('products_id', $purchase->products_id)->first();
         $customer    = DB::table('users_customers')->where('users_customers_id', $purchase->users_customers_id)->first();
         $beneficiary = null;

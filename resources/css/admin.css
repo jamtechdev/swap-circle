@@ -8,9 +8,9 @@
     --color-forest: #1a472a;
     --color-forest-mid: #245c38;
     --color-forest-deep: #0f2e1c;
-    --font-display: "Fraunces", Georgia, serif;
+    --font-display: "DM Sans", sans-serif;
     --font-sans: "DM Sans", system-ui, sans-serif;
-    --font-family-display: "Fraunces", Georgia, serif;
+    --font-family-display: "DM Sans", sans-serif;
     --font-family-sans: "DM Sans", system-ui, sans-serif;
 }
 
@@ -597,7 +597,7 @@ body.admin-page .admin-fund-field__value {
 
 body.admin-page .admin-fund-field__value--amount {
     color: #1a472a;
-    font-family: 'Fraunces', Georgia, serif;
+    font-family: 'DM Sans', sans-serif;
     font-size: 1.25rem;
 }
 
@@ -1253,7 +1253,7 @@ body.admin-page .admin-currency-head__label {
 }
 
 body.admin-page .admin-currency-head__title {
-    font-family: 'Fraunces', Georgia, serif;
+    font-family: 'DM Sans', sans-serif;
     font-size: 1.35rem;
     font-weight: 700;
     color: #0f2e1c;
@@ -1336,7 +1336,7 @@ body.admin-page .admin-currency-card__name {
 }
 
 body.admin-page .admin-currency-card__rate {
-    font-family: 'Fraunces', Georgia, serif;
+    font-family: 'DM Sans', sans-serif;
     font-size: 1.35rem;
     font-weight: 700;
     color: #0f2e1c;
@@ -1530,7 +1530,7 @@ body.admin-page .admin-profile-avatar img {
 }
 
 body.admin-page .admin-profile-name {
-    font-family: "Fraunces", Georgia, serif;
+    font-family: "DM Sans", sans-serif;
     font-size: 1.35rem;
     font-weight: 700;
     color: #0f2e1c;

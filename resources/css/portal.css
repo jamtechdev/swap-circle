@@ -8,9 +8,9 @@
     --color-forest: #1a472a;
     --color-forest-mid: #245c38;
     --color-forest-deep: #0f2e1c;
-    --font-display: "Fraunces", Georgia, serif;
+    --font-display: "DM Sans", sans-serif;
     --font-sans: "DM Sans", system-ui, sans-serif;
-    --font-family-display: "Fraunces", Georgia, serif;
+    --font-family-display: "DM Sans", sans-serif;
     --font-family-sans: "DM Sans", system-ui, sans-serif;
 }
 
@@ -2288,7 +2288,7 @@ body.portal-page .portal-track-currency-picker .select2-container--default .sele
 }
 
 body.portal-page .portal-track-picker-label {
-    font-family: 'Fraunces', Georgia, serif;
+    font-family: 'DM Sans', sans-serif;
     font-size: 1.125rem;
     font-weight: 700;
     color: #1a472a;
@@ -2612,7 +2612,7 @@ body.portal-page .portal-connect-section__head {
 }
 
 body.portal-page .portal-connect-section__title {
-    font-family: 'Fraunces', Georgia, serif;
+    font-family: 'DM Sans', sans-serif;
     font-size: 1.125rem;
     font-weight: 700;
     color: #1a472a;
@@ -2734,7 +2734,7 @@ body.portal-page .portal-connect-category__image {
 }
 
 body.portal-page .portal-connect-category__initial {
-    font-family: 'Fraunces', Georgia, serif;
+    font-family: 'DM Sans', sans-serif;
     font-size: 1.375rem;
     font-weight: 700;
     color: #1a472a;
@@ -2780,7 +2780,7 @@ body.portal-page .portal-home-onboarding__icon svg {
 }
 
 body.portal-page .portal-home-onboarding__body h3 {
-    font-family: 'Fraunces', Georgia, serif;
+    font-family: 'DM Sans', sans-serif;
     font-size: 1.25rem;
     font-weight: 700;
     color: #0f2e1c;
@@ -3078,7 +3078,7 @@ body.portal-page .portal-connect-article__date {
 }
 
 body.portal-page .portal-connect-article__title {
-    font-family: 'Fraunces', Georgia, serif;
+    font-family: 'DM Sans', sans-serif;
     font-size: clamp(1.5rem, 4vw, 2rem);
     font-weight: 700;
     color: #1a472a;
@@ -3238,7 +3238,7 @@ body.portal-page .portal-profile-avatar__initial {
 }
 
 body.portal-page .portal-profile-hero__name {
-    font-family: 'Fraunces', Georgia, serif;
+    font-family: 'DM Sans', sans-serif;
     font-size: 1.25rem;
     font-weight: 700;
     color: #1a472a;
@@ -3557,7 +3557,7 @@ body.portal-page .portal-billing-head {
 }
 
 body.portal-page .portal-billing-head__title {
-    font-family: 'Fraunces', Georgia, serif;
+    font-family: 'DM Sans', sans-serif;
     font-size: 1.375rem;
     font-weight: 700;
     color: #1a472a;
@@ -3669,7 +3669,7 @@ body.portal-page .portal-faq-panel__head {
 }
 
 body.portal-page .portal-faq-panel__title {
-    font-family: 'Fraunces', Georgia, serif;
+    font-family: 'DM Sans', sans-serif;
     font-size: 1.375rem;
     font-weight: 700;
     color: #1a472a;
@@ -3897,7 +3897,7 @@ body.portal-page .portal-messages-empty__icon svg {
 }
 
 body.portal-page .portal-messages-empty__title {
-    font-family: 'Fraunces', Georgia, serif;
+    font-family: 'DM Sans', sans-serif;
     font-size: 1.375rem;
     font-weight: 700;
     color: #1a472a;
@@ -3960,7 +3960,7 @@ body.portal-page .portal-messages-sidebar__head {
 }
 
 body.portal-page .portal-messages-sidebar__title {
-    font-family: 'Fraunces', Georgia, serif;
+    font-family: 'DM Sans', sans-serif;
     font-size: 1.125rem;
     font-weight: 700;
     color: #1a472a;
@@ -4130,7 +4130,7 @@ body.portal-page .portal-messages-main__placeholder-icon svg {
 }
 
 body.portal-page .portal-messages-main__placeholder h3 {
-    font-family: 'Fraunces', Georgia, serif;
+    font-family: 'DM Sans', sans-serif;
     font-size: 1.125rem;
     font-weight: 700;
     color: #1a472a;
@@ -4346,7 +4346,7 @@ body.portal-page .portal-claims-intro__label {
 }
 
 body.portal-page .portal-claims-intro__title {
-    font-family: 'Fraunces', Georgia, serif;
+    font-family: 'DM Sans', sans-serif;
     font-size: 1.375rem;
     font-weight: 700;
     color: #1a472a;
@@ -4476,7 +4476,7 @@ body.portal-page .portal-claims-upload-section__head {
 }
 
 body.portal-page .portal-claims-upload-section__title {
-    font-family: 'Fraunces', Georgia, serif;
+    font-family: 'DM Sans', sans-serif;
     font-size: 1.0625rem;
     font-weight: 700;
     color: #1a472a;
@@ -4674,7 +4674,7 @@ body.portal-page .portal-claims-empty__icon svg {
 }
 
 body.portal-page .portal-claims-empty__title {
-    font-family: 'Fraunces', Georgia, serif;
+    font-family: 'DM Sans', sans-serif;
     font-size: 1.375rem;
     font-weight: 700;
     color: #1a472a;
@@ -4730,7 +4730,7 @@ body.portal-page .portal-claims-form .ui-datepicker {
 }
 
 body.portal-page .portal-profile-modal__title {
-    font-family: 'Fraunces', Georgia, serif;
+    font-family: 'DM Sans', sans-serif;
     font-size: 1.25rem;
     font-weight: 700;
     color: #1a472a;
@@ -4879,7 +4879,7 @@ body.portal-page .portal-profile-edit-intro__label {
 }
 
 body.portal-page .portal-profile-edit-intro__title {
-    font-family: 'Fraunces', Georgia, serif;
+    font-family: 'DM Sans', sans-serif;
     font-size: 1.375rem;
     font-weight: 700;
     color: #1a472a;
@@ -4937,7 +4937,7 @@ body.portal-page .portal-profile-edit-section__icon--shield {
 }
 
 body.portal-page .portal-profile-edit-section__title {
-    font-family: 'Fraunces', Georgia, serif;
+    font-family: 'DM Sans', sans-serif;
     font-size: 1.0625rem;
     font-weight: 700;
     color: #1a472a;

@@ -11,7 +11,7 @@
     <div class="text-center lg:text-left">
         <img src="{{ asset('uploads/system_image/' . $brandLogo) }}" alt="{{ $brandName }}" class="mx-auto h-12 w-auto lg:mx-0">
         <p class="mt-6 text-sm font-semibold text-lime-hover">Hi, 👋</p>
-        <h1 class="mt-1 font-display text-3xl font-bold text-forest sm:text-4xl">Welcome Back!</h1>
+        <h1 class="mt-1 text-3xl font-bold text-forest sm:text-4xl">Welcome Back!</h1>
         <p class="mt-2 text-sm text-gray-500">Sign in to your {{ $brandName }} account.</p>
     </div>
 

@@ -11,7 +11,7 @@
     <div class="text-center lg:text-left">
         <p class="text-sm font-bold uppercase tracking-widest text-forest/60">Get started with</p>
         <img src="{{ asset('uploads/system_image/' . $brandLogo) }}" alt="{{ $brandName }}" class="mx-auto mt-4 h-12 w-auto lg:mx-0">
-        <h1 class="mt-5 font-display text-3xl font-bold text-forest">Choose your account type</h1>
+        <h1 class="mt-5 text-3xl font-bold text-forest">Choose your account type</h1>
         <p class="mt-2 text-sm text-gray-500">Select how you'd like to join {{ $brandName }}.</p>
     </div>
 

@@ -8,7 +8,7 @@
     <link rel="icon" type="image/png" sizes="24x24" href="{{ asset('uploads/system_image/favico.png') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800&display=swap" rel="stylesheet">
     @vite(['resources/css/auth.css', 'resources/js/auth.js'])
     @stack('head')
 </head>
@@ -20,7 +20,7 @@
             <div class="pointer-events-none absolute -left-10 bottom-20 h-48 w-48 rounded-full bg-white/10 blur-2xl"></div>
 
             <div class="relative z-10">
-                <a href="{{ url('/') }}" class="font-display text-2xl font-bold text-white">{{ $brandName }}</a>
+                <a href="{{ url('/') }}" class="text-2xl font-bold text-white">{{ $brandName }}</a>
             </div>
 
             <div class="relative z-10 flex flex-1 items-center justify-center py-10">
@@ -29,7 +29,7 @@
 
             <div class="relative z-10 text-white">
                 <span class="inline-block rounded-full border border-lime/30 bg-lime/15 px-3 py-1 text-xs font-bold uppercase tracking-wider text-lime">{{ $heroEyebrow }}</span>
-                <h2 class="mt-4 font-display text-3xl font-bold leading-tight xl:text-4xl">{!! $heroTitle !!}</h2>
+                <h2 class="mt-4 text-3xl font-bold leading-tight xl:text-4xl">{!! $heroTitle !!}</h2>
                 <p class="mt-3 max-w-md text-sm leading-relaxed text-white/80">{{ $heroText }}</p>
             </div>
         </aside>

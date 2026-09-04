@@ -7,13 +7,18 @@
     --color-forest: #1a472a;
     --color-forest-mid: #245c38;
     --color-forest-deep: #0f2e1c;
-    --font-display: "Fraunces", Georgia, serif;
-    --font-sans: "DM Sans", system-ui, sans-serif;
+    --font-sans: "DM Sans", sans-serif;
+    --font-display: "DM Sans", sans-serif;
+    --default-font-family: "DM Sans", sans-serif;
 }
 
 @layer base {
     html { scroll-behavior: smooth; }
-    body.auth-page { font-family: var(--font-sans); }
+
+    body.auth-page,
+    body.auth-page *:not(svg):not(svg *) {
+        font-family: "DM Sans", sans-serif !important;
+    }
 }
 
 @layer components {
@@ -99,7 +104,7 @@
     }
 
     .auth-coming-soon__title {
-        @apply mt-6 font-display text-3xl font-bold leading-tight text-forest;
+        @apply mt-6 text-3xl font-bold leading-tight text-forest;
     }
 
     .auth-coming-soon__text {

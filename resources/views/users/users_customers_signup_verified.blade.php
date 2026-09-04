@@ -22,7 +22,7 @@
         <div class="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-lime text-4xl shadow-lg shadow-lime/30">
             ✓
         </div>
-        <h1 class="mt-6 font-display text-3xl font-bold text-forest sm:text-4xl">Congratulations!</h1>
+        <h1 class="mt-6 text-3xl font-bold text-forest sm:text-4xl">Congratulations!</h1>
         <p class="mt-2 text-sm text-gray-500">Your email has been verified successfully.</p>
     </div>
 

@@ -10,7 +10,7 @@
 @section('content')
     <div class="text-center">
         <img src="{{ asset('uploads/system_image/' . $brandLogo) }}" alt="{{ $brandName }}" class="mx-auto h-12 w-auto">
-        <h1 class="mt-8 font-display text-3xl font-bold text-forest">Please wait…</h1>
+        <h1 class="mt-8 text-3xl font-bold text-forest">Please wait…</h1>
         <p class="mt-2 text-sm font-semibold text-lime-hover">Verifying your account</p>
 
         <div class="mt-10 flex justify-center gap-2">

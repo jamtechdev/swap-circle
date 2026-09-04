@@ -16,7 +16,7 @@
 @section('content')
     <div class="text-center lg:text-left">
         <img src="{{ asset('uploads/system_image/' . $brandLogo) }}" alt="{{ $brandName }}" class="mx-auto h-10 w-auto lg:mx-0">
-        <h1 class="mt-4 font-display text-2xl font-bold text-forest sm:text-3xl">Corporate registration</h1>
+        <h1 class="mt-4 text-2xl font-bold text-forest sm:text-3xl">Corporate registration</h1>
         <p class="mt-1 text-sm text-gray-500">Register your company and representative details below.</p>
     </div>
 

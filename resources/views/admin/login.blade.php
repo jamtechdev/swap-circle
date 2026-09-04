@@ -12,7 +12,7 @@
     <div class="text-center lg:text-left">
         <img src="{{ asset('uploads/system_image/' . $brandLogo) }}" alt="{{ $brandName }}" class="mx-auto h-12 w-auto lg:mx-0">
         <span class="mt-6 inline-flex items-center rounded-full border border-forest/15 bg-lime-soft px-3 py-1 text-xs font-bold uppercase tracking-wider text-forest">Admin access</span>
-        <h1 class="mt-3 font-display text-3xl font-bold text-forest sm:text-4xl">Welcome back</h1>
+        <h1 class="mt-3 text-3xl font-bold text-forest sm:text-4xl">Welcome back</h1>
         <p class="mt-2 text-sm text-gray-500">Sign in to the {{ $brandName }} admin dashboard.</p>
     </div>
 
