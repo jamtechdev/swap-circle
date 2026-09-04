@@ -70,7 +70,7 @@
             </div>
         </nav>
 
-        <div class="portal-sidebar-footer d-none d-md-block">
+        <div class="portal-sidebar-footer">
             <div class="portal-sidebar-user">
                 <span class="portal-sidebar-user__avatar" aria-hidden="true">{{ $initials }}</span>
                 <div class="portal-sidebar-user__meta">

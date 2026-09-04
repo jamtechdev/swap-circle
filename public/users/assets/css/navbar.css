@@ -27,7 +27,9 @@
 }
 
 #dashboard-wrapper {
-  overflow-x: hidden;
+  /* Do not use overflow-x:hidden alone — it forces overflow-y:auto and traps page scroll */
+  overflow-x: clip;
+  overflow-y: visible;
   background-color: var(--swap-secondary-color);
 }
 #dashboard-wrapper .top-bar {
@@ -51,35 +53,43 @@
   box-shadow: 18px 0px 35px 0px #00000005;
 }
 
+/*
+  Legacy used position:fixed on logo + nav separately.
+  That removed them from flow so only the footer remained visible
+  inside the green column ("stuck" chip) and broke layout.
+  Keep children in normal flow; portal.css owns the fixed sidebar shell.
+*/
 #sidebar-wrapper .sidebar-logo {
-  position: fixed;
-  height: 130px;
-  width: 290px;
+  position: relative;
+  height: auto;
+  width: 100%;
   z-index: 4;
-  background: white;
+  background: transparent;
 }
 
 #sidebar-wrapper .list-group {
-  width: 290px;
-  margin-top: 130px;
-  overflow-y: auto;
-  height: calc(100vh - 130px);
-  position: fixed;
-  background: white;
+  width: 100%;
+  margin-top: 0;
+  overflow-y: visible;
+  height: auto;
+  position: relative;
+  background: transparent;
 }
 
 .page-content-wrapper {
-  min-width: 100vw;
+  min-width: 0;
+  width: 100%;
 }
 
 .page-content-tab {
   padding-top: 128px;
-  padding-left: 290px;
+  /* Offset is owned by portal.css (fixed sidebar + content margin) */
+  padding-left: 0;
   width: 100%;
 }
 #dashboard-wrapper.toggled .page-content-tab {
   padding-left: 0;
-  margin-left: 290px;
+  margin-left: 0;
 }
 
 #dashboard-wrapper.toggled #sidebar-wrapper {
@@ -147,5 +157,10 @@
 
   #dashboard-wrapper.toggled #sidebar-wrapper {
     margin-left: -290px;
+  }
+
+  #dashboard-wrapper.toggled .page-content-tab {
+    margin-left: 0;
+    padding-left: 0;
   }
 }
