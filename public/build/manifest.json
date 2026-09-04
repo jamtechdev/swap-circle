@@ -51,7 +51,7 @@
     "isEntry": true
   },
   "resources/css/portal.css": {
-    "file": "assets/portal-BGvx5xxL.css",
+    "file": "assets/portal-GBnjsdux.css",
     "name": "portal",
     "names": [
       "portal.css"
@@ -113,7 +113,7 @@
     ]
   },
   "resources/js/portal.js": {
-    "file": "assets/portal-D0xgkwW8.js",
+    "file": "assets/portal-D3ZzWD-e.js",
     "name": "portal",
     "src": "resources/js/portal.js",
     "isEntry": true,
@@ -121,7 +121,7 @@
       "_cookie-consent-DLlvwdQT.js"
     ],
     "css": [
-      "assets/portal-BGvx5xxL.css"
+      "assets/portal-GBnjsdux.css"
     ]
   },
   "resources/sass/app.scss": {

@@ -34,6 +34,7 @@ body.portal-page {
 body.portal-page #dashboard-wrapper {
     background: linear-gradient(135deg, #f8faf5 0%, #eef6c8 45%, #f4f7ef 100%);
     min-height: 100vh;
+    align-items: stretch;
 }
 
 /* Sidebar — override navbar.css white backgrounds & fixed-child collapse */
@@ -41,13 +42,20 @@ body.portal-page #sidebar-wrapper.portal-sidebar,
 body.portal-page #sidebar-wrapper {
     width: 280px !important;
     min-width: 280px !important;
+    max-width: 280px !important;
     flex-shrink: 0 !important;
+    height: 100vh !important;
     min-height: 100vh !important;
+    max-height: 100vh !important;
+    margin-left: 0 !important;
     background: linear-gradient(165deg, #0a2418 0%, #0f2e1c 28%, #1a472a 62%, #163d28 100%) !important;
     box-shadow: 4px 0 32px rgba(15, 46, 28, 0.22);
     border-right: 1px solid rgba(200, 230, 53, 0.12);
-    position: relative;
-    overflow: hidden;
+    position: sticky !important;
+    top: 0 !important;
+    align-self: flex-start;
+    overflow: hidden !important;
+    z-index: 20;
 }
 
 body.portal-page #sidebar-wrapper::before {
@@ -66,15 +74,27 @@ body.portal-page #sidebar-wrapper .portal-sidebar-inner {
     z-index: 1;
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
+    height: 100%;
+    min-height: 0;
+    max-height: 100vh;
+    overflow: hidden;
 }
 
+/* Kill legacy navbar.css position:fixed on logo/nav (causes footer overlap on scroll) */
 body.portal-page #sidebar-wrapper .sidebar-logo {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    height: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    z-index: 2 !important;
     background: transparent !important;
     border-bottom: none !important;
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
     padding: 1.15rem 1.15rem 0.85rem !important;
 }
 
@@ -100,7 +120,9 @@ body.portal-page #sidebar-wrapper .portal-sidebar-brand:hover {
 
 body.portal-page #sidebar-wrapper .portal-sidebar-nav {
     flex: 1 1 auto;
+    min-height: 0;
     padding: 0.15rem 0.85rem 1rem;
+    overflow-x: hidden;
     overflow-y: auto;
     scrollbar-width: thin;
     scrollbar-color: rgba(200, 230, 53, 0.35) transparent;
@@ -112,6 +134,15 @@ body.portal-page #sidebar-wrapper .portal-sidebar-nav__label {
 
 body.portal-page #sidebar-wrapper .list-group,
 body.portal-page #sidebar-wrapper .portal-sidebar-menu {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    margin-top: 0 !important;
+    overflow: visible !important;
     background: transparent !important;
     padding: 0 !important;
     border: none !important;
@@ -133,6 +164,10 @@ body.portal-page #sidebar-wrapper .list-group-item {
     align-items: center;
     gap: 0.75rem;
     position: relative;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
 }
 
 body.portal-page #sidebar-wrapper .list-group-item img {
@@ -242,15 +277,19 @@ body.portal-page #sidebar-wrapper .list-group-item .portal-nav-label {
 }
 
 body.portal-page .portal-sidebar-footer {
-    position: relative;
-    left: auto;
-    bottom: auto;
-    width: 100%;
+    position: relative !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    top: auto !important;
+    width: 100% !important;
+    max-width: 100%;
+    flex-shrink: 0;
     padding: 0.85rem 1rem 1.15rem;
     margin-top: auto;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
     background: linear-gradient(180deg, rgba(15, 46, 28, 0) 0%, rgba(10, 36, 24, 0.65) 100%);
-    z-index: 2;
+    z-index: 3;
 }
 
 body.portal-page .portal-sidebar-user {
@@ -309,6 +348,20 @@ body.portal-page .top-bar {
     background: rgba(255, 255, 255, 0.96) !important;
     border-bottom: 1px solid rgba(26, 71, 42, 0.12);
     box-shadow: 0 2px 16px rgba(15, 46, 28, 0.08);
+}
+
+@media (min-width: 768px) {
+    body.portal-page #dashboard-wrapper .top-bar {
+        width: calc(100% - 280px) !important;
+    }
+
+    body.portal-page #dashboard-wrapper.toggled .top-bar {
+        width: 100% !important;
+    }
+
+    body.portal-page #dashboard-wrapper.toggled #sidebar-wrapper {
+        margin-left: -280px !important;
+    }
 }
 
 body.portal-page .top-bar .navbar {
