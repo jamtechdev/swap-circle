@@ -43,20 +43,33 @@ export function initPasswordToggles() {
         const selector = btn.getAttribute('data-toggle-password');
         if (!selector) return;
 
-        if (!btn.innerHTML.trim()) btn.innerHTML = eyeSlash;
+        // SC-12: real button + state-aware accessible names
+        if (!btn.getAttribute('type')) {
+            btn.setAttribute('type', 'button');
+        }
+
+        const showLabel = btn.getAttribute('data-show-label') || 'Show password';
+        const hideLabel = btn.getAttribute('data-hide-label') || 'Hide password';
+
+        const syncAria = (visible) => {
+            btn.setAttribute('aria-label', visible ? hideLabel : showLabel);
+            btn.setAttribute('aria-pressed', visible ? 'true' : 'false');
+            btn.innerHTML = visible ? eyeOpen : eyeSlash;
+        };
+
+        const input = document.querySelector(selector);
+        syncAria(input ? input.type === 'text' : false);
 
         btn.addEventListener('click', (event) => {
             event.preventDefault();
             event.stopPropagation();
 
-            const input = document.querySelector(selector);
-            if (!input) return;
+            const field = document.querySelector(selector);
+            if (!field) return;
 
-            const isHidden = input.type === 'password';
-            input.type = isHidden ? 'text' : 'password';
-            btn.innerHTML = isHidden ? eyeOpen : eyeSlash;
-            btn.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
-            btn.setAttribute('aria-pressed', isHidden ? 'true' : 'false');
+            const willShow = field.type === 'password';
+            field.type = willShow ? 'text' : 'password';
+            syncAria(willShow);
         });
     });
 }

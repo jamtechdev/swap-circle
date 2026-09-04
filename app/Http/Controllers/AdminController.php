@@ -228,7 +228,7 @@ class AdminController extends Controller
         }
 
         $data = $this->adminCustomerPayload($req);
-        $data['password'] = md5($req->password);
+        $data['password'] = \App\Support\PasswordHasher::hash((string) $req->password);
         $data['notifications'] = 'Yes';
         $data['social_acc_type'] = 'None';
         $data['google_access_token'] = '';
@@ -273,7 +273,7 @@ class AdminController extends Controller
 
         $data = $this->adminCustomerPayload($req);
         if (!empty($req->password)) {
-            $data['password'] = md5($req->password);
+                $data['password'] = \App\Support\PasswordHasher::hash((string) $req->password);
         }
         if ($req->status === 'Active') {
             $data['verified_badge'] = 'Yes';
@@ -2772,6 +2772,15 @@ class AdminController extends Controller
     public function fund_wallet_requests_update(Request $req)
     {
         $update_array['status'] = $req->status;
+        if (\Schema::hasColumn('fund_wallets', 'admin_note') && $req->filled('admin_note')) {
+            $update_array['admin_note'] = $req->admin_note;
+        }
+        if (\Schema::hasColumn('fund_wallets', 'processed_by_admin_id')) {
+            $update_array['processed_by_admin_id'] = session('admin_id');
+        }
+        if (\Schema::hasColumn('fund_wallets', 'processed_at')) {
+            $update_array['processed_at'] = date('Y-m-d H:i:s');
+        }
         if ($req->status === "Funded") {
             $data = DB::table('fund_wallets')->where('fund_wallets_id', $req->fund_wallets_id)->first();
             $wallet = DB::table('users_customers_wallets')->where('users_customers_wallets_id', $data->users_customers_wallets_id)->first();
@@ -2997,4 +3006,103 @@ class AdminController extends Controller
             ->header('Content-Type', 'application/json');
     }
     // ------------- MANAGEWITHDRAW WALLETS  -------------- //
+
+    /**
+     * Stripe refund for a Successful product purchase (Test/Live per STRIPE_SECRET).
+     */
+    public function refund_product_purchase(Request $req)
+    {
+        if (!session()->has('admin_id')) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
+        }
+
+        $req->validate([
+            'products_purchases_id' => 'required|integer',
+            'reason' => 'nullable|string|max:500',
+        ]);
+
+        $purchase = DB::table('products_purchases')->where('products_purchases_id', $req->products_purchases_id)->first();
+        if (!$purchase) {
+            return response()->json(['status' => 'error', 'message' => 'Purchase not found'], 404);
+        }
+
+        if (($purchase->payment_status ?? '') !== 'Successful') {
+            return response()->json(['status' => 'error', 'message' => 'Only Successful payments can be refunded'], 400);
+        }
+
+        if (!empty($purchase->stripe_refund_id) || ($purchase->payment_status ?? '') === 'Refunded') {
+            return response()->json(['status' => 'error', 'message' => 'Purchase already refunded'], 400);
+        }
+
+        if (!class_exists(\Stripe\Stripe::class) || !class_exists(\Stripe\Refund::class)) {
+            return response()->json(['status' => 'error', 'message' => 'Stripe SDK is not installed'], 500);
+        }
+
+        $stripeSecret = (string) config('services.stripe.secret');
+        if ($stripeSecret === '') {
+            return response()->json(['status' => 'error', 'message' => 'Stripe is not configured'], 500);
+        }
+
+        \Stripe\Stripe::setApiKey($stripeSecret);
+
+        $paymentIntent = (string) ($purchase->stripe_payment_intent ?? '');
+        if ($paymentIntent === '' || str_starts_with($paymentIntent, 'cs_')) {
+            // Resolve PI from checkout session if stored
+            $sessionId = $purchase->stripe_checkout_session_id
+                ?? (str_starts_with($paymentIntent, 'cs_') ? $paymentIntent : null);
+            if (!$sessionId) {
+                return response()->json(['status' => 'error', 'message' => 'Missing Stripe payment intent for refund'], 400);
+            }
+            try {
+                $session = \Stripe\Checkout\Session::retrieve($sessionId);
+                $paymentIntent = is_string($session->payment_intent ?? null)
+                    ? $session->payment_intent
+                    : (is_object($session->payment_intent ?? null) ? ($session->payment_intent->id ?? '') : '');
+            } catch (\Throwable $e) {
+                return response()->json(['status' => 'error', 'message' => 'Unable to resolve payment intent: '.$e->getMessage()], 400);
+            }
+        }
+
+        if ($paymentIntent === '' || !str_starts_with($paymentIntent, 'pi_')) {
+            return response()->json(['status' => 'error', 'message' => 'Invalid Stripe payment intent'], 400);
+        }
+
+        try {
+            $refund = \Stripe\Refund::create([
+                'payment_intent' => $paymentIntent,
+                'reason' => 'requested_by_customer',
+                'metadata' => [
+                    'products_purchases_id' => (string) $purchase->products_purchases_id,
+                    'admin_id' => (string) session('admin_id'),
+                    'note' => (string) ($req->reason ?? ''),
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json(['status' => 'error', 'message' => 'Stripe refund failed: '.$e->getMessage()], 500);
+        }
+
+        $update = [
+            'payment_status' => 'Refunded',
+            'stripe_payment_status' => 'refunded',
+            'payment_message' => 'Refunded by admin #'.session('admin_id').($req->reason ? ': '.$req->reason : ''),
+            'date_modified' => date('Y-m-d H:i:s'),
+        ];
+        if (\Schema::hasColumn('products_purchases', 'stripe_refund_id')) {
+            $update['stripe_refund_id'] = $refund->id;
+        }
+        if (\Schema::hasColumn('products_purchases', 'refunded_at')) {
+            $update['refunded_at'] = date('Y-m-d H:i:s');
+        }
+
+        DB::table('products_purchases')->where('products_purchases_id', $purchase->products_purchases_id)->update($update);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Refund completed',
+            'data' => [
+                'stripe_refund_id' => $refund->id,
+                'products_purchases_id' => $purchase->products_purchases_id,
+            ],
+        ]);
+    }
 }

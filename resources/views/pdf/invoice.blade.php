@@ -100,11 +100,13 @@ table.tbl tr:nth-child(even) td { background: #fafbff; }
         <div class="amount-label">Total Amount Paid</div>
         <div class="amount-val">
             @php
-                $displayPrice = $product->custom_price ?? $product->price ?? null;
+                $displayPrice = \App\Support\CoverPricing::billedPrice($product, $purchase->cover_duration ?? null);
                 $currencySymbol = $product->currency_symbol ?? '₦';
+                $coverLabel = \App\Support\CoverPricing::coverLabel($purchase->cover_duration ?? null);
             @endphp
             @if($displayPrice !== null && $displayPrice !== '')
                 {{ $currencySymbol }}{{ number_format((float) $displayPrice, 2) }}
+                <div class="amount-label" style="margin-top:4px;">{{ $coverLabel }} cover</div>
             @else
                 Price not set
             @endif

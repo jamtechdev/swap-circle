@@ -46,13 +46,15 @@ Route::get('/clear', function() {
 });
 Route::get('/payment-success', [ApiController::class, 'paymentSuccess']);
 Route::get('/download/{type}/{id}', [ApiController::class, 'download_file']);
-Route::get('/test-mail', [ApiController::class, 'sendTestMail']);
+if (app()->environment('local')) {
+    Route::get('/test-mail', [ApiController::class, 'sendTestMail']);
+}
 //USER AUTHENTICATION
-Route::post('/signin', [ApiController::class, 'users_customers_login']);
-Route::post('/signup', [ApiController::class, 'users_customers_signup']);
+Route::post('/signin', [ApiController::class, 'users_customers_login'])->middleware('throttle:login');
+Route::post('/signup', [ApiController::class, 'users_customers_signup'])->middleware('throttle:login');
 Route::post('/update_profile', [ApiController::class, 'update_profile']);
-Route::post('/email_exist', [ApiController::class, 'email_exist']);
-Route::post('/forgot_password', [ApiController::class, 'forgot_password']);
+Route::post('/email_exist', [ApiController::class, 'email_exist'])->middleware('throttle:login');
+Route::post('/forgot_password', [ApiController::class, 'forgot_password'])->middleware('throttle:login');
 Route::post('/modify_password', [ApiController::class, 'modify_password']);
 
 Route::post('/change_password', [ApiController::class, 'change_password']);
@@ -168,11 +170,15 @@ Route::post('/withdraw_wallets_request', [ApiController::class, 'withdraw_wallet
 // PRODUCTS
 Route::post('/purchase_product', [ApiController::class, 'purchase_product']);
 Route::post('/claim_purchased_product', [ApiController::class, 'claim_purchased_product']);
-Route::post('/stripe/initiate-payment', [ApiController::class, 'initiateStripePayment']);
-Route::post('/stripe/handle-success', [ApiController::class, 'handleStripeSuccess']);
-Route::post('/stripe/handle-cancel', [ApiController::class, 'handleStripeCancel']);
+
+/* Stripe Checkout — session-bound buyer; webhook stays public + signature-verified */
+Route::middleware(['portal.session', 'portal.customer', 'throttle:stripe-payment'])->group(function () {
+    Route::post('/stripe/initiate-payment', [ApiController::class, 'initiateStripePayment']);
+    Route::post('/stripe/handle-success', [ApiController::class, 'handleStripeSuccess']);
+    Route::post('/stripe/handle-cancel', [ApiController::class, 'handleStripeCancel']);
+    Route::get('/download-invoice/{purchase_id}', [UsersController::class, 'download_invoice']);
+});
 Route::post('/stripe/webhook', [ApiController::class, 'handleStripeWebhook']);
-Route::get('/download-invoice/{purchase_id}', [UsersController::class, 'download_invoice']);
 // PRODUCTS
 
 // INSURETECH SYNC BRIDGE (single endpoint)

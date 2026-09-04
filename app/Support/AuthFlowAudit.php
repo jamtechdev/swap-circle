@@ -138,7 +138,10 @@ class AuthFlowAudit
         $checks[] = self::check(
             'Login API blocks unverified accounts',
             str_contains(self::readController('ApiController.php'), "verified_badge")
-                && str_contains(self::readController('ApiController.php'), 'Please verify your email before signing in')
+                && (
+                    str_contains(self::readController('ApiController.php'), 'AuthMessages::verifyEmailRequired')
+                    || str_contains(self::readController('ApiController.php'), 'Please verify your email before signing in')
+                )
         );
 
         try {

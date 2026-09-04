@@ -134,8 +134,12 @@
                                             <th>Product</th>
                                             <!-- <th>Beneficiary's Name</th> -->
                                             <th>Amount Paid</th>
+                                            <th>Currency</th>
                                             <th>Payment Status</th>
-                                            <th>Transaction No.</th>
+                                            <th>Stripe Session</th>
+                                            <th>Stripe Intent / Refund</th>
+                                            <th>Insuretech</th>
+                                            <th>Source</th>
                                             <th>Transaction Date</th>
                                             <th>Action</th>
                                         </tr>
@@ -160,6 +164,7 @@
                                                 @php
                                                     $displayPrice = optional($item->product)->custom_price ?? optional($item->product)->price ?? null;
                                                     $currencySymbol = optional($item->product)->currency_symbol ?? '₦';
+                                                    $currencyCode = optional($item->product)->currency_code ?? '';
                                                 @endphp
                                                 @if($displayPrice !== null && $displayPrice !== '')
                                                     {{ $currencySymbol }}{{ number_format((float) $displayPrice, 2) }}
@@ -167,15 +172,32 @@
                                                     <span class="text-muted">Price not set</span>
                                                 @endif
                                             </td>
-                                            <td>{{ $item->payment_status }}</td>
+                                            <td>{{ $currencyCode !== '' ? strtoupper($currencyCode) : '—' }}</td>
                                             <td>
-                                                <span 
-                                                    class="truncate-text"
-                                                    title="{{ $item->stripe_payment_intent }}"
-                                                >
-                                                    {{ $item->stripe_payment_intent }}
+                                                <span class="badge badge-{{ ($item->payment_status ?? '') === 'Successful' ? 'success' : (($item->payment_status ?? '') === 'Refunded' ? 'warning' : 'secondary') }}">
+                                                    {{ $item->payment_status }}
                                                 </span>
                                             </td>
+                                            <td>
+                                                <span class="truncate-text" title="{{ $item->stripe_checkout_session_id ?? '' }}">
+                                                    {{ $item->stripe_checkout_session_id ?? '—' }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="truncate-text" title="{{ $item->stripe_payment_intent }}">{{ $item->stripe_payment_intent ?: '—' }}</div>
+                                                @if(!empty($item->stripe_refund_id))
+                                                    <small class="text-muted d-block" title="{{ $item->stripe_refund_id }}">Refund: {{ $item->stripe_refund_id }}</small>
+                                                @endif
+                                            </td>
+                                            <td>
+                                                @php $syncStatus = $item->insuretech_sync_status ?? null; @endphp
+                                                @if($syncStatus)
+                                                    <span title="{{ $item->insuretech_sync_error ?? '' }}">{{ $syncStatus }}</span>
+                                                @else
+                                                    —
+                                                @endif
+                                            </td>
+                                            <td><small>{{ $item->payment_finalized_source ?? '—' }}</small></td>
                                             <td>{{ \Carbon\Carbon::parse($item->date_added)->format('d-m-Y H:i:s') }}</td>
                                             <td>
                                                 <a class="btn btn-primary" data-toggle="modal" data-target="#modal_view{{ $item->products_purchases_id }}"><i class="fas fa-eye"></i></a>
@@ -183,10 +205,20 @@
                                                     type="button"
                                                     class="btn btn-success swap-sync-single-transaction"
                                                     data-purchase-id="{{ $item->products_purchases_id }}"
-                                                    title="Sync this transaction to admin portal"
+                                                    title="Sync / retry Insuretech"
                                                 >
                                                      <i class="fas fa-sync-alt"></i>
                                                 </button>
+                                                @if(($item->payment_status ?? '') === 'Successful' && empty($item->stripe_refund_id))
+                                                <button
+                                                    type="button"
+                                                    class="btn btn-danger swap-refund-transaction"
+                                                    data-purchase-id="{{ $item->products_purchases_id }}"
+                                                    title="Refund via Stripe"
+                                                >
+                                                    <i class="fas fa-undo"></i>
+                                                </button>
+                                                @endif
                                             </td>
                                             <!-- modal view start -->
                                             <div class="modal fade" id="modal_view{{ $item->products_purchases_id }}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -395,7 +427,7 @@
                     var originalHtml = btn.innerHTML;
                     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
-                    postJson('/api/insuretech/sync', { products_purchases_id: purchaseId })
+                    postJson('/api/insuretech/sync', { products_purchases_id: purchaseId, force_retry: true })
                         .then(function (data) {
                             if (data && data.ok) {
                                 alert('Transaction synced successfully to Admin Portal.');
@@ -409,6 +441,43 @@
                         })
                         .catch(function (err) {
                             alert('Transaction sync failed due to network or server error.\n' + (err ? err.toString() : ''));
+                        })
+                        .finally(function () {
+                            btn.disabled = false;
+                            btn.innerHTML = originalHtml;
+                        });
+                });
+            });
+
+            document.querySelectorAll('.swap-refund-transaction').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var purchaseId = Number(btn.getAttribute('data-purchase-id') || '0');
+                    if (!purchaseId) {
+                        alert('Invalid transaction.');
+                        return;
+                    }
+                    if (!confirm('Refund this Successful payment via Stripe? This cannot be undone.')) {
+                        return;
+                    }
+                    var reason = window.prompt('Optional refund note for audit log:', '') || '';
+                    btn.disabled = true;
+                    var originalHtml = btn.innerHTML;
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+                    postJson('{{ url('/admin/transactions/refund') }}', {
+                        products_purchases_id: purchaseId,
+                        reason: reason
+                    })
+                        .then(function (data) {
+                            if (data && data.status === 'success') {
+                                alert('Refund completed: ' + ((data.data && data.data.stripe_refund_id) || 'OK'));
+                                window.location.reload();
+                                return;
+                            }
+                            alert((data && data.message) ? data.message : 'Refund failed.');
+                        })
+                        .catch(function (err) {
+                            alert('Refund failed.\n' + (err ? err.toString() : ''));
                         })
                         .finally(function () {
                             btn.disabled = false;

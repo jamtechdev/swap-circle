@@ -1,10 +1,10 @@
 @extends('layout.auth.master')
 
-@section('title', ($brandName ?? 'Swap Circle') . ' — Welcome!')
+@section('title', ($brandName ?? 'Swap Circle') . ' — Welcome')
 
 @php
     $heroEyebrow = 'You\'re in';
-    $heroTitle = 'Welcome to<br>the circle!';
+    $heroTitle = 'Welcome to<br>the circle.';
     $heroText = 'Your email is verified and your account is ready. Explore products, connect with the community, and start exchanging.';
     $authImage = 'users/assets/images/congratulations.png';
     $displayName = trim(session('first_name') . ' ' . session('last_name'));
@@ -22,7 +22,7 @@
         <div class="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-lime text-4xl shadow-lg shadow-lime/30">
             ✓
         </div>
-        <h1 class="mt-6 text-3xl font-bold text-forest sm:text-4xl">Congratulations!</h1>
+        <h1 class="mt-6 text-3xl font-bold text-forest sm:text-4xl">You're verified</h1>
         <p class="mt-2 text-sm text-gray-500">Your email has been verified successfully.</p>
     </div>
 

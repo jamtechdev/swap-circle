@@ -11,12 +11,12 @@
     <div class="text-center lg:text-left">
         <img src="{{ asset('uploads/system_image/' . $brandLogo) }}" alt="{{ $brandName }}" class="mx-auto h-12 w-auto lg:mx-0">
         <p class="mt-6 text-sm font-semibold text-lime-hover">Hi</p>
-        <h1 class="mt-1 text-3xl font-bold text-forest sm:text-4xl">Welcome Back!</h1>
+        <h1 class="mt-1 text-3xl font-bold text-forest sm:text-4xl">Welcome Back</h1>
         <p class="mt-2 text-sm text-gray-500">Sign in to your {{ $brandName }} account.</p>
     </div>
 
     <div class="mt-8">
-        <form id="frm_login_individual" class="space-y-4" novalidate>
+        <form id="frm_login_individual" method="post" action="#" class="space-y-4" novalidate>
             @csrf
             <div>
                 <label for="email" class="auth-label">Email address</label>
@@ -42,7 +42,13 @@
                 </div>
                 <span class="auth-error" id="error_password"></span>
             </div>
-            <button type="submit" class="auth-btn-primary mt-2">Sign In</button>
+            <button type="submit" class="auth-btn-primary mt-2" id="btn_signin">
+                <span id="btn_signin_text">Sign In</span>
+                <span id="btn_signin_loader" class="hidden items-center gap-2">
+                    <svg class="h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                    Signing in...
+                </span>
+            </button>
         </form>
     </div>
 
@@ -55,10 +61,24 @@
 @push('scripts')
 <script>
 $(function () {
+    var signInInFlight = false;
+
+    function setSignInLoading(isLoading) {
+        signInInFlight = !!isLoading;
+        $("#btn_signin").prop("disabled", isLoading);
+        if (isLoading) {
+            $("#btn_signin_text").addClass("hidden");
+            $("#btn_signin_loader").removeClass("hidden").addClass("inline-flex");
+        } else {
+            $("#btn_signin_text").removeClass("hidden");
+            $("#btn_signin_loader").addClass("hidden").removeClass("inline-flex");
+        }
+    }
+
     $("#frm_login_individual").validate({
         rules: { email: { required: true, email: true }, password: { required: true } },
         messages: {
-            email: { required: "Email is required.", email: "Enter a valid email." },
+            email: { required: "Email is required.", email: "Enter a valid email with a domain (e.g. name@example.com)." },
             password: { required: "Password is required." }
         },
         errorPlacement: function (error, element) {
@@ -107,9 +127,11 @@ $(function () {
                     window.location.href = response.redirect_url || "/users/dashboard";
                     return;
                 }
+                setSignInLoading(false);
                 toastr.error((response && response.message) || "Something went wrong. Please try again.");
             },
             error: function (xhr) {
+                setSignInLoading(false);
                 var message = "Unable to start your session. Please try again.";
                 if (xhr.responseJSON && xhr.responseJSON.message) {
                     message = xhr.responseJSON.message;
@@ -122,6 +144,11 @@ $(function () {
     $("#frm_login_individual").on("submit", function (e) {
         e.preventDefault();
         if (!$(this).valid()) return;
+        // SC-06: block duplicate submissions while sign-in is in flight
+        if (signInInFlight) return;
+
+        setSignInLoading(true);
+
         $.ajax({
             url: "{{ rtrim(config('app.api_url'), '/') }}/signin",
             method: "POST",
@@ -129,7 +156,11 @@ $(function () {
             dataType: "json",
             data: JSON.stringify({ email: $("#email").val(), password: $("#password").val() }),
             success: function (response) {
-                if (response.status === "error") return showSignInError(response);
+                if (response.status === "error") {
+                    setSignInLoading(false);
+                    return showSignInError(response);
+                }
+                // Keep loading until session is created / redirect
                 sessionLogin({
                     users_customers_type: response.data.users_customers_type,
                     users_customers_id: response.data.users_customers_id,
@@ -141,6 +172,7 @@ $(function () {
                 });
             },
             error: function (xhr) {
+                setSignInLoading(false);
                 handleSignInAjaxError(xhr);
             }
         });

@@ -20,7 +20,7 @@
         <p class="mt-2 text-sm text-gray-500">Request a new verification code to be sent to your email.</p>
     </div>
 
-    <form id="frm_resend_otp" class="mt-8 space-y-4" novalidate>
+    <form id="frm_resend_otp" method="post" action="#" class="mt-8 space-y-4" novalidate>
         @csrf
         <input type="hidden" name="users_customers_id" id="users_customers_id" value="{{ $users_customers_id ?? '' }}">
 
@@ -59,7 +59,7 @@ $(function () {
         messages: {
             email: {
                 required: "Please enter your email address.",
-                email: "Please enter a valid email address.",
+                email: "Enter a valid email with a domain (e.g. name@example.com).",
             },
         },
         errorPlacement: function (error, element) {

@@ -20,12 +20,12 @@
         <p class="mt-1 text-sm text-gray-500">Fill in your details below. Fields marked with * are required.</p>
     </div>
 
-    <form id="frm_signup" class="mt-8 space-y-8" novalidate>
+    <form id="frm_signup" method="post" action="#" class="mt-8 space-y-8" novalidate>
         @csrf
 
-        {{-- Profile photo --}}
+        {{-- Profile photo (SC-08: optional) --}}
         <div>
-            <p class="auth-section-title">Profile</p>
+            <p class="auth-section-title">Profile photo <span class="normal-case tracking-normal text-gray-400">(optional)</span></p>
             <label for="profile_pic" class="auth-upload group" id="upload_profile">
                 <img src="{{ asset('users/assets/images/icons/document-upload.png') }}" id="profile_pic_preview" alt="" class="h-10 w-10 opacity-60 group-hover:opacity-100">
                 <span class="mt-2 text-xs font-semibold text-forest/70">Upload photo <span class="font-normal text-gray-400">(optional)</span></span>
@@ -51,7 +51,10 @@
                 </div>
                 <div>
                     <label for="phone_number" class="auth-label">Phone number *</label>
-                    <input type="tel" id="phone_number" name="phone_number" class="auth-input !pl-4" placeholder="08012345678" maxlength="11" inputmode="numeric" autocomplete="tel">
+                    <div class="auth-phone-wrap">
+                        <input type="tel" id="phone_number" name="phone_number" class="auth-phone-input" placeholder="801 234 5678" autocomplete="tel" inputmode="tel">
+                    </div>
+                    <p class="auth-phone-hint">Choose your country from the flag list, then enter your mobile number. International numbers are supported.</p>
                     <span class="auth-error" id="error_phone_number"></span>
                 </div>
                 <div>
@@ -70,7 +73,7 @@
                     <label for="password" class="auth-label">Create password *</label>
                     <div class="relative">
                         <input type="password" id="password" name="password" class="auth-input !pl-4 pr-11" placeholder="Min. 7 characters" autocomplete="new-password">
-                        <button type="button" class="auth-input-toggle" data-toggle-password="#password" aria-label="Toggle password"></button>
+                        <button type="button" class="auth-input-toggle" data-toggle-password="#password" aria-label="Show password" aria-pressed="false"></button>
                     </div>
                     <span class="auth-error" id="error_password"></span>
                 </div>
@@ -78,7 +81,7 @@
                     <label for="confirm_password" class="auth-label">Confirm password *</label>
                     <div class="relative">
                         <input type="password" id="confirm_password" name="confirm_password" class="auth-input !pl-4 pr-11" placeholder="Repeat password" autocomplete="new-password">
-                        <button type="button" class="auth-input-toggle" data-toggle-password="#confirm_password" aria-label="Toggle password"></button>
+                        <button type="button" class="auth-input-toggle" data-toggle-password="#confirm_password" data-show-label="Show confirm password" data-hide-label="Hide confirm password" aria-label="Show confirm password" aria-pressed="false"></button>
                     </div>
                     <span class="auth-error" id="error_confirm_password"></span>
                 </div>
@@ -127,8 +130,55 @@
     </form>
 @endsection
 
+@push('head')
+<link rel="stylesheet" href="{{ asset('users/assets/plugin/select-flag/css/intlTelInput.min.css') }}">
+<style>
+/* SC-01 phone layout — do not force padding-left; intl-tel-input sets it for the dial code */
+.auth-phone-wrap { width: 100%; }
+.auth-phone-wrap .iti { width: 100%; display: block; font-family: "DM Sans", sans-serif; }
+.auth-phone-wrap .iti__flag-container { z-index: 3; }
+.auth-phone-wrap .iti__selected-flag {
+    padding: 0 8px 0 10px;
+    border-radius: 0.75rem 0 0 0.75rem;
+}
+.auth-phone-wrap .iti--separate-dial-code .iti__selected-dial-code {
+    margin-left: 6px;
+    color: #1a472a;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+.auth-phone-wrap .auth-phone-input {
+    width: 100%;
+    height: auto;
+    box-sizing: border-box;
+    border-radius: 0.75rem;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+    padding-top: 0.875rem;
+    padding-bottom: 0.875rem;
+    padding-right: 1rem;
+    /* left padding is applied by intl-tel-input for flag + dial code */
+    font-size: 0.875rem;
+    color: #1f2937;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    outline: none;
+}
+.auth-phone-wrap .auth-phone-input:focus {
+    border-color: #1a472a;
+    box-shadow: 0 0 0 3px rgba(200, 230, 53, 0.3);
+}
+.auth-phone-wrap .auth-phone-input::placeholder { color: #9ca3af; }
+.auth-phone-hint { margin-top: 0.25rem; font-size: 0.75rem; line-height: 1.25rem; color: #9ca3af; }
+</style>
+@endpush
+
 @push('scripts')
 <script src="{{ asset('users/assets/js/jquery.additional.methods.js') }}"></script>
+<script src="{{ asset('users/assets/plugin/select-flag/js/intlTelInput.min.js') }}"></script>
+<script
+    src="{{ asset('users/assets/js/signup-intl-phone.js') }}"
+    data-iti-utils="{{ asset('users/assets/plugin/select-flag/js/utils.js') }}"
+></script>
 <script>
 $(function () {
     function previewImage(input) {
@@ -148,16 +198,22 @@ $(function () {
         $(this).valid();
     });
 
-    $("#phone_number").on("input", function () {
-        this.value = this.value.replace(/[^0-9]/g, "");
+    initSignupIntlPhone({
+        inputSelector: "#phone_number",
+        countrySelector: "#country",
+        initialCountry: "ng",
     });
 
     $("#frm_signup").validate({
         ignore: [],
+        normalizer: function (value) {
+            return $.trim(value);
+        },
         rules: {
-            first_name: { required: true, minlength: 3 },
-            sur_name: { required: true, minlength: 3 },
-            phone_number: { required: true, digits: true, minlength: 11, maxlength: 11 },
+            // SC-08: profile_pic intentionally omitted — optional
+            first_name: { required: true, minlength: 1 },
+            sur_name: { required: true, minlength: 1 },
+            phone_number: { required: true, intlPhone: true },
             email: { required: true, email: true },
             password: { required: true, minlength: 7 },
             confirm_password: { required: true, equalTo: "#password" },
@@ -167,10 +223,13 @@ $(function () {
             gdpr_consent: { required: true },
         },
         messages: {
-            first_name: { required: "First name is required.", minlength: "At least 3 characters." },
-            sur_name: { required: "Surname is required.", minlength: "At least 3 characters." },
-            phone_number: { required: "Phone is required.", digits: "Digits only.", minlength: "Must be 11 digits.", maxlength: "Must be 11 digits." },
-            email: { required: "Email is required.", email: "Enter a valid email." },
+            first_name: { required: "First name is required.", minlength: "Enter your first name." },
+            sur_name: { required: "Surname is required.", minlength: "Enter your surname." },
+            phone_number: {
+                required: "Phone is required.",
+                intlPhone: "Enter a valid phone number for the selected country.",
+            },
+            email: { required: "Email is required.", email: "Enter a valid email with a domain (e.g. name@example.com)." },
             password: { required: "Password is required.", minlength: "At least 7 characters." },
             confirm_password: { required: "Please confirm password.", equalTo: "Passwords do not match." },
             street: { required: "Street is required." },
@@ -193,12 +252,13 @@ $(function () {
         $("#btn_signup").prop("disabled", true);
 
         const location = $("#street").val() + ", " + $("#city_state").val() + ", " + $("#country").val();
+        const phoneE164 = getSignupIntlPhoneE164("#phone_number");
 
         const payload = {
                 users_customers_type: "Individual",
                 first_name: $("#first_name").val(),
                 last_name: $("#sur_name").val(),
-                phone: $("#phone_number").val(),
+                phone: phoneE164,
                 email: $("#email").val(),
                 password: $("#password").val(),
                 location: location,
@@ -224,8 +284,12 @@ $(function () {
                 }
                 window.location.href = "/users/verification_code/" + response.data.users_customers_id;
             },
-            error: function () {
-                toastr.error("Registration failed. Please try again.");
+            error: function (xhr) {
+                var message = "Registration failed. Please try again.";
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    message = xhr.responseJSON.message;
+                }
+                toastr.error(message);
                 $("#btn_signup_text").removeClass("hidden");
                 $("#btn_signup_loader").addClass("hidden").removeClass("inline-flex");
                 $("#btn_signup").prop("disabled", false);

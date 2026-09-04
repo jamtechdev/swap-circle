@@ -57,8 +57,8 @@
                 @endunless
             </header>
 
-            <div class="flex flex-1 items-center justify-center px-4 pb-10 sm:px-8 lg:px-12">
-                <div class="w-full @yield('content_width', 'max-w-md')">
+            <div class="flex min-w-0 flex-1 items-center justify-center px-4 pb-10 sm:px-8 lg:px-12">
+                <div class="w-full min-w-0 @yield('content_width', 'max-w-md')">
                     @yield('content')
                 </div>
             </div>
@@ -67,10 +67,52 @@
 
     <script src="{{ asset('users/assets/js/jquery.min.js') }}"></script>
     <script src="{{ asset('users/assets/js/jquery.validate.min.js') }}"></script>
+    <script src="{{ asset('users/assets/js/portal-email.js') }}"></script>
     <link href="{{ asset('toasters/toastr.min.css') }}" rel="stylesheet">
     <script src="{{ asset('toasters/toastr.min.js') }}"></script>
+    <style>
+        /* Fallback if Vite auth.css isn't rebuilt yet — keep toasts under the auth header */
+        body.auth-page #toast-container {
+            position: fixed !important;
+            z-index: 100000 !important;
+            pointer-events: none;
+        }
+        body.auth-page #toast-container > div {
+            pointer-events: auto;
+            opacity: 1;
+            max-width: min(22rem, calc(100vw - 2rem));
+            width: min(22rem, calc(100vw - 2rem));
+        }
+        body.auth-page #toast-container.toast-top-right {
+            top: 4.75rem;
+            right: 1rem;
+            left: auto;
+            bottom: auto;
+            width: auto;
+        }
+        @media (max-width: 640px) {
+            body.auth-page #toast-container.toast-top-right {
+                top: 4.25rem;
+                right: 0.75rem;
+                left: 0.75rem;
+            }
+            body.auth-page #toast-container.toast-top-right > div {
+                width: 100%;
+                max-width: none;
+            }
+        }
+    </style>
     <script>
-        toastr.options = { closeButton: true, positionClass: 'toast-top-right', timeOut: 5000 };
+        toastr.options = {
+            closeButton: true,
+            newestOnTop: true,
+            progressBar: false,
+            positionClass: 'toast-top-right',
+            preventDuplicates: true,
+            timeOut: 5000,
+            extendedTimeOut: 2000,
+            target: 'body',
+        };
         @if(Session::has('success')) toastr.success(@json(Session::get('success'))); @endif
         @if(Session::has('error')) toastr.error(@json(Session::get('error'))); @endif
         @if(Session::has('warning')) toastr.warning(@json(Session::get('warning'))); @endif

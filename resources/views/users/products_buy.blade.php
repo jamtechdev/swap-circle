@@ -194,7 +194,7 @@
                                             @csrf
                                             <div class="portal-purchase-panel">
                                                 <div class="portal-purchase-form__body">
-                                                    <h3 class="portal-form-block-title">Personal information</h3>
+                                                    <h3 class="portal-form-block-title">Beneficiary's Details</h3>
                                                     <div class="row mt-0">
                                                         <input type="hidden" id="prodA_products_id" value="{{ $product->products_id }}" readonly disabled>
                                                         <div class="col-lg-4 col-md-4">
@@ -339,7 +339,7 @@
                                             @csrf
                                             <div class="portal-purchase-panel">
                                                 <div class="portal-purchase-form__body">
-                                                    <h3 class="portal-form-block-title">Personal information</h3>
+                                                    <h3 class="portal-form-block-title">Beneficiary's Details</h3>
                                                     <div class="row mt-0">
                                                         <input type="hidden" id="prodB_products_id" value="{{ $product->products_id }}" readonly disabled>
                                                         <div class="col-lg-4 col-md-6">
@@ -615,12 +615,14 @@
                                 <div class="portal-checkout-summary__total">
                                     <span>Total</span>
                                     @if($checkoutPrice !== null && $checkoutPrice !== '')
-                                        <strong>{{ $checkoutCurrency }}{{ number_format((float) $checkoutPrice, 2) }}</strong>
+                                        <strong id="checkout_summary_total"
+                                            data-base-price="{{ (float) $checkoutPrice }}"
+                                            data-currency="{{ $checkoutCurrency }}">{{ $checkoutCurrency }}{{ number_format((float) $checkoutPrice, 2) }}</strong>
                                     @else
-                                        <strong>—</strong>
+                                        <strong id="checkout_summary_total">—</strong>
                                     @endif
                                 </div>
-                                <p class="portal-checkout-summary__note">Complete the form on the left, then continue to payment.</p>
+                                <p class="portal-checkout-summary__note" id="checkout_summary_cover_note">Monthly cover (base price). Annual is 12× monthly.</p>
                             </aside>
                         </div>
                     </div>
@@ -758,7 +760,32 @@
             $('.cover_duration').on('change', function () {
                 var product = $(this).data('product');
                 calculateCoverEndDate(product);
+                updateCheckoutSummaryTotal();
             });
+
+            function updateCheckoutSummaryTotal() {
+                var $total = $('#checkout_summary_total');
+                var base = parseFloat($total.data('base-price'));
+                if (!base || isNaN(base)) {
+                    return;
+                }
+
+                var duration = $('#prodA_cover_duration').val()
+                    || $('#prodB_cover_duration').val()
+                    || 'Monthly';
+                var isAnnual = /year|annual|365/i.test(String(duration));
+                var multiplier = isAnnual ? 12 : 1;
+                var billed = Math.round(base * multiplier * 100) / 100;
+                var currency = $total.data('currency') || '';
+                $total.text(currency + billed.toFixed(2));
+                $('#checkout_summary_cover_note').text(
+                    isAnnual
+                        ? 'Annual cover (12 × monthly base).'
+                        : 'Monthly cover (base price). Annual is 12× monthly.'
+                );
+            }
+
+            updateCheckoutSummaryTotal();
 
             $(".task_date").datepicker({
                 dateFormat: "dd-mm-yy",

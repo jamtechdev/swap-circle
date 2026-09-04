@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\View\Composers\AuthViewComposer;
 use Illuminate\Support\Facades\View;
+use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -25,6 +26,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        // Production: never follow public/hot (Vite HMR). Accidental deploy of that
+        // file would blank auth CSS/JS by pointing browsers at localhost:5173.
+        if ($this->app->environment('production')) {
+            Vite::useHotFile(storage_path('framework/.vite-hot-disabled'));
+        }
+
         View::composer([
             'layout.auth.master',
             'admin.login',
@@ -39,6 +46,8 @@ class AppServiceProvider extends ServiceProvider
             'users.users_customers_resend_otp',
             'users.users_customers_signup_verified',
             'users.users_customers_signup_wait',
+            'errors.404',
+            'errors.500',
         ], AuthViewComposer::class);
     }
 }

@@ -16,6 +16,10 @@ use App\Helpers\Helper;
 use App\services\InsuretechSyncService;
 use App\Support\UserPortal;
 use App\Support\EmailStyles;
+use App\Support\PasswordHasher;
+use App\Support\AuthMessages;
+use App\Support\EmailAddress;
+use App\Support\CoverPricing;
 use App\Http\Controllers\PushNotificationController;
 use Barryvdh\DomPDF\Facade\Pdf;
 
@@ -152,7 +156,7 @@ public function paymentSuccess(Request $request)
       $ninInfo = 'Not Provided';
     }
 
-    $invoiceUrl = $purchase_id ? url('/api/download-invoice/'.$purchase_id) : '';
+    $invoiceUrl = $purchase_id ? url('/users/download-invoice/'.$purchase_id) : '';
     $greeting = 'Dear ' . htmlspecialchars(trim($customer->first_name . ' ' . ($customer->last_name ?? ''))) . ',<br><br>Thank you for your purchase with <strong>Swap Circle</strong>. Your order has been successfully received. Please find below the details of your purchase:';
     $table = '
             <tr><th>Product Name</th><td>' . $productName . '</td></tr>
@@ -189,7 +193,7 @@ public function paymentSuccess(Request $request)
     $deliveriesLimit      = $task->delivery_request_limit;
     $deliveriesUsed       = $task->delivery_requests_consumed;
 
-    $invoiceUrl = $purchase_id ? url('/api/download-invoice/'.$purchase_id) : '';
+    $invoiceUrl = $purchase_id ? url('/users/download-invoice/'.$purchase_id) : '';
     $greeting = 'Dear ' . htmlspecialchars(trim($customer->first_name . ' ' . ($customer->last_name ?? ''))) . ',<br><br>Thank you for your task request with <strong>Swap Circle</strong>. Please find below the details of your requested task:';
     $table = '
             <tr><th>Product Name</th><td>' . $productName . '</td></tr>
@@ -224,12 +228,12 @@ public function paymentSuccess(Request $request)
         } else{
           $response["code"] = 404;
           $response["status"] = "error";
-          $response["message"] = "User do not exist.";
+          $response["message"] = AuthMessages::userNotFound();
         }
       } else {
         $response["code"] = 404;
         $response["status"] = "error";
-        $response["message"] = "Email does not exits.";
+        $response["message"] = AuthMessages::emailNotFound();
       }
     } else {
       $response["code"] = 404;
@@ -245,18 +249,34 @@ public function paymentSuccess(Request $request)
 
   /* LOGIN USERS CUSTOMERS */
   public function users_customers_login(Request $req){
+    // SC-02 / SC-03: shared auth copy — identical message for unknown email and wrong password
+    $genericAuthError = AuthMessages::loginFailed();
+    // Fixed bcrypt hash used only to keep response timing similar when the email is unknown
+    $timingDummyHash = '$2y$12$ogZJhpTbXRkwqnn2WvPfSuKQICxkkT9IHn067gTqV6r7OmP31dVG.';
+
     if (isset($req->email) && isset($req->password)) {
-      $email = DB::table('users_customers')->where('email', $req->email)->first();
-      if ($email) {
-        $data=DB::table('users_customers')->where('email', $req->email)->first();
-        $password=$data->password;
+      $emailInput = EmailAddress::normalize($req->email);
+      if (!EmailAddress::isValid($emailInput)) {
+        $response["code"] = 422;
+        $response["status"] = "error";
+        $response["message"] = AuthMessages::emailInvalid();
+      } else {
+      $req->merge(['email' => $emailInput]);
+      $data = DB::table('users_customers')->where('email', $req->email)->first();
+      if ($data) {
+        $password = $data->password;
         $id = $data->users_customers_id;
-        if (md5($req->password) == $password) {
+        if (PasswordHasher::check((string) $req->password, (string) $password)) {
+          if (PasswordHasher::needsRehash((string) $password)) {
+            DB::table('users_customers')->where('users_customers_id', $id)->update([
+              'password' => PasswordHasher::hash((string) $req->password),
+            ]);
+          }
           if($data->status == 'Active'){
             if (($data->verified_badge ?? 'No') !== 'Yes') {
               $response["code"] = 403;
               $response["status"] = "error";
-              $response["message"] = "Please verify your email before signing in. Check your inbox for the verification code or request a new one.";
+              $response["message"] = AuthMessages::verifyEmailRequired();
               $response["verification_required"] = true;
               $response["users_customers_id"] = $id;
               $response["resend_url"] = url('/users/resend_otp/' . $id);
@@ -272,28 +292,31 @@ public function paymentSuccess(Request $request)
                 $response["status"] = "success";
                 $response["data"] = $userDetail;
               } else{
-                $response["code"] = 404;
+                $response["code"] = 401;
                 $response["status"] = "error";
-                $response["message"] = "User do not exist.";
+                $response["message"] = $genericAuthError;
               }
             }
           } else {
-            $response["code"] = 404;
+            $response["code"] = 403;
             $response["status"] = "error";
             $response["message"] = "Your account is in ".$data->status." status. Please contact admin.";
           }
         } else {
-          $response["code"] = 404;
+          $response["code"] = 401;
           $response["status"] = "error";
-          $response["message"] = "Password do not match.";
+          $response["message"] = $genericAuthError;
         }
-      }else{
-        $response["code"] = 404;
+      } else {
+        // Burn similar CPU time as a real password check so timing cannot reveal registration
+        PasswordHasher::check((string) $req->password, $timingDummyHash);
+        $response["code"] = 401;
         $response["status"] = "error";
-        $response["message"] = "Email does not exits.";
+        $response["message"] = $genericAuthError;
+      }
       }
     } else {
-      $response["code"] = 404;
+      $response["code"] = 422;
       $response["status"] = "error";
       $response["message"] = "All fields are needed.";
     }
@@ -311,8 +334,11 @@ public function paymentSuccess(Request $request)
       $payload['resend_url'] = $response['resend_url'];
     }
 
+    // SC-09: return semantic HTTP status (not always 200) while keeping JSON body shape
+    $httpStatus = (int) ($response['code'] ?? 200);
+
     return response()
-    ->json($payload)
+    ->json($payload, $httpStatus)
     ->header('Content-Type', 'application/json');
   }
   /* LOGIN USERS CUSTOMERS */
@@ -332,6 +358,57 @@ public function paymentSuccess(Request $request)
           'status' => 'error',
           'message' => 'Please accept the Terms, Privacy Policy, and GDPR information to continue.',
         ], 422)->header('Content-Type', 'application/json');
+      }
+
+      $emailInput = EmailAddress::normalize($req->email);
+      if (!EmailAddress::isValid($emailInput)) {
+        return response()->json([
+          'status' => 'error',
+          'message' => AuthMessages::emailInvalid(),
+        ], 422)->header('Content-Type', 'application/json');
+      }
+      $req->merge(['email' => $emailInput]);
+
+      // SC-01: require normalised international phone (E.164), never accept truncated junk
+      $phone = preg_replace('/\s+/', '', trim((string) $req->phone));
+      if (!preg_match('/^\+[1-9]\d{6,14}$/', $phone)) {
+        return response()->json([
+          'status' => 'error',
+          'message' => 'Enter a valid international phone number including country code (e.g. +2348012345678).',
+        ], 422)->header('Content-Type', 'application/json');
+      }
+      $req->merge(['phone' => $phone]);
+
+      // SC-05: allow short real names (Al, Jo, Li); reject empty/whitespace only
+      $firstName = trim((string) $req->first_name);
+      if ($firstName === '') {
+        return response()->json([
+          'status' => 'error',
+          'message' => 'First name is required.',
+        ], 422)->header('Content-Type', 'application/json');
+      }
+      $req->merge(['first_name' => $firstName]);
+
+      if (($req->users_customers_type ?? '') === 'Individual') {
+        $lastName = trim((string) ($req->last_name ?? ''));
+        if ($lastName === '') {
+          return response()->json([
+            'status' => 'error',
+            'message' => 'Surname is required.',
+          ], 422)->header('Content-Type', 'application/json');
+        }
+        $req->merge(['last_name' => $lastName]);
+      }
+
+      if (($req->users_customers_type ?? '') === 'Company') {
+        $companyName = trim((string) ($req->company_name ?? ''));
+        if ($companyName === '') {
+          return response()->json([
+            'status' => 'error',
+            'message' => 'Company name is required.',
+          ], 422)->header('Content-Type', 'application/json');
+        }
+        $req->merge(['company_name' => $companyName]);
       }
 
       $email = DB::table('users_customers')->where('email', $req->email)->get()->count();
@@ -354,7 +431,7 @@ public function paymentSuccess(Request $request)
         $saveData['first_name']           = $req->first_name;
         $saveData['phone']                = $req->phone;
         $saveData['email']                = $req->email;
-        $saveData['password']             = md5($req->password);
+        $saveData['password']             = PasswordHasher::hash((string) $req->password);
         $saveData['location']             = $req->location;
 
         if ($req->one_signal_id) {
@@ -399,6 +476,9 @@ public function paymentSuccess(Request $request)
 
           file_put_contents($image_path, base64_decode($profile_pic));
           $saveData['profile_pic'] = 'uploads/users_customers/'. $img_name;
+        } else {
+          // SC-08: optional upload — assign a generated default avatar
+          $saveData['profile_pic'] = 'users/assets/images/default-avatar.svg';
         }
         if(isset($req->refer_code)){
           $receiver_id=base64_decode($req->refer_code);
@@ -458,18 +538,21 @@ public function paymentSuccess(Request $request)
         $response["status"]   = "success";
         $response["data"]     = $users_customers;
       } else {
-        $response["code"]     = 401;
+        $response["code"]     = 409;
         $response["status"]   = "error";
         $response["message"]  = "Email already exists.";
       }
     } else {
-      $response["code"] = 404;
+      $response["code"] = 422;
       $response["status"] = "error";
       $response["message"] = "All fields are needed.";
     }
 
+    // SC-09: semantic HTTP status alongside JSON body
+    $httpStatus = (int) ($response['code'] ?? 200);
+
     return response()
-     ->json(array( 'status' => $response["status"], isset($response["message"]) ? 'message' : 'data' => isset($response["message"]) ? $response["message"] : $response["data"]))
+     ->json(array( 'status' => $response["status"], isset($response["message"]) ? 'message' : 'data' => isset($response["message"]) ? $response["message"] : $response["data"]), $httpStatus)
      ->header('Content-Type', 'application/json');
   }
   /* SIGNUP USERS CUSTOMERS */
@@ -630,12 +713,20 @@ public function paymentSuccess(Request $request)
   /* FORGETPASSWORD API */
   public function forgot_password(Request $req){
     if (!isset($req->email) || trim((string) $req->email) === '') {
-      $response["code"] = 404;
+      $response["code"] = 422;
       $response["status"] = "error";
-      $response["message"] = "Please enter email address.";
+      $response["message"] = AuthMessages::emailRequired();
     } else {
-      $email = trim((string) $req->email);
+      $email = EmailAddress::normalize($req->email);
+      if (!EmailAddress::isValid($email)) {
+        $response["code"] = 422;
+        $response["status"] = "error";
+        $response["message"] = AuthMessages::emailInvalid();
+      } else {
       $data = DB::table('users_customers')->where('email', $email)->first();
+
+      // SC-02 / SC-03: always return the same success payload; copy from AuthMessages
+      $genericResetMessage = AuthMessages::resetLinkSent();
 
       if ($data) {
         $otp = (string) random_int(100000, 999999);
@@ -658,22 +749,29 @@ public function paymentSuccess(Request $request)
           ));
 
         $this->send_simple_mail($email, 'Reset Your Swap Circle Password', $message);
+      }
 
-        $response["code"] = 200;
-        $response["status"] = "success";
-        $response["data"] = [
-          'email' => $email,
-          'message' => 'Password reset link has been sent to your email.',
-        ];
-      } else {
-        $response["code"] = 404;
-        $response["status"] = "error";
-        $response["message"] = "Email does not exists.";
+      $response["code"] = 200;
+      $response["status"] = "success";
+      $response["data"] = [
+        'email' => $email,
+        'message' => $genericResetMessage,
+      ];
       }
     }
 
+    // SC-09: semantic HTTP status alongside JSON body
+    $httpStatus = (int) ($response['code'] ?? 200);
+    $body = ['status' => $response['status']];
+    if (isset($response['message'])) {
+      $body['message'] = $response['message'];
+    }
+    if (isset($response['data'])) {
+      $body['data'] = $response['data'];
+    }
+
     return response()
-      ->json(array( 'status' => $response["status"], isset($response["message"]) ? 'message' : 'data' => isset($response["message"]) ? $response["message"] : $response["data"]))
+      ->json($body, $httpStatus)
       ->header('Content-Type', 'application/json');
   }
   /* FORGETPASSWORD API */
@@ -690,7 +788,7 @@ public function paymentSuccess(Request $request)
         if ($req->confirm_password == $req->password) {
           $otpData=[
            'verify_code'=> null,
-           'password' => md5($req->password)
+           'password' => PasswordHasher::hash((string) $req->password)
           ];
 
           $UserotpUpdate =DB::table('users_customers')->where('email', $req->email)->update($otpData);
@@ -726,9 +824,9 @@ public function paymentSuccess(Request $request)
     if (isset($req->email) && isset($req->old_password) && isset($req->password) && isset($req->confirm_password)) {
       $old_password = DB::table('users_customers')->select('password')->where('email', $req->email)->first();
       $old_passwordDB = $old_password->password;
-      if ($old_passwordDB == md5($req->old_password)) {
+      if (PasswordHasher::check((string) $req->old_password, (string) $old_passwordDB)) {
         if ($req->confirm_password == $req->password) {
-          $otpData=array('password' => md5($req->password));
+          $otpData=array('password' => PasswordHasher::hash((string) $req->password));
           $UserotpUpdate =DB::table('users_customers')->where('email', $req->email)->update($otpData);
           $users_customers = DB::table('users_customers')->where('email', $req->email)->get();
 
@@ -784,7 +882,7 @@ public function paymentSuccess(Request $request)
       }else{
         $response["code"] = 404;
         $response["status"] = "error";
-        $response["message"] = "Email does not exists.";
+        $response["message"] = AuthMessages::emailNotFound();
       }
     }else{
       $response["code"] = 404;
@@ -1211,24 +1309,34 @@ public function paymentSuccess(Request $request)
   /* EMAIL EXIST API */
   public function email_exist(Request $req){
     if (isset($req->email)) {
-      $email=DB::table('users_customers')->where('email', $req->email)->first();
+      $emailInput = EmailAddress::normalize($req->email);
+      if (!EmailAddress::isValid($emailInput)) {
+        $response["code"] = 422;
+        $response["status"] = "error";
+        $response["message"] = AuthMessages::emailInvalid();
+      } else {
+      $email=DB::table('users_customers')->where('email', $emailInput)->first();
       if ($email) {
-        $response["code"] = 200;
+        $response["code"] = 409;
         $response["status"] = "error";
         $response["message"]  ="Email already exists.";
       }else{
-        $response["code"] = 404;
+        $response["code"] = 200;
         $response["status"] = "success";
-        $response["message"] = "Email does not exists.";
+        $response["message"] = AuthMessages::emailNotFound();
+      }
       }
     }else{
-      $response["code"] = 404;
+      $response["code"] = 422;
       $response["status"] = "error";
-      $response["message"] = "Please enter email address.";
+      $response["message"] = AuthMessages::emailRequired();
     }
 
+    // SC-09: semantic HTTP status alongside JSON body
+    $httpStatus = (int) ($response['code'] ?? 200);
+
     return response()
-      ->json(array( 'status' => $response["status"], isset($response["message"]) ? 'message' : 'data' => isset($response["message"]) ? $response["message"] : $response["data"]))
+      ->json(array( 'status' => $response["status"], isset($response["message"]) ? 'message' : 'data' => isset($response["message"]) ? $response["message"] : $response["data"]), $httpStatus)
       ->header('Content-Type', 'application/json');
   }
   /* EMAIL EXIST API */
@@ -1324,7 +1432,7 @@ public function paymentSuccess(Request $request)
 	    }else{
 	      $response["code"] = 404;
 	      $response["status"] = "error";
-	      $response["message"] = "User does not exists.";
+	      $response["message"] = "User does not exist.";
 	    }
     }else{
       $response["code"] = 404;
@@ -1717,12 +1825,12 @@ public function paymentSuccess(Request $request)
             }else{
               $response["code"] = 404;
               $response["status"] = "error";
-              $response["message"] = "Receiver Currency does not exists.";
+              $response["message"] = "Receiver Currency does not exist.";
             }
           }else{
             $response["code"] = 404;
             $response["status"] = "error";
-            $response["message"] = "Your Currency does not exists.";
+            $response["message"] = "Your Currency does not exist.";
           }
         }else{
           $response["code"] = 404;
@@ -2534,12 +2642,12 @@ public function paymentSuccess(Request $request)
         }else{
           $response["code"] = 404;
           $response["status"] = "error";
-          $response["message"] = "From Currency does not exists.";
+          $response["message"] = "From Currency does not exist.";
         }
       }else{
         $response["code"] = 404;
         $response["status"] = "error";
-        $response["message"] = "To Currency does not exists.";
+        $response["message"] = "To Currency does not exist.";
       }
     }else{
       $response["code"] = 404;
@@ -2595,12 +2703,12 @@ public function paymentSuccess(Request $request)
         }else{
           $response["code"] = 404;
           $response["status"] = "error";
-          $response["message"] = "From Currency does not exists.";
+          $response["message"] = "From Currency does not exist.";
         }
       }else{
         $response["code"] = 404;
         $response["status"] = "error";
-        $response["message"] = "To Currency does not exists.";
+        $response["message"] = "To Currency does not exist.";
       }
     }else{
       $response["code"] = 404;
@@ -2715,7 +2823,7 @@ public function paymentSuccess(Request $request)
       }else{
         $response["code"] = 404;
         $response["status"] = "error";
-        $response["message"] = "User does not exists.";
+        $response["message"] = "User does not exist.";
       }
     }else{
       $response["code"] = 404;
@@ -2756,12 +2864,12 @@ public function paymentSuccess(Request $request)
         }else{
           $response["code"] = 404;
           $response["status"] = "error";
-          $response["message"] = "Swap offer does not exists.";
+          $response["message"] = "Swap offer does not exist.";
         }
       }else{
         $response["code"] = 404;
         $response["status"] = "error";
-        $response["message"] = "User does not exists.";
+        $response["message"] = "User does not exist.";
       }
     }else{
       $response["code"] = 404;
@@ -2795,12 +2903,12 @@ public function paymentSuccess(Request $request)
         }else{
           $response["code"] = 404;
           $response["status"] = "error";
-          $response["message"] = "Swap offer does not exists.";
+          $response["message"] = "Swap offer does not exist.";
         }
       }else{
         $response["code"] = 404;
         $response["status"] = "error";
-        $response["message"] = "User does not exists.";
+        $response["message"] = "User does not exist.";
       }
     }else{
       $response["code"] = 404;
@@ -2963,12 +3071,12 @@ public function paymentSuccess(Request $request)
         }else{
           $response["code"] = 404;
           $response["status"] = "error";
-          $response["message"] = "Connect Article does not exists.";
+          $response["message"] = "Connect Article does not exist.";
         }
       }else{
         $response["code"] = 404;
         $response["status"] = "error";
-        $response["message"] = "User does not exists.";
+        $response["message"] = "User does not exist.";
       }
     }else{
       $response["code"] = 404;
@@ -3002,12 +3110,12 @@ public function paymentSuccess(Request $request)
         }else{
           $response["code"] = 404;
           $response["status"] = "error";
-          $response["message"] = "Connect Article does not exists.";
+          $response["message"] = "Connect Article does not exist.";
         }
       }else{
         $response["code"] = 404;
         $response["status"] = "error";
-        $response["message"] = "User does not exists.";
+        $response["message"] = "User does not exist.";
       }
     }else{
       $response["code"] = 404;
@@ -3052,12 +3160,12 @@ public function paymentSuccess(Request $request)
         }else{
           $response["code"] = 404;
           $response["status"] = "error";
-          $response["message"] = "Connect Article does not exists.";
+          $response["message"] = "Connect Article does not exist.";
         }
       }else{
         $response["code"] = 404;
         $response["status"] = "error";
-        $response["message"] = "User does not exists.";
+        $response["message"] = "User does not exist.";
       }
     }else{
       $response["code"] = 404;
@@ -3145,7 +3253,7 @@ public function paymentSuccess(Request $request)
       }else{
         $response["code"] = 404;
         $response["status"] = "error";
-        $response["message"] = "User does not exists.";
+        $response["message"] = "User does not exist.";
       }
     }else{
       $response["code"] = 404;
@@ -3189,12 +3297,12 @@ public function paymentSuccess(Request $request)
         }else{
           $response["code"] = 404;
           $response["status"] = "error";
-          $response["message"] = "Currency does not exists.";
+          $response["message"] = "Currency does not exist.";
         }
       }else{
         $response["code"] = 404;
         $response["status"] = "error";
-        $response["message"] = "User does not exists.";
+        $response["message"] = "User does not exist.";
       }
     }else{
       $response["code"] = 404;
@@ -3230,7 +3338,7 @@ public function paymentSuccess(Request $request)
       }else{
         $response["code"] = 404;
         $response["status"] = "error";
-        $response["message"] = "User does not exists.";
+        $response["message"] = "User does not exist.";
       }
     }else{
       $response["code"] = 404;
@@ -3341,12 +3449,12 @@ public function paymentSuccess(Request $request)
             } else{
               $response["code"] = 404;
               $response["status"] = "error";
-              $response["message"] = "User do not exist.";
+              $response["message"] = AuthMessages::userNotFound();
             }
       }else{
         $response["code"] = 404;
         $response["status"] = "error";
-        $response["message"] = "User does not exits.";
+        $response["message"] = AuthMessages::userNotFound();
       }
     } else {
       $response["code"] = 404;
@@ -3382,7 +3490,7 @@ public function paymentSuccess(Request $request)
       }else{
         $response["code"] = 404;
         $response["status"] = "error";
-        $response["message"] = "User does not exits.";
+        $response["message"] = "User does not exist.";
       }
     } else {
       $response["code"] = 404;
@@ -4080,13 +4188,14 @@ public function initiateStripePayment(Request $req)
             'products_purchases_id' => $purchase->products_purchases_id ?? null,
         ]);
     }
-    $price = (isset($product->custom_price) && is_numeric($product->custom_price))
-        ? $product->custom_price
-        : ($product->price ?? null);
-    if (!is_numeric($price)) {
+    $coverDuration = (string) ($purchase->cover_duration ?? '');
+    $basePrice = CoverPricing::basePrice($product);
+    $price = CoverPricing::billedPrice($product, $coverDuration);
+    if ($basePrice === null || $price === null) {
         return response()->json(['status' => 'error', 'message' => 'Invalid product price'], 400);
     }
-    $price = (float) $price;
+    $coverMultiplier = CoverPricing::multiplier($coverDuration);
+    $coverLabel = CoverPricing::coverLabel($coverDuration);
     $minimumPrice = $this->stripeMinimumPriceForCurrency($currency);
     if ($minimumPrice !== null && $price < $minimumPrice) {
         return response()->json([
@@ -4103,6 +4212,18 @@ public function initiateStripePayment(Request $req)
 
     $customer = DB::table('users_customers')->where('users_customers_id', $purchase->users_customers_id)->first();
     $customerEmail = is_string($customer->email ?? null) ? trim($customer->email) : '';
+    $productDescription = trim((string) ($product->description ?? ''));
+    if ($productDescription === '') {
+        $productDescription = 'Swap Circle Product';
+    }
+    // Stripe description max is ~500 chars; keep cover billing clear for the payer.
+    $stripeDescription = \Illuminate\Support\Str::limit(
+        $coverLabel . ' cover'
+            . ($coverMultiplier > 1 ? ' (' . $coverMultiplier . ' × monthly)' : '')
+            . ' — ' . $productDescription,
+        500,
+        '…'
+    );
 
     try {
         $sessionPayload = [
@@ -4112,7 +4233,7 @@ public function initiateStripePayment(Request $req)
                     'currency' => $currency,
                     'product_data' => [
                         'name' => $product->name,
-                        'description' => $product->description ?? 'Swap Circle Product',
+                        'description' => $stripeDescription,
                     ],
                     'unit_amount' => $amount,
                 ],
@@ -4125,6 +4246,10 @@ public function initiateStripePayment(Request $req)
                 'products_purchases_id' => (string) $purchase->products_purchases_id,
                 'users_customers_id' => (string) $purchase->users_customers_id,
                 'products_id' => (string) $purchase->products_id,
+                'cover_duration' => $coverDuration !== '' ? $coverDuration : $coverLabel,
+                'cover_multiplier' => (string) $coverMultiplier,
+                'base_price' => (string) $basePrice,
+                'billed_price' => (string) $price,
             ],
         ];
 
@@ -4152,6 +4277,10 @@ public function initiateStripePayment(Request $req)
             'session_id' => $session->id,
             'currency' => $currency,
             'amount' => $amount,
+            'base_price' => $basePrice,
+            'billed_price' => $price,
+            'cover_duration' => $coverDuration,
+            'cover_multiplier' => $coverMultiplier,
         ]);
 
         return response()->json([
@@ -4320,7 +4449,26 @@ public function handleStripeWebhook(Request $req)
         return response()->json(['status' => 'error', 'message' => 'Invalid signature'], 400);
     }
 
+    $eventId = (string) ($event->id ?? '');
+    if ($eventId !== '' && \Schema::hasTable('stripe_webhook_events')) {
+        $existing = DB::table('stripe_webhook_events')->where('event_id', $eventId)->first();
+        if ($existing) {
+            return response()->json(['status' => 'success', 'message' => 'Event already processed'], 200);
+        }
+    }
+
     if (!in_array($event->type, ['checkout.session.completed', 'checkout.session.async_payment_succeeded'], true)) {
+        if ($eventId !== '' && \Schema::hasTable('stripe_webhook_events')) {
+            DB::table('stripe_webhook_events')->insert([
+                'event_id' => $eventId,
+                'event_type' => (string) $event->type,
+                'products_purchases_id' => null,
+                'processing_status' => 'ignored',
+                'processed_at' => now(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
         return response()->json(['status' => 'success', 'message' => 'Ignored event'], 200);
     }
 
@@ -4342,6 +4490,18 @@ public function handleStripeWebhook(Request $req)
 
     try {
         $this->finalizePaidPurchase($purchase, $session, 'stripe_webhook:' . $event->type);
+
+        if ($eventId !== '' && \Schema::hasTable('stripe_webhook_events')) {
+            DB::table('stripe_webhook_events')->insertOrIgnore([
+                'event_id' => $eventId,
+                'event_type' => (string) $event->type,
+                'products_purchases_id' => $purchaseId,
+                'processing_status' => 'processed',
+                'processed_at' => now(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
     } catch (\Throwable $e) {
         \Log::error('Stripe webhook finalize failed', [
             'event' => $event->id,
@@ -4376,14 +4536,26 @@ private function isBeneficiaryAgeAllowed(string $dateOfBirth): bool
 
 private function resolveStripeBuyerId(Request $req): ?int
 {
-    if ($req->filled('users_customers_id') && is_numeric($req->users_customers_id)) {
-        $id = (int) $req->users_customers_id;
-        return $id > 0 ? $id : null;
+    // Session is authoritative (set by EnsurePortalCustomer + portal.session).
+    if (session()->has('id') && is_numeric(session('id'))) {
+        $sessionId = (int) session('id');
+        if ($sessionId <= 0) {
+            return null;
+        }
+
+        if ($req->filled('users_customers_id') && is_numeric($req->users_customers_id)) {
+            if ((int) $req->users_customers_id !== $sessionId) {
+                return null;
+            }
+        }
+
+        return $sessionId;
     }
 
-    if (session()->has('id') && is_numeric(session('id'))) {
-        $id = (int) session('id');
-        return $id > 0 ? $id : null;
+    // Attribute set by EnsurePortalCustomer middleware
+    $attrId = (int) $req->attributes->get('portal_users_customers_id', 0);
+    if ($attrId > 0) {
+        return $attrId;
     }
 
     return null;
@@ -4402,6 +4574,7 @@ private function finalizePaidPurchase(object $purchase, object $session, string 
     $purchaseId = (int) $purchase->products_purchases_id;
 
     if (($purchase->payment_status ?? '') === 'Successful') {
+        $this->ensurePaidSideEffects($purchase, $source);
         return ['already_confirmed' => true];
     }
 
@@ -4416,6 +4589,10 @@ private function finalizePaidPurchase(object $purchase, object $session, string 
         'date_modified' => date('Y-m-d H:i:s'),
     ];
 
+    if (\Schema::hasColumn('products_purchases', 'payment_finalized_source')) {
+        $update['payment_finalized_source'] = $source;
+    }
+
     if ($paymentIntentId) {
         $update['stripe_payment_intent'] = $paymentIntentId;
     }
@@ -4429,13 +4606,16 @@ private function finalizePaidPurchase(object $purchase, object $session, string 
         ->where('payment_status', '!=', 'Successful')
         ->update($update);
 
+    $freshPurchase = DB::table('products_purchases')->where('products_purchases_id', $purchaseId)->first();
+
     if ($affected === 0) {
+        if ($freshPurchase) {
+            $this->ensurePaidSideEffects($freshPurchase, $source);
+        }
         return ['already_confirmed' => true];
     }
 
-    $freshPurchase = DB::table('products_purchases')->where('products_purchases_id', $purchaseId)->first();
-    $this->sendPaidPurchaseConfirmation($freshPurchase ?: $purchase);
-    $this->triggerInsuretechPurchaseSync($purchaseId, $source);
+    $this->ensurePaidSideEffects($freshPurchase ?: $purchase, $source);
 
     \Log::info('Stripe purchase finalized', [
         'source' => $source,
@@ -4445,6 +4625,41 @@ private function finalizePaidPurchase(object $purchase, object $session, string 
     ]);
 
     return ['already_confirmed' => false];
+}
+
+/**
+ * Send confirmation email and Insuretech sync at most once each.
+ */
+private function ensurePaidSideEffects(object $purchase, string $source): void
+{
+    $purchaseId = (int) $purchase->products_purchases_id;
+    if (($purchase->payment_status ?? '') !== 'Successful') {
+        return;
+    }
+
+    $needsMail = !\Schema::hasColumn('products_purchases', 'confirmation_sent_at')
+        || empty($purchase->confirmation_sent_at);
+
+    if ($needsMail) {
+        $claimed = true;
+        if (\Schema::hasColumn('products_purchases', 'confirmation_sent_at')) {
+            $claimed = DB::table('products_purchases')
+                ->where('products_purchases_id', $purchaseId)
+                ->whereNull('confirmation_sent_at')
+                ->update(['confirmation_sent_at' => date('Y-m-d H:i:s')]) > 0;
+        }
+        if ($claimed) {
+            $fresh = DB::table('products_purchases')->where('products_purchases_id', $purchaseId)->first() ?: $purchase;
+            $this->sendPaidPurchaseConfirmation($fresh);
+        }
+    }
+
+    $needsSync = !\Schema::hasColumn('products_purchases', 'insuretech_synced_at')
+        || empty($purchase->insuretech_synced_at);
+
+    if ($needsSync) {
+        $this->triggerInsuretechPurchaseSync($purchaseId, $source);
+    }
 }
 
 private function sendPaidPurchaseConfirmation(object $purchase): void
@@ -4493,6 +4708,10 @@ private function stripeMinimumPriceForCurrency(string $currency): ?float
 
 public function sendTestMail()
 {
+    if (!app()->environment('local')) {
+        abort(404);
+    }
+
     $to = 'devjammer991@gmail.com';
 
     Mail::send([], [], function ($message) use ($to) {
@@ -4515,9 +4734,44 @@ private function triggerInsuretechPurchaseSync(?int $purchaseId, string $source)
         return;
     }
 
+    if (\Schema::hasColumn('products_purchases', 'insuretech_synced_at')) {
+        $already = DB::table('products_purchases')
+            ->where('products_purchases_id', $purchaseId)
+            ->whereNotNull('insuretech_synced_at')
+            ->exists();
+        if ($already) {
+            return;
+        }
+    }
+
     try {
         app(InsuretechSyncService::class)->runSync(['products_purchases_id' => $purchaseId]);
+
+        $syncUpdate = [];
+        if (\Schema::hasColumn('products_purchases', 'insuretech_synced_at')) {
+            $syncUpdate['insuretech_synced_at'] = date('Y-m-d H:i:s');
+        }
+        if (\Schema::hasColumn('products_purchases', 'insuretech_sync_status')) {
+            $syncUpdate['insuretech_sync_status'] = 'success';
+        }
+        if (\Schema::hasColumn('products_purchases', 'insuretech_sync_error')) {
+            $syncUpdate['insuretech_sync_error'] = null;
+        }
+        if ($syncUpdate !== []) {
+            DB::table('products_purchases')->where('products_purchases_id', $purchaseId)->update($syncUpdate);
+        }
     } catch (\Throwable $syncException) {
+        $failUpdate = [];
+        if (\Schema::hasColumn('products_purchases', 'insuretech_sync_status')) {
+            $failUpdate['insuretech_sync_status'] = 'failed';
+        }
+        if (\Schema::hasColumn('products_purchases', 'insuretech_sync_error')) {
+            $failUpdate['insuretech_sync_error'] = \Illuminate\Support\Str::limit($syncException->getMessage(), 1000);
+        }
+        if ($failUpdate !== []) {
+            DB::table('products_purchases')->where('products_purchases_id', $purchaseId)->update($failUpdate);
+        }
+
         \Log::warning('Insuretech sync failed.', [
             'source' => $source,
             'purchase_id' => $purchaseId,

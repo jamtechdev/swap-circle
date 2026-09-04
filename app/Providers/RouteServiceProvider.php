@@ -2,7 +2,10 @@
 
 namespace App\Providers;
 
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 
 class RouteServiceProvider extends ServiceProvider
@@ -30,7 +33,17 @@ class RouteServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
+        RateLimiter::for('stripe-payment', function (Request $request) {
+            $key = $request->session()->get('id') ?: $request->ip();
+
+            return Limit::perMinute(10)->by('stripe:'.$key);
+        });
+
+        RateLimiter::for('login', function (Request $request) {
+            $email = strtolower((string) $request->input('email', ''));
+
+            return Limit::perMinute(8)->by('login:'.$email.'|'.$request->ip());
+        });
 
         parent::boot();
     }

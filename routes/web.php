@@ -205,6 +205,7 @@ Route::get('/admin/products_update/{status}/{id}', [AdminController::class, 'pro
 // USERS CUSTOMERS TRANSACTIONS
 Route::get('/admin/users_customers_trxns', [AdminController::class, 'users_customers_trxns'])->name('users_customers_trxns');
 Route::get('/admin/transactions', [AdminController::class, 'products_transactions']);
+Route::post('/admin/transactions/refund', [AdminController::class, 'refund_product_purchase']);
 // USERS CUSTOMERS TRANSACTIONS
 
 // PRODUCTS CLAIMS

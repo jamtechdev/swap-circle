@@ -21,7 +21,7 @@
         <p class="mt-2 text-sm text-gray-500">Enter the 4-digit code sent to your registered email address.</p>
     </div>
 
-    <form id="frm_verification_code" class="mt-8 space-y-6" novalidate>
+    <form id="frm_verification_code" method="post" action="#" class="mt-8 space-y-6" novalidate>
         @csrf
         <input type="hidden" id="users_customers_id" value="{{ $id }}">
 

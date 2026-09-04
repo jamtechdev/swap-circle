@@ -119,7 +119,7 @@ class InsuretechSyncService
         $idempotencyKey = $fixedTransactionNumber . '-' . substr(md5(uniqid('', true)), 0, 8);
 
         $coverDuration = $this->resolveCoverDuration((string) ($purchase->cover_duration ?? ''));
-        $partnerPrice  = $this->productSalePrice($product);
+        $partnerPrice  = $this->productSalePrice($product, (string) ($purchase->cover_duration ?? ''));
         $currencyCode  = $this->productCurrencyCode($product);
 
         $submitPayload = [
@@ -217,15 +217,11 @@ class InsuretechSyncService
         return 'SWAP_PRODUCT_' . (int) $localProduct->products_id;
     }
 
-    private function productSalePrice(object $product): float
+    private function productSalePrice(object $product, ?string $coverDuration = null): float
     {
-        foreach (['custom_price', 'price'] as $field) {
-            if (isset($product->{$field}) && is_numeric($product->{$field})) {
-                return (float) $product->{$field};
-            }
-        }
+        $price = \App\Support\CoverPricing::billedPrice($product, $coverDuration);
 
-        return 0.0;
+        return $price !== null ? $price : 0.0;
     }
 
     private function productCurrencyCode(object $product): string

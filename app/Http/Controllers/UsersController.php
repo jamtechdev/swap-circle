@@ -501,14 +501,14 @@ class UsersController extends Controller{
             return redirect('/users/products')->with('error', 'Invalid payment session.');
         }
 
-        // Call API to handle success (pass buyer id explicitly for in-process auth)
+        // Call API to handle success — reuse web session for buyer auth
         $apiController = new ApiController();
-        $apiRequest = new Request();
-        $apiRequest->merge([
+        $apiRequest = Request::create('/api/stripe/handle-success', 'POST', [
             'session_id' => $session_id,
             'purchase_id' => $purchase_id,
             'users_customers_id' => (int) session('id'),
         ]);
+        $apiRequest->setLaravelSession($request->session());
 
         $response = $apiController->handleStripeSuccess($apiRequest);
         $responseData = json_decode($response->getContent(), true);
@@ -603,10 +603,13 @@ class UsersController extends Controller{
             return redirect('/users/products')->with('error', 'Invalid purchase session.');
         }
 
-        // Call API to handle cancellation
+        // Call API to handle cancellation (session buyer is authoritative)
         $apiController = new ApiController();
-        $apiRequest = new Request();
-        $apiRequest->merge(['purchase_id' => $purchase_id]);
+        $apiRequest = Request::create('/api/stripe/handle-cancel', 'POST', [
+            'purchase_id' => $purchase_id,
+            'users_customers_id' => session('id'),
+        ]);
+        $apiRequest->setLaravelSession($request->session());
 
         $response = $apiController->handleStripeCancel($apiRequest);
         $responseData = json_decode($response->getContent(), true);

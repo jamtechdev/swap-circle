@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\services\InsuretechSyncService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 
 class InsuretechSyncController extends Controller
 {
@@ -21,6 +24,23 @@ class InsuretechSyncController extends Controller
             $request->validate([
                 'products_purchases_id' => 'required|integer|min:1',
             ]);
+
+            // Admin/manual retry: clear prior success lock so sync can run again
+            if ($request->boolean('force_retry') && Schema::hasTable('products_purchases')) {
+                $clear = [];
+                if (Schema::hasColumn('products_purchases', 'insuretech_synced_at')) {
+                      $clear['insuretech_synced_at'] = null;
+                }
+                if (Schema::hasColumn('products_purchases', 'insuretech_sync_status')) {
+                    $clear['insuretech_sync_status'] = 'pending_retry';
+                }
+                if (Schema::hasColumn('products_purchases', 'insuretech_sync_error')) {
+                    $clear['insuretech_sync_error'] = null;
+                }
+                if ($clear !== []) {
+                    DB::table('products_purchases')->where('products_purchases_id', $purchaseId)->update($clear);
+                }
+            }
         } else {
             $customerName = trim((string) $request->input('customer_name', ''));
             $customerEmail = trim((string) $request->input('customer_email', ''));
@@ -49,6 +69,26 @@ class InsuretechSyncController extends Controller
         }
 
         $result = $syncService->runSync($request->all());
+
+        if ($purchaseId > 0 && Schema::hasTable('products_purchases')) {
+            $ok = (bool) ($result['ok'] ?? false);
+            $syncUpdate = [];
+            if (Schema::hasColumn('products_purchases', 'insuretech_sync_status')) {
+                $syncUpdate['insuretech_sync_status'] = $ok ? 'success' : 'failed';
+            }
+            if ($ok && Schema::hasColumn('products_purchases', 'insuretech_synced_at')) {
+                $syncUpdate['insuretech_synced_at'] = now();
+            }
+            if (!$ok && Schema::hasColumn('products_purchases', 'insuretech_sync_error')) {
+                $syncUpdate['insuretech_sync_error'] = Str::limit((string) ($result['message'] ?? 'Sync failed'), 1000);
+            }
+            if ($ok && Schema::hasColumn('products_purchases', 'insuretech_sync_error')) {
+                $syncUpdate['insuretech_sync_error'] = null;
+            }
+            if ($syncUpdate !== []) {
+                DB::table('products_purchases')->where('products_purchases_id', $purchaseId)->update($syncUpdate);
+            }
+        }
 
         return response()->json($result, ($result['ok'] ?? false) ? 200 : 422);
     }

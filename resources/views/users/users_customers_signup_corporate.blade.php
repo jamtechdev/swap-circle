@@ -20,14 +20,14 @@
         <p class="mt-1 text-sm text-gray-500">Register your company and representative details below.</p>
     </div>
 
-    <form id="frm_signup" class="mt-8 space-y-8" novalidate>
+    <form id="frm_signup" method="post" action="#" class="mt-8 space-y-8" novalidate>
         @csrf
 
         <div>
-            <p class="auth-section-title">Company logo</p>
+            <p class="auth-section-title">Company logo <span class="normal-case tracking-normal text-gray-400">(optional)</span></p>
             <label for="profile_pic" class="auth-upload group" id="upload_profile">
                 <img src="{{ asset('users/assets/images/icons/document-upload.png') }}" id="profile_pic_preview" alt="" class="h-10 w-10 opacity-60 group-hover:opacity-100">
-                <span class="mt-2 text-xs font-semibold text-forest/70">Upload logo <span class="font-normal text-gray-400">(optional)</span></span>
+                <span class="mt-2 text-xs font-semibold text-forest/70">Company logo <span class="font-normal text-gray-400">(optional)</span></span>
                 <input type="file" accept="image/png,image/jpg,image/jpeg" name="profile_pic" id="profile_pic" class="absolute inset-0 cursor-pointer opacity-0">
             </label>
             <span class="auth-error text-center" id="error_profile_pic"></span>
@@ -52,9 +52,12 @@
                     <input type="email" id="email" name="email" class="auth-input !pl-4" placeholder="contact@company.com" autocomplete="email">
                     <span class="auth-error" id="error_email"></span>
                 </div>
-                <div class="sm:col-span-2">
+                <div class="sm:col-span-2 sm:max-w-md">
                     <label for="phone_number" class="auth-label">Phone number *</label>
-                    <input type="tel" id="phone_number" name="phone_number" class="auth-input !pl-4 sm:max-w-xs" placeholder="08012345678" maxlength="11" inputmode="numeric">
+                    <div class="auth-phone-wrap">
+                        <input type="tel" id="phone_number" name="phone_number" class="auth-phone-input" placeholder="801 234 5678" autocomplete="tel" inputmode="tel">
+                    </div>
+                    <p class="auth-phone-hint">Choose your country from the flag list, then enter your mobile number. International numbers are supported.</p>
                     <span class="auth-error" id="error_phone_number"></span>
                 </div>
             </div>
@@ -67,7 +70,7 @@
                     <label for="password" class="auth-label">Create password *</label>
                     <div class="relative">
                         <input type="password" id="password" name="password" class="auth-input !pl-4 pr-11" placeholder="Min. 7 characters" autocomplete="new-password">
-                        <button type="button" class="auth-input-toggle" data-toggle-password="#password" aria-label="Toggle password"></button>
+                        <button type="button" class="auth-input-toggle" data-toggle-password="#password" aria-label="Show password" aria-pressed="false"></button>
                     </div>
                     <span class="auth-error" id="error_password"></span>
                 </div>
@@ -75,7 +78,7 @@
                     <label for="confirm_password" class="auth-label">Confirm password *</label>
                     <div class="relative">
                         <input type="password" id="confirm_password" name="confirm_password" class="auth-input !pl-4 pr-11" placeholder="Repeat password" autocomplete="new-password">
-                        <button type="button" class="auth-input-toggle" data-toggle-password="#confirm_password" aria-label="Toggle password"></button>
+                        <button type="button" class="auth-input-toggle" data-toggle-password="#confirm_password" data-show-label="Show confirm password" data-hide-label="Hide confirm password" aria-label="Show confirm password" aria-pressed="false"></button>
                     </div>
                     <span class="auth-error" id="error_confirm_password"></span>
                 </div>
@@ -123,8 +126,54 @@
     </form>
 @endsection
 
+@push('head')
+<link rel="stylesheet" href="{{ asset('users/assets/plugin/select-flag/css/intlTelInput.min.css') }}">
+<style>
+/* SC-01 phone layout — do not force padding-left; intl-tel-input sets it for the dial code */
+.auth-phone-wrap { width: 100%; }
+.auth-phone-wrap .iti { width: 100%; display: block; font-family: "DM Sans", sans-serif; }
+.auth-phone-wrap .iti__flag-container { z-index: 3; }
+.auth-phone-wrap .iti__selected-flag {
+    padding: 0 8px 0 10px;
+    border-radius: 0.75rem 0 0 0.75rem;
+}
+.auth-phone-wrap .iti--separate-dial-code .iti__selected-dial-code {
+    margin-left: 6px;
+    color: #1a472a;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+.auth-phone-wrap .auth-phone-input {
+    width: 100%;
+    height: auto;
+    box-sizing: border-box;
+    border-radius: 0.75rem;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+    padding-top: 0.875rem;
+    padding-bottom: 0.875rem;
+    padding-right: 1rem;
+    font-size: 0.875rem;
+    color: #1f2937;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    outline: none;
+}
+.auth-phone-wrap .auth-phone-input:focus {
+    border-color: #1a472a;
+    box-shadow: 0 0 0 3px rgba(200, 230, 53, 0.3);
+}
+.auth-phone-wrap .auth-phone-input::placeholder { color: #9ca3af; }
+.auth-phone-hint { margin-top: 0.25rem; font-size: 0.75rem; line-height: 1.25rem; color: #9ca3af; }
+</style>
+@endpush
+
 @push('scripts')
 <script src="{{ asset('users/assets/js/jquery.additional.methods.js') }}"></script>
+<script src="{{ asset('users/assets/plugin/select-flag/js/intlTelInput.min.js') }}"></script>
+<script
+    src="{{ asset('users/assets/js/signup-intl-phone.js') }}"
+    data-iti-utils="{{ asset('users/assets/plugin/select-flag/js/utils.js') }}"
+></script>
 <script>
 $(function () {
     function previewImage(input) {
@@ -143,15 +192,24 @@ $(function () {
         previewImage(this);
         $(this).valid();
     });
-    $("#phone_number").on("input", function () { this.value = this.value.replace(/[^0-9]/g, ""); });
+
+    initSignupIntlPhone({
+        inputSelector: "#phone_number",
+        countrySelector: "#country",
+        initialCountry: "ng",
+    });
 
     $("#frm_signup").validate({
         ignore: [],
+        normalizer: function (value) {
+            return $.trim(value);
+        },
         rules: {
+            // SC-08: profile_pic / company logo intentionally omitted — optional
             company_name: { required: true },
-            representative_name: { required: true, minlength: 3 },
+            representative_name: { required: true, minlength: 1 },
             email: { required: true, email: true },
-            phone_number: { required: true, digits: true, minlength: 11, maxlength: 11 },
+            phone_number: { required: true, intlPhone: true },
             password: { required: true, minlength: 7 },
             confirm_password: { required: true, equalTo: "#password" },
             street: { required: true },
@@ -161,9 +219,12 @@ $(function () {
         },
         messages: {
             company_name: { required: "Company name is required." },
-            representative_name: { required: "Representative name is required.", minlength: "At least 3 characters." },
-            email: { required: "Email is required.", email: "Enter a valid email." },
-            phone_number: { required: "Phone is required.", digits: "Digits only.", minlength: "Must be 11 digits.", maxlength: "Must be 11 digits." },
+            representative_name: { required: "Representative name is required.", minlength: "Enter the representative name." },
+            email: { required: "Email is required.", email: "Enter a valid email with a domain (e.g. name@example.com)." },
+            phone_number: {
+                required: "Phone is required.",
+                intlPhone: "Enter a valid phone number for the selected country.",
+            },
             password: { required: "Password is required.", minlength: "At least 7 characters." },
             confirm_password: { required: "Please confirm password.", equalTo: "Passwords do not match." },
             street: { required: "Street is required." },
@@ -186,13 +247,14 @@ $(function () {
         $("#btn_signup").prop("disabled", true);
 
         const location = $("#street").val() + ", " + $("#city_state").val() + ", " + $("#country").val();
+        const phoneE164 = getSignupIntlPhoneE164("#phone_number");
 
         const payload = {
                 users_customers_type: "Company",
                 company_name: $("#company_name").val(),
                 first_name: $("#representative_name").val(),
                 email: $("#email").val(),
-                phone: $("#phone_number").val(),
+                phone: phoneE164,
                 password: $("#password").val(),
                 location: location,
                 gdpr_consent: $("#gdpr_consent").is(":checked") ? "yes" : "",
@@ -217,8 +279,12 @@ $(function () {
                 }
                 window.location.href = "/users/verification_code/" + response.data.users_customers_id;
             },
-            error: function () {
-                toastr.error("Registration failed. Please try again.");
+            error: function (xhr) {
+                var message = "Registration failed. Please try again.";
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    message = xhr.responseJSON.message;
+                }
+                toastr.error(message);
                 $("#btn_signup_text").removeClass("hidden");
                 $("#btn_signup_loader").addClass("hidden").removeClass("inline-flex");
                 $("#btn_signup").prop("disabled", false);

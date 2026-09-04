@@ -13,14 +13,18 @@
 @section('content')
     <div class="text-center lg:text-left">
         <img src="{{ asset('uploads/system_image/' . $brandLogo) }}" alt="{{ $brandName }}" class="mx-auto h-12 w-auto lg:mx-0">
-        <div class="mx-auto mt-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-lime-soft lg:mx-0">
-            <svg class="h-7 w-7 text-forest" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+        <div class="mt-6 inline-flex max-w-full flex-col items-center gap-2 lg:items-start">
+            <div class="flex items-center gap-2.5">
+                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-lime-soft">
+                    <svg class="h-5 w-5 text-forest" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+                </div>
+                <h1 class="text-3xl font-bold leading-tight text-forest">Forgot Password?</h1>
+            </div>
+            <p class="text-sm text-gray-500">Enter your email and we&apos;ll send a reset link if an account exists for it.</p>
         </div>
-        <h1 class="mt-5 text-3xl font-bold text-forest">Forgot Password?</h1>
-        <p class="mt-2 text-sm text-gray-500">Enter your registered email and we'll send a secure reset link.</p>
     </div>
 
-    <form id="frm_forgot_password" class="mt-8 space-y-4" novalidate>
+    <form id="frm_forgot_password" method="post" action="#" class="mt-8 space-y-4" novalidate>
         @csrf
         <div>
             <label for="email" class="auth-label">Email address</label>
@@ -58,12 +62,19 @@ $(function () {
         messages: {
             email: {
                 required: "This field is required.",
-                email: "Please enter a valid email address.",
+                email: "Enter a valid email with a domain (e.g. name@example.com).",
             },
         },
+        errorClass: "error",
         errorPlacement: function (error, element) {
             if (element.attr("name") === "email") $("#error_email").html(error);
-        }
+        },
+        highlight: function (element) {
+            $(element).addClass("error");
+        },
+        unhighlight: function (element) {
+            $(element).removeClass("error");
+        },
     });
 
     $("#frm_forgot_password").on("submit", function (event) {
@@ -83,11 +94,15 @@ $(function () {
             if (response.status === "error") {
                 toastr.error(response.message);
             } else {
-                toastr.success(response.data.message || "Password reset link has been sent to your email.");
+                toastr.success(response.data.message || @json(__('auth.portal_reset_sent')));
                 $("#frm_forgot_password")[0].reset();
             }
-        }).fail(function () {
-            toastr.error("Unable to send reset link. Please try again.");
+        }).fail(function (xhr) {
+            var message = "Unable to send reset link. Please try again.";
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+                message = xhr.responseJSON.message;
+            }
+            toastr.error(message);
         }).always(function () {
             $("#btnForgotPassword").prop("disabled", false);
             $("#btn_forgot_text").removeClass("hidden");
